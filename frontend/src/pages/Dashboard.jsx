@@ -132,7 +132,20 @@ export function Dashboard() {
                                         </div>
                                         <div>
                                             <h4 className="text-lg font-bold text-gray-900">{store.name}</h4>
-                                            <p className="text-xs text-gray-500">/{store.sub_url}</p>
+                                            <div className="flex items-center space-x-2">
+                                                <p className="text-xs text-gray-500">/{store.sub_url}</p>
+                                                <span className="text-gray-300">•</span>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(store.id);
+                                                        alert('Store ID copied to clipboard!');
+                                                    }}
+                                                    className="text-[10px] text-gray-400 font-mono hover:text-indigo-600 transition-colors"
+                                                    title="Click to copy unique ID"
+                                                >
+                                                    ID: {store.id.substring(0, 8)}...
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <button
