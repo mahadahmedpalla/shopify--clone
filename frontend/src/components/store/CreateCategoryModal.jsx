@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { X, LayoutGrid } from 'lucide-react';
 
-export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, parentOptions }) {
+export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCategories }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
@@ -45,6 +45,20 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, paren
             setLoading(false);
         }
     };
+
+    // Helper to render flattened categories with indentation for the dropdown
+    const getFlattenedOptions = (items, parentId = null, depth = 0) => {
+        let options = [];
+        items
+            .filter(item => item.parent_id === parentId)
+            .forEach(item => {
+                options.push({ ...item, depth });
+                options = [...options, ...getFlattenedOptions(items, item.id, depth + 1)];
+            });
+        return options;
+    };
+
+    const flattenedOptions = getFlattenedOptions(allCategories);
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -113,8 +127,10 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, paren
                                     required
                                 >
                                     <option value="">Select a parent category...</option>
-                                    {parentOptions.map(parent => (
-                                        <option key={parent.id} value={parent.id}>{parent.name}</option>
+                                    {flattenedOptions.map(cat => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {'\u00A0'.repeat(cat.depth * 4)} {cat.depth > 0 ? '↳ ' : ''} {cat.name}
+                                        </option>
                                     ))}
                                 </select>
                             </div>

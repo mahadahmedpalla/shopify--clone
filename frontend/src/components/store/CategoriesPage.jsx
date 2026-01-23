@@ -43,6 +43,18 @@ export function CategoriesPage() {
         else fetchCategories();
     };
 
+    const handleDeleteCategory = async (id) => {
+        if (!confirm('Are you sure you want to delete this category? All sub-categories will also be deleted.')) return;
+
+        const { error } = await supabase
+            .from('product_categories')
+            .delete()
+            .eq('id', id);
+
+        if (error) alert('Failed to delete category: ' + error.message);
+        else fetchCategories();
+    };
+
     const toggleExpand = (id) => {
         const newExpanded = new Set(expandedParents);
         if (newExpanded.has(id)) newExpanded.delete(id);
@@ -54,8 +66,17 @@ export function CategoriesPage() {
         c.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const parentCategories = filteredCategories.filter(c => !c.parent_id);
-    const getSubCategories = (parentId) => filteredCategories.filter(c => c.parent_id === parentId);
+    // Build a tree structure for recursive rendering
+    const buildTree = (items, parentId = null) => {
+        return items
+            .filter(item => item.parent_id === parentId)
+            .map(item => ({
+                ...item,
+                children: buildTree(items, item.id)
+            }));
+    };
+
+    const categoryTree = buildTree(filteredCategories);
 
     return (
         <div className="space-y-6">
@@ -99,29 +120,21 @@ export function CategoriesPage() {
                                 <tr>
                                     <td colSpan="4" className="px-6 py-12 text-center text-slate-400">Loading categories...</td>
                                 </tr>
-                            ) : parentCategories.length === 0 ? (
+                            ) : categoryTree.length === 0 ? (
                                 <tr>
                                     <td colSpan="4" className="px-6 py-12 text-center text-slate-400">No categories found. Click "Create Category" to get started.</td>
                                 </tr>
                             ) : (
-                                parentCategories.map(parent => (
-                                    <React.Fragment key={parent.id}>
-                                        <CategoryRow
-                                            category={parent}
-                                            hasChildren={getSubCategories(parent.id).length > 0}
-                                            isExpanded={expandedParents.has(parent.id)}
-                                            onToggleExpand={() => toggleExpand(parent.id)}
-                                            onToggleStatus={() => handleToggleStatus(parent)}
-                                        />
-                                        {expandedParents.has(parent.id) && getSubCategories(parent.id).map(child => (
-                                            <CategoryRow
-                                                key={child.id}
-                                                category={child}
-                                                isChild
-                                                onToggleStatus={() => handleToggleStatus(child)}
-                                            />
-                                        ))}
-                                    </React.Fragment>
+                                categoryTree.map(node => (
+                                    <CategoryNodes
+                                        key={node.id}
+                                        node={node}
+                                        level={0}
+                                        expandedParents={expandedParents}
+                                        onToggleExpand={toggleExpand}
+                                        onToggleStatus={handleToggleStatus}
+                                        onDelete={handleDeleteCategory}
+                                    />
                                 ))
                             )}
                         </tbody>
@@ -137,21 +150,50 @@ export function CategoriesPage() {
                     fetchCategories();
                 }}
                 storeId={storeId}
-                parentOptions={parentCategories}
+                allCategories={categories}
             />
         </div>
     );
 }
 
-function CategoryRow({ category, isChild, hasChildren, isExpanded, onToggleExpand, onToggleStatus }) {
+function CategoryNodes({ node, level, expandedParents, onToggleExpand, onToggleStatus, onDelete }) {
+    const hasChildren = node.children && node.children.length > 0;
+    const isExpanded = expandedParents.has(node.id);
+
     return (
-        <tr className={`hover:bg-slate-50 transition-colors ${isChild ? 'bg-slate-50/30' : ''}`}>
+        <React.Fragment>
+            <CategoryRow
+                category={node}
+                level={level}
+                hasChildren={hasChildren}
+                isExpanded={isExpanded}
+                onToggleExpand={onToggleExpand}
+                onToggleStatus={onToggleStatus}
+                onDelete={onDelete}
+            />
+            {isExpanded && node.children.map(child => (
+                <CategoryNodes
+                    key={child.id}
+                    node={child}
+                    level={level + 1}
+                    expandedParents={expandedParents}
+                    onToggleExpand={onToggleExpand}
+                    onToggleStatus={onToggleStatus}
+                    onDelete={onDelete}
+                />
+            ))}
+        </React.Fragment>
+    );
+}
+
+function CategoryRow({ category, level, hasChildren, isExpanded, onToggleExpand, onToggleStatus, onDelete }) {
+    return (
+        <tr className={`hover:bg-slate-50 transition-colors ${level > 0 ? 'bg-slate-50/10' : ''}`}>
             <td className="px-6 py-4">
                 <div className="flex items-center">
-                    {isChild ? (
-                        <div className="w-8" />
-                    ) : hasChildren ? (
-                        <button onClick={onToggleExpand} className="mr-2 text-slate-400 hover:text-slate-600">
+                    <div style={{ width: `${level * 24}px` }} />
+                    {hasChildren ? (
+                        <button onClick={() => onToggleExpand(category.id)} className="mr-2 text-slate-400 hover:text-slate-600">
                             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </button>
                     ) : (
@@ -171,7 +213,7 @@ function CategoryRow({ category, isChild, hasChildren, isExpanded, onToggleExpan
             </td>
             <td className="px-6 py-4">
                 <button
-                    onClick={onToggleStatus}
+                    onClick={() => onToggleStatus(category)}
                     className={`flex items-center space-x-2 text-xs font-bold transition-colors ${category.is_active ? 'text-green-600' : 'text-slate-400'}`}
                 >
                     {category.is_active ? <ToggleRight className="h-5 w-5" /> : <Toggle className="h-5 w-5" />}
@@ -181,7 +223,12 @@ function CategoryRow({ category, isChild, hasChildren, isExpanded, onToggleExpan
             <td className="px-6 py-4 text-right">
                 <div className="flex justify-end space-x-2">
                     <button className="p-1 text-slate-400 hover:text-indigo-600"><Edit2 className="h-4 w-4" /></button>
-                    <button className="p-1 text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                    <button
+                        onClick={() => onDelete(category.id)}
+                        className="p-1 text-slate-400 hover:text-red-600"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </button>
                 </div>
             </td>
         </tr>
