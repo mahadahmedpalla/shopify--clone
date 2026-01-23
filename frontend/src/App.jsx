@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Navbar } from './components/common/Navbar';
 import { StoreLayout } from './components/store/StoreLayout';
 import { CategoriesPage } from './components/store/CategoriesPage';
+import { ProductsPage } from './components/store/ProductsPage';
 
 // Simple Layout Wrapper
 function Layout({ children }) {
@@ -72,7 +73,7 @@ function App() {
           <Route path="/store/:storeId" element={<StoreLayout />}>
             <Route index element={<Navigate to="categories" replace />} />
             <Route path="categories" element={<CategoriesPage />} />
-            <Route path="products" element={<div className="p-8 text-center text-slate-400 font-medium">Products Feature Coming Soon</div>} />
+            <Route path="products" element={<ProductsPage />} />
             <Route path="orders" element={<div className="p-8 text-center text-slate-400 font-medium">Orders Feature Coming Soon</div>} />
             <Route path="analytics" element={<div className="p-8 text-center text-slate-400 font-medium">Analytics Feature Coming Soon</div>} />
             <Route path="coupons" element={<div className="p-8 text-center text-slate-400 font-medium">Coupons Feature Coming Soon</div>} />
