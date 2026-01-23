@@ -4,8 +4,9 @@ import { supabase } from '../lib/supabase';
 import { Navbar } from '../components/common/Navbar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Plus, Store, CreditCard, ExternalLink } from 'lucide-react';
+import { Plus, Store, CreditCard, ExternalLink, Trash2 } from 'lucide-react';
 import { CreateStoreModal } from '../components/dashboard/CreateStoreModal';
+import { DeleteStoreModal } from '../components/dashboard/DeleteStoreModal';
 
 export function Dashboard() {
     const [user, setUser] = useState(null);
@@ -13,6 +14,7 @@ export function Dashboard() {
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [storeToDelete, setStoreToDelete] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -122,15 +124,24 @@ export function Dashboard() {
                 ) : (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {stores.map((store) => (
-                            <Card key={store.id} className="hover:shadow-md transition-shadow">
-                                <div className="flex items-center space-x-3 mb-4">
-                                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
-                                        {store.name.charAt(0)}
+                            <Card key={store.id} className="hover:shadow-md transition-shadow group">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
+                                            {store.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-lg font-bold text-gray-900">{store.name}</h4>
+                                            <p className="text-xs text-gray-500">/{store.sub_url}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="text-lg font-bold text-gray-900">{store.name}</h4>
-                                        <p className="text-xs text-gray-500">/{store.sub_url}</p>
-                                    </div>
+                                    <button
+                                        onClick={() => setStoreToDelete(store)}
+                                        className="p-1.5 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Delete Store"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
                                 </div>
                                 <div className="border-t border-gray-100 pt-4 mt-4 flex justify-between items-center">
                                     <div className="flex space-x-2">
@@ -158,6 +169,18 @@ export function Dashboard() {
                 }}
                 userId={user?.id}
             />
+
+            {storeToDelete && (
+                <DeleteStoreModal
+                    isOpen={!!storeToDelete}
+                    store={storeToDelete}
+                    onClose={() => setStoreToDelete(null)}
+                    onSuccess={() => {
+                        setStoreToDelete(null);
+                        fetchData(); // Refresh list
+                    }}
+                />
+            )}
         </div>
     );
 }
