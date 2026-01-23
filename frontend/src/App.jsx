@@ -6,6 +6,8 @@ import { RegisterForm } from './components/auth/RegisterForm';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Dashboard } from './pages/Dashboard';
 import { Navbar } from './components/common/Navbar';
+import { StoreLayout } from './components/store/StoreLayout';
+import { CategoriesPage } from './components/store/CategoriesPage';
 
 // Simple Layout Wrapper
 function Layout({ children }) {
@@ -65,6 +67,19 @@ function App() {
               <Dashboard />
             </DashboardLayout>
           } />
+
+          {/* Store Sub-Dashboard Routes */}
+          <Route path="/store/:storeId" element={<StoreLayout />}>
+            <Route index element={<Navigate to="categories" replace />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="products" element={<div className="p-8 text-center text-slate-400 font-medium">Products Feature Coming Soon</div>} />
+            <Route path="orders" element={<div className="p-8 text-center text-slate-400 font-medium">Orders Feature Coming Soon</div>} />
+            <Route path="analytics" element={<div className="p-8 text-center text-slate-400 font-medium">Analytics Feature Coming Soon</div>} />
+            <Route path="coupons" element={<div className="p-8 text-center text-slate-400 font-medium">Coupons Feature Coming Soon</div>} />
+            <Route path="discounts" element={<div className="p-8 text-center text-slate-400 font-medium">Discounts Feature Coming Soon</div>} />
+            <Route path="customize" element={<div className="p-8 text-center text-slate-400 font-medium">Customize Store Coming Soon</div>} />
+            <Route path="settings" element={<div className="p-8 text-center text-slate-400 font-medium">Store Settings Coming Soon</div>} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

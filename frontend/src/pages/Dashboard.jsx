@@ -4,17 +4,21 @@ import { supabase } from '../lib/supabase';
 import { Navbar } from '../components/common/Navbar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Plus, Store, CreditCard, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus, Store, CreditCard, ExternalLink, Trash2, LayoutDashboard } from 'lucide-react';
 import { CreateStoreModal } from '../components/dashboard/CreateStoreModal';
 import { DeleteStoreModal } from '../components/dashboard/DeleteStoreModal';
+import { StoreLoginModal } from '../components/dashboard/StoreLoginModal';
+import { useNavigate } from 'react-router-dom';
 
 export function Dashboard() {
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [storeToDelete, setStoreToDelete] = useState(null);
+    const [storeToEnter, setStoreToEnter] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -47,6 +51,10 @@ export function Dashboard() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleEnterStore = (storeId) => {
+        navigate(`/store/${storeId}`);
     };
 
     if (loading) {
@@ -124,7 +132,11 @@ export function Dashboard() {
                 ) : (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {stores.map((store) => (
-                            <Card key={store.id} className="hover:shadow-md transition-shadow group">
+                            <Card
+                                key={store.id}
+                                className="hover:shadow-md transition-all group cursor-pointer active:scale-[0.98]"
+                                onDoubleClick={() => setStoreToEnter(store)}
+                            >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center space-x-3">
                                         <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
@@ -136,7 +148,8 @@ export function Dashboard() {
                                                 <p className="text-xs text-gray-500">/{store.sub_url}</p>
                                                 <span className="text-gray-300">•</span>
                                                 <button
-                                                    onClick={() => {
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
                                                         navigator.clipboard.writeText(store.id);
                                                         alert('Store ID copied to clipboard!');
                                                     }}
@@ -148,13 +161,28 @@ export function Dashboard() {
                                             </div>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => setStoreToDelete(store)}
-                                        className="p-1.5 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        title="Delete Store"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
+                                    <div className="flex space-x-1">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setStoreToEnter(store);
+                                            }}
+                                            className="p-1.5 text-gray-400 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Enter Dashboard"
+                                        >
+                                            <LayoutDashboard className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setStoreToDelete(store);
+                                            }}
+                                            className="p-1.5 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Delete Store"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="border-t border-gray-100 pt-4 mt-4 flex justify-between items-center">
                                     <div className="flex space-x-2">
@@ -163,7 +191,15 @@ export function Dashboard() {
                                             {store.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
-                                    <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-900 p-0">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-indigo-600 hover:text-indigo-900 p-0"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(`https://storeplatform.com/${store.sub_url}`, '_blank');
+                                        }}
+                                    >
                                         <ExternalLink className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -182,6 +218,15 @@ export function Dashboard() {
                 }}
                 userId={user?.id}
             />
+
+            {storeToEnter && (
+                <StoreLoginModal
+                    isOpen={!!storeToEnter}
+                    store={storeToEnter}
+                    onClose={() => setStoreToEnter(null)}
+                    onAuthenticated={handleEnterStore}
+                />
+            )}
 
             {storeToDelete && (
                 <DeleteStoreModal
