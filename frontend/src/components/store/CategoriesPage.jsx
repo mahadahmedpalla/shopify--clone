@@ -201,10 +201,18 @@ function CategoryRow({ category, level, hasChildren, isExpanded, onToggleExpand,
                     )}
                     <div className="flex flex-col">
                         <span className="font-semibold text-slate-800 text-sm flex items-center">
-                            <LayoutGrid className="h-3 w-3 mr-2 text-slate-400" />
+                            {category.image_url ? (
+                                <img
+                                    src={category.image_url}
+                                    alt={category.name}
+                                    className="h-6 w-6 rounded-full object-cover mr-2 bg-slate-100 border border-slate-200"
+                                />
+                            ) : (
+                                <LayoutGrid className="h-3 w-3 mr-2 text-slate-400" />
+                            )}
                             {category.name}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400 mt-1 uppercase tracking-tight">ID: {category.id}</span>
+                        <span className="text-[10px] font-mono text-slate-400 mt-1 uppercase tracking-tight ml-8">ID: {category.id}</span>
                     </div>
                 </div>
             </td>

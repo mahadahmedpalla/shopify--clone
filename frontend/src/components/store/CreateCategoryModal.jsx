@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { X, LayoutGrid } from 'lucide-react';
+import { X, LayoutGrid, Upload, Camera } from 'lucide-react';
 
 export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCategories }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -17,12 +19,42 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
 
     if (!isOpen) return null;
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
         try {
+            let image_url = null;
+
+            // 1. Upload Image to Supabase Storage if selected
+            if (imageFile) {
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `${storeId}/${Math.random()}.${fileExt}`;
+                const filePath = `thumbnails/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('categories')
+                    .upload(filePath, imageFile);
+
+                if (uploadError) throw new Error('Image upload failed: ' + uploadError.message);
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('categories')
+                    .getPublicUrl(filePath);
+
+                image_url = publicUrl;
+            }
+
+            // 2. Insert into Database
             const { data, error: insertError } = await supabase
                 .from('product_categories')
                 .insert([{
@@ -30,7 +62,8 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
                     name: formData.name,
                     description: formData.description,
                     parent_id: formData.is_sub_category ? (formData.parent_id || null) : null,
-                    is_active: true
+                    is_active: true,
+                    image_url: image_url
                 }])
                 .select()
                 .single();
@@ -38,12 +71,23 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
             if (insertError) throw insertError;
 
             onSuccess(data);
-            setFormData({ name: '', description: '', parent_id: '', is_sub_category: false });
+            resetForm();
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const resetForm = () => {
+        setFormData({ name: '', description: '', parent_id: '', is_sub_category: false });
+        setImageFile(null);
+        setImagePreview(null);
+    };
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
     };
 
     // Helper to render flattened categories with indentation for the dropdown
@@ -63,7 +107,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={onClose}>
+                <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={handleClose}>
                     <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
                 </div>
 
@@ -71,7 +115,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
 
                 <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 z-50">
                     <div className="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
-                        <button onClick={onClose} type="button" className="text-gray-400 hover:text-gray-500">
+                        <button onClick={handleClose} type="button" className="text-gray-400 hover:text-gray-500">
                             <X className="h-6 w-6" />
                         </button>
                     </div>
@@ -87,6 +131,48 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
                     </div>
 
                     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                        {/* Thumbnail Upload */}
+                        <div className="flex flex-col items-center sm:items-start space-y-3 mb-6">
+                            <label className="block text-sm font-medium text-gray-700">Category Thumbnail (Optional)</label>
+                            <div className="flex items-center space-x-4">
+                                <div className="relative h-20 w-20 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden group">
+                                    {imagePreview ? (
+                                        <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <Camera className="h-8 w-8 text-slate-400" />
+                                    )}
+                                    <label htmlFor="thumbnail-upload" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        <Upload className="h-5 w-5 text-white" />
+                                    </label>
+                                </div>
+                                <div className="flex flex-col space-y-1">
+                                    <input
+                                        type="file"
+                                        id="thumbnail-upload"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => document.getElementById('thumbnail-upload').click()}
+                                        className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                                    >
+                                        {imagePreview ? 'Change Image' : 'Upload Image'}
+                                    </button>
+                                    {imagePreview && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setImageFile(null); setImagePreview(null); }}
+                                            className="text-xs font-semibold text-red-500 hover:text-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         <Input
                             label="Category Name"
                             value={formData.name}
@@ -152,7 +238,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
                                 type="button"
                                 variant="secondary"
                                 className="mt-3 w-full sm:mt-0 sm:w-auto"
-                                onClick={onClose}
+                                onClick={handleClose}
                             >
                                 Cancel
                             </Button>
