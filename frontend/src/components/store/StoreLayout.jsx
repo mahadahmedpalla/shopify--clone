@@ -14,8 +14,8 @@ import {
     LogOut,
     Store
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { Button } from './ui/Button';
+import { supabase } from '../../lib/supabase';
+import { Button } from '../ui/Button';
 
 export function StoreLayout() {
     const { storeId } = useParams();
