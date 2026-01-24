@@ -30,18 +30,34 @@ export function ProductsPage() {
             .eq('store_id', storeId);
         setCategories(cats || []);
 
-        // Fetch Products with category names
+        // Fetch Products with category names and variants
         const { data: prods, error } = await supabase
             .from('products')
             .select(`
                 *,
-                product_categories (name)
+                product_categories (name),
+                product_variants (id, price, quantity, combination)
             `)
             .eq('store_id', storeId)
             .order('created_at', { ascending: false });
 
         if (error) console.error('Error fetching products:', error);
-        else setProducts(prods || []);
+        else {
+            // Process derived values
+            const processedProds = prods.map(p => {
+                const totalQty = p.product_variants?.reduce((sum, v) => sum + v.quantity, 0) || 0;
+                const prices = p.product_variants?.map(v => v.price) || [];
+                const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+                const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+
+                return {
+                    ...p,
+                    derived_quantity: totalQty,
+                    price_range: minPrice === maxPrice ? `$${minPrice.toFixed(2)}` : `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`
+                };
+            });
+            setProducts(processedProds);
+        }
         setLoading(false);
     };
 
@@ -137,12 +153,19 @@ export function ProductsPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-sm font-bold text-slate-900">${p.price.toFixed(2)}</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-slate-900">{p.price_range}</span>
+                                            {p.product_variants?.length > 1 && (
+                                                <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter mt-1 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 w-fit">
+                                                    {p.product_variants.length} SKU Variants
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center space-x-2">
-                                            <span className={`h-2 w-2 rounded-full ${p.quantity > 10 ? 'bg-green-500' : p.quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
-                                            <span className="text-sm font-medium text-slate-700">{p.quantity} units</span>
+                                            <span className={`h-2 w-2 rounded-full ${p.derived_quantity > 10 ? 'bg-green-500' : p.derived_quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
+                                            <span className="text-sm font-medium text-slate-700">{p.derived_quantity} total</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
