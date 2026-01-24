@@ -238,12 +238,12 @@ export function ProductsPage() {
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Variation</span>
                                             </td>
                                             <td className="px-6 py-3">
-                                                <span className="text-sm font-bold text-slate-600">${parseFloat(variant.price).toFixed(2)}</span>
+                                                <span className="text-sm font-bold text-slate-600">${parseFloat(variant.price || p.price).toFixed(2)}</span>
                                             </td>
                                             <td className="px-6 py-3">
                                                 <div className="flex items-center space-x-2">
                                                     <span className={`h-1.5 w-1.5 rounded-full ${variant.quantity > 5 ? 'bg-green-400' : 'bg-orange-400'}`} />
-                                                    <span className="text-xs font-medium text-slate-600">{variant.quantity} in stock</span>
+                                                    <span className="text-xs font-medium text-slate-600">{variant.quantity || 0} in stock</span>
                                                 </div>
                                             </td>
                                             <td colSpan="2" className="px-6 py-3 text-right">

@@ -114,7 +114,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
     const generateVariants = () => {
         if (selectedAttributes.length === 0) return;
 
-        // Cartesian product logic
+        // 1. Generate all possible combinations
         const combinations = selectedAttributes.reduce((acc, attr) => {
             const result = [];
             attr.values.forEach(val => {
@@ -129,16 +129,39 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
             return result;
         }, []);
 
-        const newVariants = combinations.map(combo => ({
-            combination: combo,
-            price: product.price,
-            quantity: 0,
-            image_urls: product.image_urls || [],
-            use_base_price: true // Default to linked price
-        }));
+        // 2. Map combinations to variant objects, PRESERVING data for existing ones
+        const newVariants = combinations.map(combo => {
+            // Find if this combo already exists in our current state
+            const existing = variants.find(v => {
+                const vCombo = v.combination || {};
+                const keys = Object.keys(combo);
+                const vKeys = Object.keys(vCombo);
+                if (keys.length !== vKeys.length) return false;
+                return keys.every(k => vCombo[k] === combo[k]);
+            });
+
+            if (existing) {
+                return { ...existing }; // Keep existing price, stock, images
+            }
+
+            // Otherwise create a fresh one
+            return {
+                combination: combo,
+                price: product.price,
+                quantity: 0,
+                image_urls: product.image_urls || [],
+                use_base_price: true
+            };
+        });
 
         setVariants(newVariants);
         setStep(3);
+    };
+
+    const removeVariant = (index) => {
+        const newV = [...variants];
+        newV.splice(index, 1);
+        setVariants(newV);
     };
 
     const handleSave = async () => {
@@ -360,9 +383,28 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                         <h4 className="font-bold text-slate-800">Configure Variants</h4>
                                         <p className="text-xs text-slate-500">Customize price, stock, and photos for each combination.</p>
                                     </div>
-                                    <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
-                                        Total: {variants.length} Variants
-                                    </p>
+                                    <div className="flex items-center space-x-3">
+                                        <button
+                                            onClick={() => {
+                                                const combo = {};
+                                                selectedAttributes.forEach(a => combo[a.name] = '');
+                                                setVariants([...variants, {
+                                                    combination: combo,
+                                                    price: product.price,
+                                                    quantity: 0,
+                                                    image_urls: product.image_urls || [],
+                                                    use_base_price: true
+                                                }]);
+                                            }}
+                                            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-white border border-indigo-200 px-3 py-1 rounded-lg flex items-center shadow-sm"
+                                        >
+                                            <Plus className="h-3 w-3 mr-1" />
+                                            Add Manual Variation
+                                        </button>
+                                        <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                                            Total: {variants.length} Variants
+                                        </p>
+                                    </div>
                                 </div>
                                 <div className="space-y-6">
                                     {variants.map((v, vIdx) => (
@@ -376,7 +418,16 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                         </span>
                                                     ))}
                                                 </div>
-                                                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">Variant #{vIdx + 1}</span>
+                                                <div className="flex items-center space-x-3">
+                                                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">Variant #{vIdx + 1}</span>
+                                                    <button
+                                                        onClick={() => removeVariant(vIdx)}
+                                                        title="Delete this variation"
+                                                        className="text-red-300 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <div className="p-4 grid grid-cols-1 md:grid-cols-12 gap-6">
