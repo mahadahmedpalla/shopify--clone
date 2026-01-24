@@ -11,8 +11,7 @@ export function QuickEditVariantModal({ isOpen, variant, onClose, onSuccess }) {
     const [formData, setFormData] = useState({
         price: 0,
         quantity: 0,
-        combination: {},
-        use_base_price: true
+        combination: {}
     });
 
     useEffect(() => {
@@ -20,8 +19,7 @@ export function QuickEditVariantModal({ isOpen, variant, onClose, onSuccess }) {
             setFormData({
                 price: variant.price,
                 quantity: variant.quantity,
-                combination: { ...(variant.combination || {}) },
-                use_base_price: variant.use_base_price ?? true
+                combination: { ...(variant.combination || {}) }
             });
         }
     }, [isOpen, variant]);
@@ -36,10 +34,9 @@ export function QuickEditVariantModal({ isOpen, variant, onClose, onSuccess }) {
             const { error: updateError } = await supabase
                 .from('product_variants')
                 .update({
-                    price: formData.use_base_price ? variant.products?.price : parseFloat(formData.price),
+                    price: parseFloat(formData.price),
                     quantity: parseInt(formData.quantity) || 0,
-                    combination: formData.combination,
-                    use_base_price: formData.use_base_price
+                    combination: formData.combination
                 })
                 .eq('id', variant.id);
 
@@ -111,20 +108,9 @@ export function QuickEditVariantModal({ isOpen, variant, onClose, onSuccess }) {
                                 <Input
                                     type="number"
                                     step="0.01"
-                                    disabled={formData.use_base_price}
-                                    value={formData.use_base_price ? (variant.products?.price || variant.price) : formData.price}
+                                    value={formData.price}
                                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                                 />
-                                <div className="mt-2 flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        id="quick-edit-price-link"
-                                        className="h-3 w-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                                        checked={formData.use_base_price}
-                                        onChange={(e) => setFormData({ ...formData, use_base_price: e.target.checked })}
-                                    />
-                                    <label htmlFor="quick-edit-price-link" className="text-[10px] font-bold text-slate-500 uppercase tracking-tight cursor-pointer">Use Base Price</label>
-                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center">

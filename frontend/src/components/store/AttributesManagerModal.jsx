@@ -46,6 +46,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                 .eq('product_id', product.id);
 
             if (variantError) throw variantError;
+            if (variantError) throw variantError;
             if (data && data.length > 0) {
                 setVariants(data);
 
@@ -119,94 +120,30 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
     };
 
     const handleSave = async () => {
-        if (variants.length === 0) {
-            setError("No variants to save. Please add at least one variation.");
-            return;
-        }
-
-        // 1. Validation: Ensure all variants have at least one attribute value filled
-        const invalidVariant = variants.find(v => {
-            const values = Object.values(v.combination);
-            return values.length === 0 || values.some(val => !val || val.trim() === '');
-        });
-
-        if (invalidVariant) {
-            setError("Some variations have empty attribute values. Please fill them in or remove those variants.");
-            return;
-        }
-
         setLoading(true);
         setError(null);
 
         try {
-            // 2. Fetch current IDs from DB to identify exactly what to delete later
-            const { data: dbVariants, error: fetchError } = await supabase
+            // 1. Delete old variants for this product to avoid duplicates/conflicts
+            await supabase.from('product_variants').delete().eq('product_id', product.id);
+
+            // 2. Insert new variants
+            const { error: insertError } = await supabase
                 .from('product_variants')
-                .select('id')
-                .eq('product_id', product.id);
-
-            if (fetchError) throw fetchError;
-
-            const existingIdsInDb = dbVariants?.map(v => v.id) || [];
-            const idsInLocalState = variants.filter(v => v.id).map(v => v.id);
-            const idsToDelete = existingIdsInDb.filter(id => !idsInLocalState.includes(id));
-
-            // 3. Separate local state into Inserts and Updates
-            const toInsert = variants
-                .filter(v => !v.id)
-                .map(v => ({
+                .insert(variants.map(v => ({
                     product_id: product.id,
                     combination: v.combination,
                     price: v.use_base_price ? product.price : parseFloat(v.price),
                     quantity: parseInt(v.quantity) || 0,
                     image_urls: v.image_urls,
-                    is_active: true,
-                    use_base_price: v.use_base_price ?? true
-                }));
+                    is_active: true
+                })));
 
-            const toUpdate = variants.filter(v => v.id);
-
-            // 4. Perform operations in a SAFE order
-
-            // A. Update Existing
-            for (const v of toUpdate) {
-                const { error: updErr } = await supabase
-                    .from('product_variants')
-                    .update({
-                        combination: v.combination,
-                        price: v.use_base_price ? product.price : parseFloat(v.price),
-                        quantity: parseInt(v.quantity) || 0,
-                        image_urls: v.image_urls,
-                        use_base_price: v.use_base_price ?? true
-                    })
-                    .eq('id', v.id);
-                if (updErr) throw updErr;
-            }
-
-            // B. Insert New
-            if (toInsert.length > 0) {
-                const { error: insErr } = await supabase.from('product_variants').insert(toInsert);
-                if (insErr) {
-                    if (insErr.message?.includes('use_base_price')) {
-                        throw new Error("Database Configuration Error: Please run the SQL command provided to add the 'use_base_price' column.");
-                    }
-                    throw insErr;
-                }
-            }
-
-            // C. Delete Removed (Only after successful update/insert)
-            if (idsToDelete.length > 0) {
-                const { error: delErr } = await supabase
-                    .from('product_variants')
-                    .delete()
-                    .in('id', idsToDelete);
-                if (delErr) throw delErr;
-            }
+            if (insertError) throw insertError;
 
             onSuccess();
         } catch (err) {
-            console.error('Safe save error:', err);
-            setError(err.message || "An unexpected error occurred while saving.");
+            setError(err.message);
         } finally {
             setLoading(false);
         }
