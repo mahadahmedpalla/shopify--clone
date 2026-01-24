@@ -8,6 +8,7 @@ import { Plus, Package, Search, Trash2, Edit2, ToggleLeft, ToggleRight, Filter, 
 import { CreateProductModal } from './CreateProductModal';
 import { EditProductModal } from './EditProductModal';
 import { AttributesManagerModal } from './AttributesManagerModal';
+import { QuickEditVariantModal } from './QuickEditVariantModal';
 
 export function ProductsPage() {
     const { storeId } = useParams();
@@ -18,6 +19,7 @@ export function ProductsPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [managingVariantsProduct, setManagingVariantsProduct] = useState(null);
+    const [quickEditingVariant, setQuickEditingVariant] = useState(null);
     const [expandedProducts, setExpandedProducts] = useState(new Set());
 
     useEffect(() => {
@@ -39,7 +41,7 @@ export function ProductsPage() {
             .select(`
                 *,
                 product_categories (name),
-                product_variants (id)
+                product_variants (*)
             `)
             .eq('store_id', storeId)
             .order('created_at', { ascending: false });
@@ -245,7 +247,10 @@ export function ProductsPage() {
                                                 </div>
                                             </td>
                                             <td colSpan="2" className="px-6 py-3 text-right">
-                                                <button className="text-[10px] font-bold text-indigo-500 hover:text-indigo-700 uppercase tracking-tighter">
+                                                <button
+                                                    onClick={() => setQuickEditingVariant(variant)}
+                                                    className="text-[10px] font-bold text-indigo-500 hover:text-indigo-700 uppercase tracking-tighter"
+                                                >
                                                     Quick Edit
                                                 </button>
                                             </td>
@@ -290,6 +295,18 @@ export function ProductsPage() {
                     onClose={() => setManagingVariantsProduct(null)}
                     onSuccess={() => {
                         setManagingVariantsProduct(null);
+                        fetchData();
+                    }}
+                />
+            )}
+
+            {quickEditingVariant && (
+                <QuickEditVariantModal
+                    isOpen={!!quickEditingVariant}
+                    variant={quickEditingVariant}
+                    onClose={() => setQuickEditingVariant(null)}
+                    onSuccess={() => {
+                        setQuickEditingVariant(null);
                         fetchData();
                     }}
                 />
