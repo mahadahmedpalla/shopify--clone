@@ -46,7 +46,6 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                 .eq('product_id', product.id);
 
             if (variantError) throw variantError;
-            if (variantError) throw variantError;
             if (data && data.length > 0) {
                 setVariants(data);
 
@@ -120,31 +119,60 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
     };
 
     const handleSave = async () => {
+        if (variants.length === 0) {
+            setError("No variants to save. Please add at least one variation.");
+            return;
+        }
+
+        // Validation: Ensure all variants have at least one attribute filled
+        const invalidVariant = variants.find(v => {
+            const values = Object.values(v.combination);
+            return values.length > 0 && values.some(val => !val || val.trim() === '');
+        });
+
+        if (invalidVariant) {
+            setError("Some variations have empty attribute values. Please fill them in or remove those variants.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
         try {
-            // 1. Delete old variants for this product to avoid duplicates/conflicts
-            await supabase.from('product_variants').delete().eq('product_id', product.id);
+            // Prepare payload
+            const payload = variants.map(v => ({
+                product_id: product.id,
+                combination: v.combination,
+                price: v.use_base_price ? product.price : parseFloat(v.price),
+                quantity: parseInt(v.quantity) || 0,
+                image_urls: v.image_urls,
+                is_active: true,
+                use_base_price: v.use_base_price ?? true
+            }));
 
-            // 2. Insert new variants
-            const { error: insertError } = await supabase
-                .from('product_variants')
-                .insert(variants.map(v => ({
-                    product_id: product.id,
-                    combination: v.combination,
-                    price: v.use_base_price ? product.price : parseFloat(v.price),
-                    quantity: parseInt(v.quantity) || 0,
-                    image_urls: v.image_urls,
-                    is_active: true,
-                    use_base_price: v.use_base_price ?? true
-                })));
+            // We use a "delete then insert" pattern. 
+            // Warning: If insert fails, variants are deleted. 
+            // Better to perform insert first, but unique constraints might interfere.
+            // Since variants change sets (new subsets/supersets), absolute deletion is cleanest.
 
-            if (insertError) throw insertError;
+            const { error: delError } = await supabase.from('product_variants').delete().eq('product_id', product.id);
+            if (delError) throw delError;
+
+            const { error: insError } = await supabase.from('product_variants').insert(payload);
+
+            if (insError) {
+                // If insert fails after delete, it's a critical state.
+                // We show a specialized error.
+                if (insError.message?.includes('use_base_price')) {
+                    throw new Error("Database Error: The 'use_base_price' column hasn't been added to your database yet. Please run the SQL command provided in the previous step.");
+                }
+                throw insError;
+            }
 
             onSuccess();
         } catch (err) {
-            setError(err.message);
+            console.error('Save error:', err);
+            setError(err.message || "An unexpected error occurred while saving.");
         } finally {
             setLoading(false);
         }
