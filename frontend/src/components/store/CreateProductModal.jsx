@@ -8,8 +8,8 @@ import { X, Package, Upload, Camera, LayoutGrid } from 'lucide-react';
 export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, categories }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [imageFiles, setImageFiles] = useState([]); // Array of files
+    const [imagePreviews, setImagePreviews] = useState([]); // Array of strings
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -21,11 +21,24 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
     if (!isOpen) return null;
 
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            const newFiles = [...imageFiles, ...files];
+            setImageFiles(newFiles);
+
+            const newPreviews = files.map(file => URL.createObjectURL(file));
+            setImagePreviews([...imagePreviews, ...newPreviews]);
         }
+    };
+
+    const removeImage = (index) => {
+        const newFiles = [...imageFiles];
+        newFiles.splice(index, 1);
+        setImageFiles(newFiles);
+
+        const newPreviews = [...imagePreviews];
+        newPreviews.splice(index, 1);
+        setImagePreviews(newPreviews);
     };
 
     const handleSubmit = async (e) => {
@@ -34,25 +47,25 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
         setError(null);
 
         try {
-            let image_url = null;
+            const uploadedUrls = [];
 
-            // 1. Upload Image to Supabase Storage if selected
-            if (imageFile) {
-                const fileExt = imageFile.name.split('.').pop();
+            // 1. Upload All Images to Supabase Storage
+            for (const file of imageFiles) {
+                const fileExt = file.name.split('.').pop();
                 const fileName = `${storeId}/${Math.random()}.${fileExt}`;
                 const filePath = `products/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
                     .from('products')
-                    .upload(filePath, imageFile);
+                    .upload(filePath, file);
 
-                if (uploadError) throw new Error('Product image upload failed. Please ensure "products" bucket exists and is public.');
+                if (uploadError) throw new Error('Image upload failed: ' + uploadError.message);
 
                 const { data: { publicUrl } } = supabase.storage
                     .from('products')
                     .getPublicUrl(filePath);
 
-                image_url = publicUrl;
+                uploadedUrls.push(publicUrl);
             }
 
             // 2. Insert into Database
@@ -65,7 +78,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                     price: parseFloat(formData.price),
                     category_id: formData.category_id || null,
                     quantity: parseInt(formData.quantity) || 0,
-                    image_url: image_url,
+                    image_urls: uploadedUrls,
                     is_active: true
                 }])
                 .select()
@@ -84,8 +97,8 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
 
     const resetForm = () => {
         setFormData({ name: '', description: '', price: '', category_id: '', quantity: '' });
-        setImageFile(null);
-        setImagePreview(null);
+        setImageFiles([]);
+        setImagePreviews([]);
     };
 
     const handleClose = () => {
@@ -102,7 +115,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
 
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6 z-50">
+                <div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6 z-50">
                     <div className="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
                         <button onClick={handleClose} type="button" className="text-gray-400 hover:text-gray-500">
                             <X className="h-6 w-6" />
@@ -115,106 +128,116 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                             Add New Product
                         </h3>
                         <p className="mt-2 text-sm text-gray-500">
-                            Create a new product with inventory tracking.
+                            Create a new product with multiple images for the gallery.
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {/* Image Section */}
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-                            <div className="flex items-start space-x-6">
-                                <div className="relative h-32 w-32 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden group shadow-inner">
-                                    {imagePreview ? (
-                                        <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
-                                    ) : (
-                                        <Camera className="h-10 w-10 text-slate-300" />
-                                    )}
-                                    <label htmlFor="product-upload" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                        <Upload className="h-6 w-6 text-white" />
-                                    </label>
-                                </div>
-                                <div className="flex-1 space-y-2 pt-2">
-                                    <input type="file" id="product-upload" className="hidden" accept="image/*" onChange={handleImageChange} />
-                                    <button type="button" onClick={() => document.getElementById('product-upload').click()} className="text-sm font-bold text-indigo-600 hover:text-indigo-700 block">
-                                        {imagePreview ? 'Change Product Image' : 'Select Product Image'}
-                                    </button>
-                                    <p className="text-[11px] text-slate-400">High quality square images (1:1) work best for store displays.</p>
-                                    {imagePreview && (
-                                        <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="text-xs font-semibold text-red-500 hover:text-red-600">
-                                            Remove Image
+                    <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+                        {/* Image Gallery Upload */}
+                        <div className="space-y-3">
+                            <label className="block text-sm font-medium text-gray-700">Product Gallery (Multi-upload)</label>
+                            <div className="flex flex-wrap gap-4">
+                                {imagePreviews.map((preview, idx) => (
+                                    <div key={idx} className="relative h-24 w-24 rounded-lg overflow-hidden border border-slate-200 group shadow-sm">
+                                        <img src={preview} alt="Preview" className="h-full w-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeImage(idx)}
+                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="h-3 w-3" />
                                         </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="sm:col-span-2">
-                            <Input
-                                label="Product Name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                                placeholder="Enter product title"
-                            />
-                        </div>
-
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <textarea
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border h-24"
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Describe your product features..."
-                            />
-                        </div>
-
-                        <Input
-                            label="Price ($)"
-                            type="number"
-                            step="0.01"
-                            value={formData.price}
-                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                            required
-                            placeholder="0.00"
-                        />
-
-                        <Input
-                            label="Initial Quantity"
-                            type="number"
-                            value={formData.quantity}
-                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                            required
-                            placeholder="0"
-                        />
-
-                        <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select
-                                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                value={formData.category_id}
-                                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                            >
-                                <option value="">No Category</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    </div>
                                 ))}
-                            </select>
+
+                                <button
+                                    type="button"
+                                    onClick={() => document.getElementById('product-multi-upload').click()}
+                                    className="h-24 w-24 rounded-lg bg-slate-50 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition-all"
+                                >
+                                    <Upload className="h-6 w-6 mb-1" />
+                                    <span className="text-[10px] font-bold">Add Photo</span>
+                                </button>
+                                <input
+                                    type="file"
+                                    id="product-multi-upload"
+                                    className="hidden"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                            <p className="text-[11px] text-slate-400">Add multiple images for your product showcase.</p>
                         </div>
 
-                        {error && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="sm:col-span-2">
-                                <p className="text-sm text-red-600 mt-2 p-2 bg-red-50 rounded border border-red-100">{error}</p>
+                                <Input
+                                    label="Product Name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    required
+                                    placeholder="Enter product title"
+                                />
                             </div>
-                        )}
 
-                        <div className="sm:col-span-2 mt-4 flex space-x-3 flex-row-reverse">
-                            <Button type="submit" className="flex-1 sm:flex-initial" isLoading={loading}>
-                                Create Product
-                            </Button>
-                            <Button type="button" variant="secondary" className="flex-1 sm:flex-initial" onClick={handleClose}>
-                                Cancel
-                            </Button>
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border h-24"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Describe your product features..."
+                                />
+                            </div>
+
+                            <Input
+                                label="Price ($)"
+                                type="number"
+                                step="0.01"
+                                value={formData.price}
+                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                required
+                                placeholder="0.00"
+                            />
+
+                            <Input
+                                label="Initial Quantity"
+                                type="number"
+                                value={formData.quantity}
+                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                                required
+                                placeholder="0"
+                            />
+
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                                <select
+                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    value={formData.category_id}
+                                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                >
+                                    <option value="">No Category</option>
+                                    {categories.map(cat => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {error && (
+                                <div className="sm:col-span-2">
+                                    <p className="text-sm text-red-600 mt-2 p-2 bg-red-50 rounded border border-red-100">{error}</p>
+                                </div>
+                            )}
+
+                            <div className="sm:col-span-2 mt-4 flex space-x-3 flex-row-reverse">
+                                <Button type="submit" className="flex-1 sm:flex-initial" isLoading={loading}>
+                                    Create Product
+                                </Button>
+                                <Button type="button" variant="secondary" className="flex-1 sm:flex-initial" onClick={handleClose}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </div>

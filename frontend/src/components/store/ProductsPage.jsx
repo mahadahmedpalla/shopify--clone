@@ -116,8 +116,8 @@ export function ProductsPage() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center space-x-3">
                                             <div className="h-14 w-14 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200">
-                                                {p.image_url ? (
-                                                    <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                                                {p.image_urls && p.image_urls[0] ? (
+                                                    <img src={p.image_urls[0]} alt={p.name} className="h-full w-full object-cover" />
                                                 ) : (
                                                     <div className="h-full w-full flex items-center justify-center">
                                                         <Package className="h-6 w-6 text-slate-300" />
