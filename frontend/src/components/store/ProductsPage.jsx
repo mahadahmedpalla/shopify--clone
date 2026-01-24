@@ -18,47 +18,55 @@ export function ProductsPage() {
     const [editingProduct, setEditingProduct] = useState(null);
 
     useEffect(() => {
-        fetchData();
+        if (storeId) {
+            fetchData();
+        }
     }, [storeId]);
 
     const fetchData = async () => {
         setLoading(true);
-        // Fetch Categories for the dropdown/display
-        const { data: cats } = await supabase
-            .from('product_categories')
-            .select('id, name')
-            .eq('store_id', storeId);
-        setCategories(cats || []);
+        try {
+            // Fetch Categories
+            const { data: cats } = await supabase
+                .from('product_categories')
+                .select('id, name')
+                .eq('store_id', storeId);
+            setCategories(cats || []);
 
-        // Fetch Products with category names and variants
-        const { data: prods, error } = await supabase
-            .from('products')
-            .select(`
-                *,
-                product_categories (name),
-                product_variants (id, price, quantity, combination)
-            `)
-            .eq('store_id', storeId)
-            .order('created_at', { ascending: false });
+            // Fetch Products with variants
+            const { data: prods, error } = await supabase
+                .from('products')
+                .select(`
+                    *,
+                    product_categories (name),
+                    product_variants (id, price, quantity, combination)
+                `)
+                .eq('store_id', storeId)
+                .order('created_at', { ascending: false });
 
-        if (error) console.error('Error fetching products:', error);
-        else {
-            // Process derived values
-            const processedProds = prods.map(p => {
-                const totalQty = p.product_variants?.reduce((sum, v) => sum + v.quantity, 0) || 0;
-                const prices = p.product_variants?.map(v => v.price) || [];
+            if (error) throw error;
+
+            const processedProds = (prods || []).map(p => {
+                const variants = p.product_variants || [];
+                const totalQty = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+                const prices = variants.map(v => v.price || 0);
                 const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
                 const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
 
                 return {
                     ...p,
                     derived_quantity: totalQty,
-                    price_range: minPrice === maxPrice ? `$${minPrice.toFixed(2)}` : `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`
+                    price_range: minPrice === maxPrice
+                        ? `$${minPrice.toFixed(2)}`
+                        : `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`
                 };
             });
             setProducts(processedProds);
+        } catch (err) {
+            console.error('Error fetching data:', err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleToggleStatus = async (product) => {
@@ -79,8 +87,8 @@ export function ProductsPage() {
     };
 
     const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchQuery.toLowerCase())
+        (p.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (p.id?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -103,7 +111,7 @@ export function ProductsPage() {
                         <input
                             type="text"
                             placeholder="Search by name or ID..."
-                            className="pl-10 pr-4 py-2 w-full bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            className="pl-10 pr-4 py-2 w-full bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -142,8 +150,7 @@ export function ProductsPage() {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-slate-800 text-sm truncate max-w-[200px]">{p.name}</span>
-                                                <span className="text-[10px] font-mono text-slate-400 uppercase">#{p.id}</span>
-                                                <p className="text-[11px] text-slate-500 truncate max-w-[200px] mt-0.5">{p.description}</p>
+                                                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tight">#{p.id}</span>
                                             </div>
                                         </div>
                                     </td>
@@ -156,7 +163,7 @@ export function ProductsPage() {
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-slate-900">{p.price_range}</span>
                                             {p.product_variants?.length > 1 && (
-                                                <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-tighter mt-1 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 w-fit">
+                                                <span className="text-[9px] font-bold text-indigo-500 uppercase mt-1 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 w-fit">
                                                     {p.product_variants.length} SKU Variants
                                                 </span>
                                             )}

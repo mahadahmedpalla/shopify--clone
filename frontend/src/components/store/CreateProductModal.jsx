@@ -31,8 +31,13 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
     }, [isOpen]);
 
     const fetchAttributes = async () => {
-        const { data, error } = await supabase.from('attributes').select('*');
-        if (!error) setSystemAttributes(data);
+        try {
+            const { data, error } = await supabase.from('attributes').select('*');
+            if (error) throw error;
+            setSystemAttributes(data || []);
+        } catch (err) {
+            console.error('Error fetching attributes:', err);
+        }
     };
 
     if (!isOpen) return null;
@@ -73,7 +78,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
     // Generate combinations whenever attributes change
     useEffect(() => {
         if (!showVariations || selectedAttributes.length === 0) {
-            setVariants([{ combination: {}, price: '', quantity: '' }]);
+            setVariants([{ combination: {}, price: variants[0]?.price || '', quantity: variants[0]?.quantity || '' }]);
             return;
         }
 
@@ -82,6 +87,9 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                 return [current];
             }
             const attr = attrs[index];
+            if (!attr.values || attr.values.length === 0) {
+                return generateCombinations(attrs, current, index + 1);
+            }
             let results = [];
             attr.values.forEach(val => {
                 results = results.concat(generateCombinations(attrs, { ...current, [attr.name]: val }, index + 1));
@@ -89,8 +97,11 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
             return results;
         };
 
-        const activeAttrs = selectedAttributes.filter(a => a.values.length > 0);
-        if (activeAttrs.length === 0) return;
+        const activeAttrs = selectedAttributes.filter(a => a.values && a.values.length > 0);
+        if (activeAttrs.length === 0) {
+            setVariants([{ combination: {}, price: variants[0]?.price || '', quantity: variants[0]?.quantity || '' }]);
+            return;
+        }
 
         const combs = generateCombinations(activeAttrs);
         setVariants(combs.map(c => ({
@@ -102,8 +113,10 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
 
     const updateVariant = (index, field, value) => {
         const newVariants = [...variants];
-        newVariants[index][field] = value;
-        setVariants(newVariants);
+        if (newVariants[index]) {
+            newVariants[index][field] = value;
+            setVariants(newVariants);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -133,7 +146,8 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                     category_id: formData.category_id || null,
                     image_urls: uploadedUrls,
                     is_active: true,
-                    price: variants[0]?.price ? parseFloat(variants[0].price) : 0,
+                    // Store sum for legacy/quick view
+                    price: parseFloat(variants[0]?.price) || 0,
                     quantity: variants.reduce((sum, v) => sum + (parseInt(v.quantity) || 0), 0)
                 }])
                 .select()
@@ -146,7 +160,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                 product_id: product.id,
                 price: parseFloat(v.price) || 0,
                 quantity: parseInt(v.quantity) || 0,
-                combination: v.combination,
+                combination: v.combination || {},
                 is_active: true
             }));
 
@@ -186,7 +200,9 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
 
                 <div className="relative inline-block align-bottom bg-white rounded-xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-8 z-50">
                     <div className="absolute top-4 right-4">
-                        <button onClick={handleClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"><X className="h-5 w-5" /></button>
+                        <button onClick={handleClose} type="button" className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                            <X className="h-5 w-5" />
+                        </button>
                     </div>
 
                     <div className="mb-8">
@@ -198,18 +214,17 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-8">
-                        {/* Section 1: Basic Info */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4 border-t border-slate-100">
                             <div className="space-y-6">
                                 <h4 className="font-bold text-slate-800 uppercase tracking-widest text-[10px]">General Identity</h4>
                                 <Input label="Product Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required placeholder="e.g., Premium Leather Jacket" />
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-                                    <textarea className="w-full rounded-xl border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 h-32 text-sm p-4" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Tell the story of this product..." />
+                                    <textarea className="w-full rounded-xl border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 h-32 text-sm p-4 border" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Tell the story of this product..." />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-2">Category</label>
-                                    <select className="w-full rounded-xl border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 text-sm p-2" value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}>
+                                    <select className="w-full rounded-xl border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 text-sm p-2.5 border bg-white" value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}>
                                         <option value="">Ungrouped</option>
                                         {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                                     </select>
@@ -221,7 +236,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                                 <div className="flex flex-wrap gap-3">
                                     {imagePreviews.map((p, i) => (
                                         <div key={i} className="relative h-20 w-20 rounded-xl overflow-hidden shadow-sm group">
-                                            <img src={p} className="h-full w-full object-cover" />
+                                            <img src={p} className="h-full w-full object-cover" alt="Preview" />
                                             <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-4 w-4" /></button>
                                         </div>
                                     ))}
@@ -234,7 +249,6 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                             </div>
                         </div>
 
-                        {/* Section 2: Dimensions & Variants */}
                         <div className="pt-6 border-t border-slate-100">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
@@ -277,7 +291,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                                         </div>
                                     ))}
 
-                                    {variants.length > 0 && selectedAttributes.some(a => a.values.length > 0) && (
+                                    {variants.length > 0 && selectedAttributes.some(a => a.values && a.values.length > 0) && (
                                         <div className="overflow-hidden border border-slate-100 rounded-xl">
                                             <table className="w-full text-left text-xs">
                                                 <thead className="bg-slate-50 italic text-slate-500">
@@ -291,7 +305,9 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                                                     {variants.map((v, i) => (
                                                         <tr key={i} className="hover:bg-slate-50/50">
                                                             <td className="px-4 py-3 font-bold text-slate-700">
-                                                                {Object.entries(v.combination).map(([k, val]) => `${k}: ${val}`).join(' / ')}
+                                                                {Object.entries(v.combination || {}).length > 0
+                                                                    ? Object.entries(v.combination).map(([k, val]) => `${k}: ${val}`).join(' / ')
+                                                                    : 'Default Variant'}
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <input type="number" step="0.01" className="w-20 bg-transparent border-b border-indigo-100 focus:border-indigo-400 outline-none font-bold" value={v.price} onChange={(e) => updateVariant(i, 'price', e.target.value)} required />
@@ -317,7 +333,7 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                         {error && <p className="text-sm text-red-600 p-3 bg-red-50 rounded-xl border border-red-100">{error}</p>}
 
                         <div className="flex space-x-4 pt-6">
-                            <Button type="submit" className="flex-1 py-4 text-base shadow-xl shadow-indigo-100 text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold flex items-center justify-center transition-all disabled:opacity-50" isLoading={loading}>
+                            <Button type="submit" className="flex-1 py-4 text-base shadow-xl shadow-indigo-100" isLoading={loading}>
                                 <Layers className="h-5 w-5 mr-3" />
                                 Deploy Product
                             </Button>
