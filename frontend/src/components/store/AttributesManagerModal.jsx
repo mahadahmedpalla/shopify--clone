@@ -48,6 +48,15 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
             if (variantError) throw variantError;
             if (data && data.length > 0) {
                 setVariants(data);
+
+                // Derive selected attributes and their values from existing variants
+                const firstCombo = data[0].combination || {};
+                const keys = Object.keys(firstCombo);
+                const derived = keys.map(key => {
+                    const uniqueValues = Array.from(new Set(data.filter(v => v.combination).map(v => v.combination[key]))).filter(Boolean);
+                    return { name: key, values: uniqueValues };
+                });
+                setSelectedAttributes(derived);
             }
         } catch (err) {
             console.error('Initial fetch error:', err);
@@ -308,18 +317,37 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                     </button>
                                                 </div>
                                             ))}
-                                            <input
-                                                type="text"
-                                                placeholder="Type and press Enter..."
-                                                className="bg-transparent border-none focus:ring-0 text-sm py-1.5 px-0 placeholder-slate-300"
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        addValue(attrIdx, e.target.value);
-                                                        e.target.value = '';
-                                                    }
-                                                }}
-                                            />
+                                            <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500">
+                                                <input
+                                                    type="text"
+                                                    id={`input-val-${attrIdx}`}
+                                                    placeholder="Add a value..."
+                                                    className="bg-transparent border-none focus:ring-0 text-sm py-0.5 px-0 placeholder-slate-300 w-32"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            addValue(attrIdx, e.target.value);
+                                                            e.target.value = '';
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        const el = document.getElementById(`input-val-${attrIdx}`);
+                                                        addValue(attrIdx, el.value);
+                                                        el.value = '';
+                                                    }}
+                                                    className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </button>
+                                            </div>
                                         </div>
+                                        {attr.values.length === 0 && (
+                                            <p className="text-[10px] text-amber-600 font-bold flex items-center">
+                                                <X className="h-3 w-3 mr-1" />
+                                                At least one value is required to generate variants.
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -483,6 +511,14 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                     Back
                                 </button>
                             )}
+                            {step === 1 && variants.length > 0 && (
+                                <button
+                                    onClick={() => setStep(3)}
+                                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-colors"
+                                >
+                                    Skip to Configuration
+                                </button>
+                            )}
                         </div>
                         <div className="flex space-x-3">
                             <Button variant="secondary" onClick={onClose} disabled={loading}>
@@ -507,13 +543,13 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                             )}
                         </div>
                     </div>
-
-                    {error && (
-                        <div className="p-4 bg-red-50 text-red-600 text-xs font-medium border-t border-red-100">
-                            {error}
-                        </div>
-                    )}
                 </div>
+
+                {error && (
+                    <div className="p-4 bg-red-50 text-red-600 text-xs font-medium border-t border-red-100">
+                        {error}
+                    </div>
+                )}
             </div>
         </div>
     );
