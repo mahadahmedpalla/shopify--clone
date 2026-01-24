@@ -489,7 +489,13 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                 Cancel
                             </Button>
                             {step < 3 ? (
-                                <Button onClick={() => setStep(step + 1)} disabled={selectedAttributes.length === 0}>
+                                <Button
+                                    onClick={() => {
+                                        if (step === 2) generateVariants();
+                                        else setStep(step + 1);
+                                    }}
+                                    disabled={selectedAttributes.length === 0 || (step === 2 && selectedAttributes.some(a => a.values.length === 0))}
+                                >
                                     Next
                                     <ChevronRight className="h-4 w-4 ml-1" />
                                 </Button>
