@@ -75,6 +75,13 @@ export function ProductsPage() {
         else fetchData();
     };
 
+    const handleDeleteVariant = async (id) => {
+        if (!confirm('Are you sure you want to delete this variation?')) return;
+        const { error } = await supabase.from('product_variants').delete().eq('id', id);
+        if (error) alert('Error: ' + error.message);
+        else fetchData();
+    };
+
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.id.toLowerCase().includes(searchQuery.toLowerCase())
@@ -247,12 +254,21 @@ export function ProductsPage() {
                                                 </div>
                                             </td>
                                             <td colSpan="2" className="px-6 py-3 text-right">
-                                                <button
-                                                    onClick={() => setQuickEditingVariant(variant)}
-                                                    className="text-[10px] font-bold text-indigo-500 hover:text-indigo-700 uppercase tracking-tighter"
-                                                >
-                                                    Quick Edit
-                                                </button>
+                                                <div className="flex items-center justify-end space-x-3">
+                                                    <button
+                                                        onClick={() => setQuickEditingVariant(variant)}
+                                                        className="text-[10px] font-bold text-indigo-500 hover:text-indigo-700 uppercase tracking-tighter"
+                                                    >
+                                                        Quick Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteVariant(variant.id)}
+                                                        className="text-slate-300 hover:text-red-500 transition-colors"
+                                                        title="Delete variation"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
