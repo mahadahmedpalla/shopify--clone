@@ -124,7 +124,8 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
             combination: combo,
             price: product.price,
             quantity: 0,
-            image_urls: product.image_urls || []
+            image_urls: product.image_urls || [],
+            use_base_price: true // Default to linked price
         }));
 
         setVariants(newVariants);
@@ -145,7 +146,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                 .insert(variants.map(v => ({
                     product_id: product.id,
                     combination: v.combination,
-                    price: parseFloat(v.price),
+                    price: v.use_base_price ? product.price : parseFloat(v.price),
                     quantity: parseInt(v.quantity) || 0,
                     image_urls: v.image_urls,
                     is_active: true
@@ -327,67 +328,140 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                         {step === 3 && (
                             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-400">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-bold text-slate-800">Generated Variants</h4>
-                                    <p className="text-xs text-slate-500">Total variants: <b>{variants.length}</b></p>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800">Configure Variants</h4>
+                                        <p className="text-xs text-slate-500">Customize price, stock, and photos for each combination.</p>
+                                    </div>
+                                    <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                                        Total: {variants.length} Variants
+                                    </p>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     {variants.map((v, vIdx) => (
-                                        <div key={vIdx} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group">
-                                            <div className="flex flex-wrap items-center gap-6">
-                                                {/* Labels */}
-                                                <div className="flex-1 min-w-[150px]">
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {Object.entries(v.combination).map(([k, val]) => (
-                                                            <span key={k} className="text-[10px] font-bold uppercase tracking-tight bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 italic">
-                                                                {k}: {val}
-                                                            </span>
-                                                        ))}
-                                                    </div>
+                                        <div key={vIdx} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all active:ring-2 active:ring-indigo-500">
+                                            {/* Variant Identity Bar */}
+                                            <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {Object.entries(v.combination).map(([k, val]) => (
+                                                        <span key={k} className="text-[10px] font-bold uppercase tracking-tight bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200 shadow-sm">
+                                                            {k}: <span className="text-indigo-600">{val}</span>
+                                                        </span>
+                                                    ))}
                                                 </div>
+                                                <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">Variant #{vIdx + 1}</span>
+                                            </div>
 
-                                                {/* Price */}
-                                                <div className="w-24">
-                                                    <label className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Price</label>
-                                                    <div className="relative">
-                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
+                                            <div className="p-4 grid grid-cols-1 md:grid-cols-12 gap-6">
+                                                {/* Variant Images */}
+                                                <div className="md:col-span-4 space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Variant Gallery</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {(v.image_urls || []).map((url, imgIdx) => (
+                                                            <div key={imgIdx} className="relative h-12 w-12 rounded-lg overflow-hidden border border-slate-200 group">
+                                                                <img src={url} alt="Variant" className="h-full w-full object-cover" />
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const newV = [...variants];
+                                                                        newV[vIdx].image_urls.splice(imgIdx, 1);
+                                                                        setVariants(newV);
+                                                                    }}
+                                                                    className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            onClick={() => document.getElementById(`variant-upload-${vIdx}`).click()}
+                                                            className="h-12 w-12 rounded-lg bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 hover:border-indigo-300 hover:text-indigo-500 transition-colors"
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                        </button>
                                                         <input
-                                                            type="number"
-                                                            className="w-full pl-5 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                                                            value={v.price}
-                                                            onChange={(e) => {
-                                                                const newV = [...variants];
-                                                                newV[vIdx].price = e.target.value;
-                                                                setVariants(newV);
+                                                            type="file"
+                                                            id={`variant-upload-${vIdx}`}
+                                                            className="hidden"
+                                                            multiple
+                                                            accept="image/*"
+                                                            onChange={async (e) => {
+                                                                const files = Array.from(e.target.files);
+                                                                if (files.length > 0) {
+                                                                    setLoading(true);
+                                                                    try {
+                                                                        const newUrls = [];
+                                                                        for (const file of files) {
+                                                                            const fileExt = file.name.split('.').pop();
+                                                                            const fileName = `${storeId}/${Math.random()}.${fileExt}`;
+                                                                            const filePath = `products/variants/${fileName}`;
+                                                                            await supabase.storage.from('products').upload(filePath, file);
+                                                                            const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(filePath);
+                                                                            newUrls.push(publicUrl);
+                                                                        }
+                                                                        const newV = [...variants];
+                                                                        newV[vIdx].image_urls = [...(newV[vIdx].image_urls || []), ...newUrls];
+                                                                        setVariants(newV);
+                                                                    } finally {
+                                                                        setLoading(false);
+                                                                    }
+                                                                }
                                                             }}
                                                         />
                                                     </div>
                                                 </div>
 
-                                                {/* Stock */}
-                                                <div className="w-20">
-                                                    <label className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Stock</label>
-                                                    <input
-                                                        type="number"
-                                                        className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                                                        value={v.quantity}
-                                                        onChange={(e) => {
-                                                            const newV = [...variants];
-                                                            newV[vIdx].quantity = e.target.value;
-                                                            setVariants(newV);
-                                                        }}
-                                                    />
-                                                </div>
+                                                {/* Variant Pricing & Stock */}
+                                                <div className="md:col-span-8 grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Variant Price ($)</label>
+                                                        <div className="relative">
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                                            <input
+                                                                type="number"
+                                                                step="0.01"
+                                                                disabled={v.use_base_price}
+                                                                className={`w-full pl-6 pr-3 py-2 border rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all ${v.use_base_price ? 'bg-slate-50 text-slate-400 border-slate-100' : 'bg-white text-slate-900 border-slate-200'}`}
+                                                                value={v.use_base_price ? product.price : (v.price || product.price)}
+                                                                onChange={(e) => {
+                                                                    const newV = [...variants];
+                                                                    newV[vIdx].price = e.target.value;
+                                                                    setVariants(newV);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="mt-2 flex items-center space-x-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`price-link-${vIdx}`}
+                                                                className="h-3 w-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                                                checked={v.use_base_price !== false}
+                                                                onChange={(e) => {
+                                                                    const newV = [...variants];
+                                                                    newV[vIdx].use_base_price = e.target.checked;
+                                                                    setVariants(newV);
+                                                                }}
+                                                            />
+                                                            <label htmlFor={`price-link-${vIdx}`} className="text-[10px] font-bold text-slate-500 uppercase tracking-tight cursor-pointer">Use Base Product Price</label>
+                                                        </div>
+                                                    </div>
 
-                                                {/* Image Override */}
-                                                <div className="flex flex-col items-center">
-                                                    <label className="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Image</label>
-                                                    <button className="h-10 w-10 bg-slate-100 rounded-lg flex items-center justify-center border border-slate-200 hover:bg-slate-200 transition-colors">
-                                                        {v.image_urls && v.image_urls[0] ? (
-                                                            <img src={v.image_urls[0]} alt="Variant" className="h-full w-full object-cover rounded-lg" />
-                                                        ) : (
-                                                            <ImageIcon className="h-4 w-4 text-slate-400" />
-                                                        )}
-                                                    </button>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Variant Stock</label>
+                                                        <div className="relative">
+                                                            <Package className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
+                                                            <input
+                                                                type="number"
+                                                                className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                                                value={v.quantity || 0}
+                                                                onChange={(e) => {
+                                                                    const newV = [...variants];
+                                                                    newV[vIdx].quantity = e.target.value;
+                                                                    setVariants(newV);
+                                                                }}
+                                                                placeholder="0"
+                                                            />
+                                                        </div>
+                                                        <p className="mt-2 text-[10px] text-slate-400 font-medium italic">Unique inventory for this variation.</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -458,8 +532,8 @@ function AttributeButton({ name, isSelected, onClick, isCustom = false }) {
             type="button"
             onClick={() => onClick(name)}
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all border flex items-center ${isSelected
-                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
-                    : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
+                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
                 }`}
         >
             {isCustom && <div className="w-1 h-1 bg-amber-400 rounded-full mr-2" title="Store specific" />}
