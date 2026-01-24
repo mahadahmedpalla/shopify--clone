@@ -15,11 +15,11 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
     // Custom attributes from DB
     const [customAttributesDB, setCustomAttributesDB] = useState([]);
 
-    // Step 1 & 2: Selected Attributes and their values
-    const [selectedAttributes, setSelectedAttributes] = useState([]); // { name: '', values: [] }
+    // Step 1: Selected Attributes (just names)
+    const [selectedAttributes, setSelectedAttributes] = useState([]); // { name: '' }
 
-    // Step 3: Generated Variants
-    const [variants, setVariants] = useState([]); // { combination: {}, price: 0, quantity: 0, image_urls: [] }
+    // Step 2: Configured Variants
+    const [variants, setVariants] = useState([]); // { combination: { Size: 'Small' }, price: 0, ... }
 
     useEffect(() => {
         if (isOpen && product) {
@@ -46,16 +46,14 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                 .eq('product_id', product.id);
 
             if (variantError) throw variantError;
+            if (variantError) throw variantError;
             if (data && data.length > 0) {
                 setVariants(data);
 
-                // Derive selected attributes and their values from existing variants
+                // Derive selected attribute names from existing variants
                 const firstCombo = data[0].combination || {};
                 const keys = Object.keys(firstCombo);
-                const derived = keys.map(key => {
-                    const uniqueValues = Array.from(new Set(data.filter(v => v.combination).map(v => v.combination[key]))).filter(Boolean);
-                    return { name: key, values: uniqueValues };
-                });
+                const derived = keys.map(key => ({ name: key }));
                 setSelectedAttributes(derived);
             }
         } catch (err) {
@@ -88,7 +86,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
             }
         }
 
-        setSelectedAttributes([...selectedAttributes, { name: trimmedName, values: [] }]);
+        setSelectedAttributes([...selectedAttributes, { name: trimmedName }]);
     };
 
     const removeAttribute = (index) => {
@@ -97,65 +95,22 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
         setSelectedAttributes(newAttrs);
     };
 
-    const addValue = (attrIndex, val) => {
-        if (!val.trim()) return;
-        const newAttrs = [...selectedAttributes];
-        if (newAttrs[attrIndex].values.includes(val.trim())) return;
-        newAttrs[attrIndex].values.push(val.trim());
-        setSelectedAttributes(newAttrs);
-    };
-
-    const removeValue = (attrIndex, valIndex) => {
-        const newAttrs = [...selectedAttributes];
-        newAttrs[attrIndex].values.splice(valIndex, 1);
-        setSelectedAttributes(newAttrs);
-    };
-
-    const generateVariants = () => {
+    const prepareConfigStep = () => {
         if (selectedAttributes.length === 0) return;
 
-        // 1. Generate all possible combinations
-        const combinations = selectedAttributes.reduce((acc, attr) => {
-            const result = [];
-            attr.values.forEach(val => {
-                if (acc.length === 0) {
-                    result.push({ [attr.name]: val });
-                } else {
-                    acc.forEach(combo => {
-                        result.push({ ...combo, [attr.name]: val });
-                    });
-                }
-            });
-            return result;
-        }, []);
-
-        // 2. Map combinations to variant objects, PRESERVING data for existing ones
-        const newVariants = combinations.map(combo => {
-            // Find if this combo already exists in our current state
-            const existing = variants.find(v => {
-                const vCombo = v.combination || {};
-                const keys = Object.keys(combo);
-                const vKeys = Object.keys(vCombo);
-                if (keys.length !== vKeys.length) return false;
-                return keys.every(k => vCombo[k] === combo[k]);
-            });
-
-            if (existing) {
-                return { ...existing }; // Keep existing price, stock, images
-            }
-
-            // Otherwise create a fresh one
-            return {
+        // If no variants exist, start with one blank one
+        if (variants.length === 0) {
+            const combo = {};
+            selectedAttributes.forEach(a => combo[a.name] = '');
+            setVariants([{
                 combination: combo,
                 price: product.price,
                 quantity: 0,
                 image_urls: product.image_urls || [],
                 use_base_price: true
-            };
-        });
-
-        setVariants(newVariants);
-        setStep(3);
+            }]);
+        }
+        setStep(2);
     };
 
     const removeVariant = (index) => {
@@ -222,11 +177,9 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
 
                     {/* Stepper */}
                     <div className="px-6 py-4 bg-white border-b border-slate-50 flex items-center space-x-4">
-                        <StepIndicator active={step >= 1} number={1} label="Choose Attributes" />
+                        <StepIndicator active={step === 1} number={1} label="Choose Attributes" />
                         <ChevronRight className="h-4 w-4 text-slate-300" />
-                        <StepIndicator active={step >= 2} number={2} label="Set Values" />
-                        <ChevronRight className="h-4 w-4 text-slate-300" />
-                        <StepIndicator active={step >= 3} number={3} label="Configure Variants" />
+                        <StepIndicator active={step === 2} number={2} label="Configure Variants" />
                     </div>
 
                     {/* Content */}
@@ -318,70 +271,11 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                         )}
 
                         {step === 2 && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                                {selectedAttributes.map((attr, attrIdx) => (
-                                    <div key={attrIdx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="font-bold text-slate-800 flex items-center">
-                                                <div className="w-1.5 h-6 bg-indigo-500 rounded-full mr-3" />
-                                                Values for {attr.name}
-                                            </h4>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-md">
-                                                {attr.values.length} Values
-                                            </span>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2 min-h-[40px] items-center">
-                                            {attr.values.map((val, valIdx) => (
-                                                <div key={valIdx} className="group flex items-center bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 text-sm font-medium">
-                                                    {val}
-                                                    <button onClick={() => removeValue(attrIdx, valIdx)} className="ml-2 text-slate-400 hover:text-red-500">
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500">
-                                                <input
-                                                    type="text"
-                                                    id={`input-val-${attrIdx}`}
-                                                    placeholder="Add a value..."
-                                                    className="bg-transparent border-none focus:ring-0 text-sm py-0.5 px-0 placeholder-slate-300 w-32"
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            addValue(attrIdx, e.target.value);
-                                                            e.target.value = '';
-                                                        }
-                                                    }}
-                                                />
-                                                <button
-                                                    onClick={() => {
-                                                        const el = document.getElementById(`input-val-${attrIdx}`);
-                                                        addValue(attrIdx, el.value);
-                                                        el.value = '';
-                                                    }}
-                                                    className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
-                                                >
-                                                    <Plus className="h-3 w-3" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        {attr.values.length === 0 && (
-                                            <p className="text-[10px] text-amber-600 font-bold flex items-center">
-                                                <X className="h-3 w-3 mr-1" />
-                                                At least one value is required to generate variants.
-                                            </p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {step === 3 && (
                             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-400">
                                 <div className="flex items-center justify-between mb-2">
                                     <div>
                                         <h4 className="font-bold text-slate-800">Configure Variants</h4>
-                                        <p className="text-xs text-slate-500">Customize price, stock, and photos for each combination.</p>
+                                        <p className="text-xs text-slate-500">Set attribute values, price, and stock for each variation.</p>
                                     </div>
                                     <div className="flex items-center space-x-3">
                                         <button
@@ -399,7 +293,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                             className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-white border border-indigo-200 px-3 py-1 rounded-lg flex items-center shadow-sm"
                                         >
                                             <Plus className="h-3 w-3 mr-1" />
-                                            Add Manual Variation
+                                            Add Another Variation
                                         </button>
                                         <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
                                             Total: {variants.length} Variants
@@ -409,13 +303,24 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                 <div className="space-y-6">
                                     {variants.map((v, vIdx) => (
                                         <div key={vIdx} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all active:ring-2 active:ring-indigo-500">
-                                            {/* Variant Identity Bar */}
-                                            <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center justify-between">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {Object.entries(v.combination).map(([k, val]) => (
-                                                        <span key={k} className="text-[10px] font-bold uppercase tracking-tight bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200 shadow-sm">
-                                                            {k}: <span className="text-indigo-600">{val}</span>
-                                                        </span>
+                                            {/* Variant Identity Bar - NOW EDITABLE */}
+                                            <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                                <div className="flex flex-wrap gap-4">
+                                                    {selectedAttributes.map((attr) => (
+                                                        <div key={attr.name} className="flex items-center space-x-2">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{attr.name}:</span>
+                                                            <input
+                                                                type="text"
+                                                                placeholder={`e.g. ${attr.name === 'Size' ? 'Large' : attr.name === 'Color' ? 'Yellow' : 'Value'}`}
+                                                                className="bg-white border border-slate-200 rounded-md px-2 py-1 text-xs font-bold text-slate-800 focus:ring-1 focus:ring-indigo-500 w-24"
+                                                                value={v.combination[attr.name] || ''}
+                                                                onChange={(e) => {
+                                                                    const newV = [...variants];
+                                                                    newV[vIdx].combination[attr.name] = e.target.value;
+                                                                    setVariants(newV);
+                                                                }}
+                                                            />
+                                                        </div>
                                                     ))}
                                                 </div>
                                                 <div className="flex items-center space-x-3">
@@ -575,13 +480,10 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                             <Button variant="secondary" onClick={onClose} disabled={loading}>
                                 Cancel
                             </Button>
-                            {step < 3 ? (
+                            {step < 2 ? (
                                 <Button
-                                    onClick={() => {
-                                        if (step === 2) generateVariants();
-                                        else setStep(step + 1);
-                                    }}
-                                    disabled={selectedAttributes.length === 0 || (step === 2 && selectedAttributes.some(a => a.values.length === 0))}
+                                    onClick={prepareConfigStep}
+                                    disabled={selectedAttributes.length === 0}
                                 >
                                     Next
                                     <ChevronRight className="h-4 w-4 ml-1" />
