@@ -124,10 +124,10 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
             return;
         }
 
-        // Validation: Ensure all variants have at least one attribute filled
+        // 1. Validation: Ensure all variants have at least one attribute value filled
         const invalidVariant = variants.find(v => {
             const values = Object.values(v.combination);
-            return values.length > 0 && values.some(val => !val || val.trim() === '');
+            return values.length === 0 || values.some(val => !val || val.trim() === '');
         });
 
         if (invalidVariant) {
@@ -139,39 +139,73 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
         setError(null);
 
         try {
-            // Prepare payload
-            const payload = variants.map(v => ({
-                product_id: product.id,
-                combination: v.combination,
-                price: v.use_base_price ? product.price : parseFloat(v.price),
-                quantity: parseInt(v.quantity) || 0,
-                image_urls: v.image_urls,
-                is_active: true,
-                use_base_price: v.use_base_price ?? true
-            }));
+            // 2. Fetch current IDs from DB to identify exactly what to delete later
+            const { data: dbVariants, error: fetchError } = await supabase
+                .from('product_variants')
+                .select('id')
+                .eq('product_id', product.id);
 
-            // We use a "delete then insert" pattern. 
-            // Warning: If insert fails, variants are deleted. 
-            // Better to perform insert first, but unique constraints might interfere.
-            // Since variants change sets (new subsets/supersets), absolute deletion is cleanest.
+            if (fetchError) throw fetchError;
 
-            const { error: delError } = await supabase.from('product_variants').delete().eq('product_id', product.id);
-            if (delError) throw delError;
+            const existingIdsInDb = dbVariants?.map(v => v.id) || [];
+            const idsInLocalState = variants.filter(v => v.id).map(v => v.id);
+            const idsToDelete = existingIdsInDb.filter(id => !idsInLocalState.includes(id));
 
-            const { error: insError } = await supabase.from('product_variants').insert(payload);
+            // 3. Separate local state into Inserts and Updates
+            const toInsert = variants
+                .filter(v => !v.id)
+                .map(v => ({
+                    product_id: product.id,
+                    combination: v.combination,
+                    price: v.use_base_price ? product.price : parseFloat(v.price),
+                    quantity: parseInt(v.quantity) || 0,
+                    image_urls: v.image_urls,
+                    is_active: true,
+                    use_base_price: v.use_base_price ?? true
+                }));
 
-            if (insError) {
-                // If insert fails after delete, it's a critical state.
-                // We show a specialized error.
-                if (insError.message?.includes('use_base_price')) {
-                    throw new Error("Database Error: The 'use_base_price' column hasn't been added to your database yet. Please run the SQL command provided in the previous step.");
+            const toUpdate = variants.filter(v => v.id);
+
+            // 4. Perform operations in a SAFE order
+
+            // A. Update Existing
+            for (const v of toUpdate) {
+                const { error: updErr } = await supabase
+                    .from('product_variants')
+                    .update({
+                        combination: v.combination,
+                        price: v.use_base_price ? product.price : parseFloat(v.price),
+                        quantity: parseInt(v.quantity) || 0,
+                        image_urls: v.image_urls,
+                        use_base_price: v.use_base_price ?? true
+                    })
+                    .eq('id', v.id);
+                if (updErr) throw updErr;
+            }
+
+            // B. Insert New
+            if (toInsert.length > 0) {
+                const { error: insErr } = await supabase.from('product_variants').insert(toInsert);
+                if (insErr) {
+                    if (insErr.message?.includes('use_base_price')) {
+                        throw new Error("Database Configuration Error: Please run the SQL command provided to add the 'use_base_price' column.");
+                    }
+                    throw insErr;
                 }
-                throw insError;
+            }
+
+            // C. Delete Removed (Only after successful update/insert)
+            if (idsToDelete.length > 0) {
+                const { error: delErr } = await supabase
+                    .from('product_variants')
+                    .delete()
+                    .in('id', idsToDelete);
+                if (delErr) throw delErr;
             }
 
             onSuccess();
         } catch (err) {
-            console.error('Save error:', err);
+            console.error('Safe save error:', err);
             setError(err.message || "An unexpected error occurred while saving.");
         } finally {
             setLoading(false);
