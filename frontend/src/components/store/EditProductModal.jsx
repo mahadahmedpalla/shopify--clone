@@ -44,6 +44,15 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
 
             if (updateError) throw updateError;
 
+            // 2. Update all variants that are linked to base price
+            const { error: variantError } = await supabase
+                .from('product_variants')
+                .update({ price: parseFloat(formData.price) })
+                .eq('product_id', product.id)
+                .eq('use_base_price', true);
+
+            if (variantError) console.error('Error syncing variant prices:', variantError);
+
             onSuccess();
         } catch (err) {
             setError(err.message);
