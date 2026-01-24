@@ -7,6 +7,7 @@ import { Card } from '../ui/Card';
 import { Plus, Package, Search, Trash2, Edit2, ToggleLeft, ToggleRight, Filter } from 'lucide-react';
 import { CreateProductModal } from './CreateProductModal';
 import { EditProductModal } from './EditProductModal';
+import { AttributesManagerModal } from './AttributesManagerModal';
 
 export function ProductsPage() {
     const { storeId } = useParams();
@@ -16,6 +17,7 @@ export function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [managingVariantsProduct, setManagingVariantsProduct] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -23,19 +25,20 @@ export function ProductsPage() {
 
     const fetchData = async () => {
         setLoading(true);
-        // Fetch Categories for the dropdown/display
+        // Fetch Categories
         const { data: cats } = await supabase
             .from('product_categories')
             .select('id, name')
             .eq('store_id', storeId);
         setCategories(cats || []);
 
-        // Fetch Products with category names
+        // Fetch Products with category names and variant count
         const { data: prods, error } = await supabase
             .from('products')
             .select(`
                 *,
-                product_categories (name)
+                product_categories (name),
+                product_variants (id)
             `)
             .eq('store_id', storeId)
             .order('created_at', { ascending: false });
@@ -125,7 +128,14 @@ export function ProductsPage() {
                                                 )}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-slate-800 text-sm truncate max-w-[200px]">{p.name}</span>
+                                                <div className="flex items-center">
+                                                    <span className="font-bold text-slate-800 text-sm truncate max-w-[200px]">{p.name}</span>
+                                                    {p.product_variants?.length > 0 && (
+                                                        <span className="ml-2 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded uppercase border border-indigo-100">
+                                                            {p.product_variants.length} Variants
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-[10px] font-mono text-slate-400 uppercase">#{p.id}</span>
                                                 <p className="text-[11px] text-slate-500 truncate max-w-[200px] mt-0.5">{p.description}</p>
                                             </div>
@@ -156,6 +166,13 @@ export function ProductsPage() {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-2">
+                                            <button
+                                                onClick={() => setManagingVariantsProduct(p)}
+                                                title="Manage Variants"
+                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                                            >
+                                                <Settings2 className="h-4 w-4" />
+                                            </button>
                                             <button
                                                 onClick={() => setEditingProduct(p)}
                                                 className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
@@ -196,6 +213,18 @@ export function ProductsPage() {
                     onClose={() => setEditingProduct(null)}
                     onSuccess={() => {
                         setEditingProduct(null);
+                        fetchData();
+                    }}
+                />
+            )}
+
+            {managingVariantsProduct && (
+                <AttributesManagerModal
+                    isOpen={!!managingVariantsProduct}
+                    product={managingVariantsProduct}
+                    onClose={() => setManagingVariantsProduct(null)}
+                    onSuccess={() => {
+                        setManagingVariantsProduct(null);
                         fetchData();
                     }}
                 />
