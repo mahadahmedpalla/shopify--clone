@@ -173,8 +173,8 @@ export function AttributesManagerModal({ isOpen, product, onClose, onSuccess }) 
                                                     key={attr}
                                                     onClick={() => addAttribute(attr)}
                                                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${selectedAttributes.some(a => a.name === attr)
-                                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
-                                                            : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
                                                         }`}
                                                 >
                                                     {attr}

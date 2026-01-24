@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Plus, Package, Search, Trash2, Edit2, ToggleLeft, ToggleRight, Filter } from 'lucide-react';
+import { Plus, Package, Search, Trash2, Edit2, ToggleLeft, ToggleRight, Filter, Settings2 } from 'lucide-react';
 import { CreateProductModal } from './CreateProductModal';
 import { EditProductModal } from './EditProductModal';
 import { AttributesManagerModal } from './AttributesManagerModal';
@@ -130,7 +130,7 @@ export function ProductsPage() {
                                             <div className="flex flex-col">
                                                 <div className="flex items-center">
                                                     <span className="font-bold text-slate-800 text-sm truncate max-w-[200px]">{p.name}</span>
-                                                    {p.product_variants?.length > 0 && (
+                                                    {p.product_variants && p.product_variants.length > 0 && (
                                                         <span className="ml-2 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded uppercase border border-indigo-100">
                                                             {p.product_variants.length} Variants
                                                         </span>
