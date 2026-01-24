@@ -3,27 +3,31 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { X, Edit3, Save } from 'lucide-react';
+import { X, Edit3, Save, Trash2, Settings2 } from 'lucide-react';
 
-export function EditProductModal({ isOpen, product, categories, onClose, onSuccess }) {
+export function EditProductModal({ isOpen, product, categories = [], onClose, onSuccess }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [category_id, setCategoryId] = useState('');
     const [variantData, setVariantData] = useState([]);
 
     useEffect(() => {
-        if (product) {
+        if (product && isOpen) {
             setCategoryId(product.category_id || '');
             setVariantData(product.product_variants || []);
         }
-    }, [product]);
+    }, [product, isOpen]);
 
     if (!isOpen || !product) return null;
 
     const handleUpdateVariant = (index, field, value) => {
-        const newVariants = [...variantData];
-        newVariants[index][field] = value;
-        setVariantData(newVariants);
+        setVariantData(prev => {
+            const next = [...prev];
+            if (next[index]) {
+                next[index] = { ...next[index], [field]: value };
+            }
+            return next;
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -44,11 +48,12 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
             if (productError) throw productError;
 
             // 2. Update all variants
-            for (const v of variantData) {
+            for (const v of (variantData || [])) {
+                if (!v.id) continue;
                 const { error: vError } = await supabase
                     .from('product_variants')
                     .update({
-                        price: parseFloat(v.price),
+                        price: parseFloat(v.price) || 0,
                         quantity: parseInt(v.quantity) || 0,
                         updated_at: new Date()
                     })
@@ -81,9 +86,11 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                                 <Edit3 className="h-5 w-5 mr-3 text-indigo-600" />
                                 Edit Inventory Details
                             </h3>
-                            <p className="text-sm text-slate-500 mt-1">Refining <b>{product.name}</b></p>
+                            <p className="text-sm text-slate-500 mt-1">Refining <b>{product.name || 'Product'}</b></p>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"><X className="h-5 w-5" /></button>
+                        <button onClick={onClose} type="button" className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
+                            <X className="h-5 w-5" />
+                        </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-8">
@@ -91,12 +98,12 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                         <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                             <label className="block text-[10px] font-bold uppercase text-slate-500 mb-2">Global Categorization</label>
                             <select
-                                className="w-full bg-white rounded-xl border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 text-sm p-2.5"
+                                className="w-full bg-white rounded-xl border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-500 text-sm p-2.5 border"
                                 value={category_id}
                                 onChange={(e) => setCategoryId(e.target.value)}
                             >
                                 <option value="">No Category</option>
-                                {categories.map(cat => (
+                                {(categories || []).map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                 ))}
                             </select>
@@ -105,18 +112,18 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                         {/* Variants Management */}
                         <div className="space-y-4">
                             <h4 className="text-[10px] font-bold uppercase text-slate-500 tracking-widest pl-1">Sellable Units (SKUs)</h4>
-                            <div className="overflow-hidden border border-slate-100 rounded-2xl shadow-sm">
+                            <div className="overflow-hidden border border-slate-200 rounded-2xl shadow-sm bg-white">
                                 <table className="w-full text-left text-xs">
-                                    <thead className="bg-slate-50 italic text-slate-500 border-b border-slate-100">
+                                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
                                         <tr>
-                                            <th className="px-5 py-4">Variant</th>
-                                            <th className="px-5 py-4 w-32">Price ($)</th>
-                                            <th className="px-5 py-4 w-32 text-right">Stock</th>
+                                            <th className="px-5 py-4 font-bold uppercase tracking-wider">Variant</th>
+                                            <th className="px-5 py-4 w-32 font-bold uppercase tracking-wider">Price ($)</th>
+                                            <th className="px-5 py-4 w-32 text-right font-bold uppercase tracking-wider">Stock</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 bg-white">
-                                        {variantData.map((v, i) => (
-                                            <tr key={v.id} className="hover:bg-slate-50/50 transition-colors">
+                                        {(variantData || []).map((v, i) => (
+                                            <tr key={v.id || i} className="hover:bg-slate-50/50 transition-colors">
                                                 <td className="px-5 py-4 font-bold text-slate-700">
                                                     {v.combination && Object.keys(v.combination).length > 0
                                                         ? Object.entries(v.combination).map(([k, val]) => `${k}: ${val}`).join(' / ')
@@ -126,7 +133,7 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                                                     <input
                                                         type="number"
                                                         step="0.01"
-                                                        className="w-full bg-indigo-50/50 border-b-2 border-indigo-100 focus:border-indigo-500 outline-none font-bold py-1 px-2 rounded-t-sm"
+                                                        className="w-full bg-indigo-50/50 border-b-2 border-indigo-100 focus:border-indigo-600 outline-none font-bold py-1 px-2 rounded-t-sm"
                                                         value={v.price}
                                                         onChange={(e) => handleUpdateVariant(i, 'price', e.target.value)}
                                                         required
@@ -135,7 +142,7 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                                                 <td className="px-5 py-4 text-right">
                                                     <input
                                                         type="number"
-                                                        className="w-full text-right bg-indigo-50/50 border-b-2 border-indigo-100 focus:border-indigo-500 outline-none font-bold py-1 px-2 rounded-t-sm"
+                                                        className="w-full text-right bg-indigo-50/50 border-b-2 border-indigo-100 focus:border-indigo-600 outline-none font-bold py-1 px-2 rounded-t-sm"
                                                         value={v.quantity}
                                                         onChange={(e) => handleUpdateVariant(i, 'quantity', e.target.value)}
                                                         required
@@ -149,7 +156,7 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                         </div>
 
                         {error && (
-                            <p className="text-sm text-red-600 p-3 bg-red-50 rounded-xl border border-red-100">{error}</p>
+                            <p className="text-sm text-red-600 p-3 bg-red-50 rounded-xl border border-red-100 italic">{error}</p>
                         )}
 
                         <div className="flex space-x-4 pt-4">
