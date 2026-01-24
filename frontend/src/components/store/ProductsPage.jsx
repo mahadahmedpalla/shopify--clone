@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { Plus, Package, Search, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Package, Search, Trash2, Edit2, ToggleLeft, ToggleRight, Filter } from 'lucide-react';
 import { CreateProductModal } from './CreateProductModal';
 import { EditProductModal } from './EditProductModal';
 
@@ -18,40 +18,53 @@ export function ProductsPage() {
     const [editingProduct, setEditingProduct] = useState(null);
 
     useEffect(() => {
-        if (storeId) {
-            fetchData();
-        }
+        fetchData();
     }, [storeId]);
 
     const fetchData = async () => {
         setLoading(true);
-        try {
-            const { data: cats } = await supabase.from('product_categories').select('*').eq('store_id', storeId);
-            setCategories(cats || []);
+        // Fetch Categories for the dropdown/display
+        const { data: cats } = await supabase
+            .from('product_categories')
+            .select('id, name')
+            .eq('store_id', storeId);
+        setCategories(cats || []);
 
-            const { data: prods, error } = await supabase
-                .from('products')
-                .select('*, product_categories(name)')
-                .eq('store_id', storeId)
-                .order('created_at', { ascending: false });
+        // Fetch Products with category names
+        const { data: prods, error } = await supabase
+            .from('products')
+            .select(`
+                *,
+                product_categories (name)
+            `)
+            .eq('store_id', storeId)
+            .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            setProducts(prods || []);
-        } catch (err) {
-            console.error('Fetch error:', err);
-        } finally {
-            setLoading(false);
-        }
+        if (error) console.error('Error fetching products:', error);
+        else setProducts(prods || []);
+        setLoading(false);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Delete this product?')) return;
-        await supabase.from('products').delete().eq('id', id);
-        fetchData();
+    const handleToggleStatus = async (product) => {
+        const { error } = await supabase
+            .from('products')
+            .update({ is_active: !product.is_active })
+            .eq('id', product.id);
+
+        if (error) alert('Failed to update status');
+        else fetchData();
+    };
+
+    const handleDeleteProduct = async (id) => {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if (error) alert('Error: ' + error.message);
+        else fetchData();
     };
 
     const filteredProducts = products.filter(p =>
-        (p.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -59,22 +72,22 @@ export function ProductsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Products</h1>
-                    <p className="text-sm text-slate-500">Manage your store items.</p>
+                    <p className="text-slate-500 text-sm">Manage your inventory, pricing and store display.</p>
                 </div>
                 <Button onClick={() => setIsCreateModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-5 w-5 mr-2" />
                     Add Product
                 </Button>
             </div>
 
             <Card className="p-0">
-                <div className="p-4 border-b border-slate-100">
-                    <div className="relative max-w-md">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-4">
+                    <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Search products..."
-                            className="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Search by name or ID..."
+                            className="pl-10 pr-4 py-2 w-full bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -84,36 +97,77 @@ export function ProductsPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold tracking-widest border-b">
-                                <th className="px-6 py-4">Product</th>
+                            <tr className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-100">
+                                <th className="px-6 py-4">Product Info</th>
                                 <th className="px-6 py-4">Category</th>
                                 <th className="px-6 py-4">Price</th>
-                                <th className="px-6 py-4">Stock</th>
+                                <th className="px-6 py-4">Inventory</th>
+                                <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
-                                <tr><td colSpan="5" className="px-6 py-10 text-center text-slate-400">Loading...</td></tr>
+                                <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-400">Loading inventory...</td></tr>
                             ) : filteredProducts.length === 0 ? (
-                                <tr><td colSpan="5" className="px-6 py-10 text-center text-slate-400">No products found.</td></tr>
-                            ) : filteredProducts.map(p => (
-                                <tr key={p.id}>
+                                <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-400">No products found. Add your first item!</td></tr>
+                            ) : filteredProducts.map((p) => (
+                                <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center space-x-3">
-                                            <div className="h-10 w-10 bg-slate-100 rounded-lg overflow-hidden border">
-                                                {p.image_urls?.[0] ? <img src={p.image_urls[0]} className="h-full w-full object-cover" /> : <Package className="h-5 w-5 m-2.5 text-slate-300" />}
+                                            <div className="h-14 w-14 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200">
+                                                {p.image_urls && p.image_urls[0] ? (
+                                                    <img src={p.image_urls[0]} alt={p.name} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="h-full w-full flex items-center justify-center">
+                                                        <Package className="h-6 w-6 text-slate-300" />
+                                                    </div>
+                                                )}
                                             </div>
-                                            <span className="font-medium text-slate-900">{p.name}</span>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-slate-800 text-sm truncate max-w-[200px]">{p.name}</span>
+                                                <span className="text-[10px] font-mono text-slate-400 uppercase">#{p.id}</span>
+                                                <p className="text-[11px] text-slate-500 truncate max-w-[200px] mt-0.5">{p.description}</p>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-slate-600">{p.product_categories?.name || '---'}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-slate-900">${(p.price || 0).toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-700">{p.quantity || 0} units</td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-xs font-medium text-slate-600 px-2 py-1 bg-slate-100 rounded-md">
+                                            {p.product_categories?.name || 'Uncategorized'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-sm font-bold text-slate-900">${p.price.toFixed(2)}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center space-x-2">
+                                            <span className={`h-2 w-2 rounded-full ${p.quantity > 10 ? 'bg-green-500' : p.quantity > 0 ? 'bg-orange-500' : 'bg-red-500'}`} />
+                                            <span className="text-sm font-medium text-slate-700">{p.quantity} units</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <button
+                                            onClick={() => handleToggleStatus(p)}
+                                            className={`flex items-center space-x-1.5 transition-colors ${p.is_active ? 'text-green-600' : 'text-slate-400'}`}
+                                        >
+                                            {p.is_active ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
+                                            <span className="text-[10px] font-bold uppercase tracking-tight">{p.is_active ? 'Active' : 'Inactive'}</span>
+                                        </button>
+                                    </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end space-x-2">
-                                            <button onClick={() => setEditingProduct(p)} className="p-1 text-slate-400 hover:text-indigo-600"><Edit2 className="h-4 w-4" /></button>
-                                            <button onClick={() => handleDelete(p.id)} className="p-1 text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                                            <button
+                                                onClick={() => setEditingProduct(p)}
+                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                                            >
+                                                <Edit2 className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteProduct(p.id)}
+                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -126,7 +180,10 @@ export function ProductsPage() {
             <CreateProductModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                onSuccess={() => { setIsCreateModalOpen(false); fetchData(); }}
+                onSuccess={() => {
+                    setIsCreateModalOpen(false);
+                    fetchData();
+                }}
                 storeId={storeId}
                 categories={categories}
             />
@@ -137,7 +194,10 @@ export function ProductsPage() {
                     product={editingProduct}
                     categories={categories}
                     onClose={() => setEditingProduct(null)}
-                    onSuccess={() => { setEditingProduct(null); fetchData(); }}
+                    onSuccess={() => {
+                        setEditingProduct(null);
+                        fetchData();
+                    }}
                 />
             )}
         </div>
