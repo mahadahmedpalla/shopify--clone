@@ -7,10 +7,13 @@ import { X, Settings2, Plus, Trash2, Wand2, Package, Check, ChevronRight, Chevro
 
 const COMMON_ATTRIBUTES = ['Size', 'Color', 'Material', 'Style', 'Fit', 'Fabric'];
 
-export function AttributesManagerModal({ isOpen, product, onClose, onSuccess }) {
+export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSuccess }) {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Custom attributes from DB
+    const [customAttributesDB, setCustomAttributesDB] = useState([]);
 
     // Step 1 & 2: Selected Attributes and their values
     const [selectedAttributes, setSelectedAttributes] = useState([]); // { name: '', values: [] }
@@ -20,30 +23,63 @@ export function AttributesManagerModal({ isOpen, product, onClose, onSuccess }) 
 
     useEffect(() => {
         if (isOpen && product) {
-            fetchExistingData();
+            fetchInitialData();
         }
     }, [isOpen, product]);
 
-    const fetchExistingData = async () => {
+    const fetchInitialData = async () => {
         setLoading(true);
-        // Fetch existing variants to pre-populate if they exist
-        const { data, error } = await supabase
-            .from('product_variants')
-            .select('*')
-            .eq('product_id', product.id);
+        try {
+            // 1. Fetch custom attributes for this store
+            const { data: dbAttrs, error: attrError } = await supabase
+                .from('attributes')
+                .select('name')
+                .eq('store_id', storeId);
 
-        if (data && data.length > 0) {
-            setVariants(data);
-            // Derive attributes from existing combinations if needed, but let's start fresh for simplicity or complexity
+            if (attrError) throw attrError;
+            setCustomAttributesDB(dbAttrs?.map(a => a.name) || []);
+
+            // 2. Fetch existing variants to pre-populate
+            const { data, error: variantError } = await supabase
+                .from('product_variants')
+                .select('*')
+                .eq('product_id', product.id);
+
+            if (variantError) throw variantError;
+            if (data && data.length > 0) {
+                setVariants(data);
+            }
+        } catch (err) {
+            console.error('Initial fetch error:', err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     if (!isOpen || !product) return null;
 
-    const addAttribute = (name = '') => {
-        if (selectedAttributes.some(a => a.name === name)) return;
-        setSelectedAttributes([...selectedAttributes, { name, values: [] }]);
+    const addAttribute = async (name = '') => {
+        const trimmedName = name.trim();
+        if (!trimmedName || selectedAttributes.some(a => a.name === trimmedName)) return;
+
+        // If it's a new "Custom" attribute (not in common or DB), save it to DB
+        const isCommon = COMMON_ATTRIBUTES.includes(trimmedName);
+        const isExistingCustom = customAttributesDB.includes(trimmedName);
+
+        if (!isCommon && !isExistingCustom) {
+            try {
+                const { error } = await supabase
+                    .from('attributes')
+                    .insert([{ name: trimmedName, store_id: storeId }]);
+
+                if (error) throw error;
+                setCustomAttributesDB([...customAttributesDB, trimmedName]);
+            } catch (err) {
+                console.error('Failed to save attribute:', err);
+            }
+        }
+
+        setSelectedAttributes([...selectedAttributes, { name: trimmedName, values: [] }]);
     };
 
     const removeAttribute = (index) => {
@@ -166,24 +202,44 @@ export function AttributesManagerModal({ isOpen, product, onClose, onSuccess }) 
                             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Common Attributes</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {COMMON_ATTRIBUTES.map(attr => (
-                                                <button
-                                                    key={attr}
-                                                    onClick={() => addAttribute(attr)}
-                                                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${selectedAttributes.some(a => a.name === attr)
-                                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
-                                                        : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
-                                                        }`}
-                                                >
-                                                    {attr}
-                                                </button>
-                                            ))}
+                                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Available Attributes</h4>
+                                        <div className="space-y-4">
+                                            {/* Common Attributes */}
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-tight">Global Defaults</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {COMMON_ATTRIBUTES.map(attr => (
+                                                        <AttributeButton
+                                                            key={attr}
+                                                            name={attr}
+                                                            isSelected={selectedAttributes.some(a => a.name === attr)}
+                                                            onClick={addAttribute}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Custom Attributes DB */}
+                                            {customAttributesDB.length > 0 && (
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-tight">Your Custom Attributes</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {customAttributesDB.map(attr => (
+                                                            <AttributeButton
+                                                                key={attr}
+                                                                name={attr}
+                                                                isSelected={selectedAttributes.some(a => a.name === attr)}
+                                                                onClick={addAttribute}
+                                                                isCustom
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Custom Attribute</h4>
+                                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Create New Attribute</h4>
                                         <div className="flex space-x-2">
                                             <Input
                                                 id="custom-attr"
@@ -204,6 +260,7 @@ export function AttributesManagerModal({ isOpen, product, onClose, onSuccess }) 
                                                 <Plus className="h-4 w-4" />
                                             </Button>
                                         </div>
+                                        <p className="text-[10px] text-slate-400 italic">Newly created attributes will be saved for your store automatically.</p>
                                     </div>
                                 </div>
 
@@ -392,5 +449,21 @@ function StepIndicator({ active, number, label }) {
                 {label}
             </span>
         </div>
+    );
+}
+
+function AttributeButton({ name, isSelected, onClick, isCustom = false }) {
+    return (
+        <button
+            type="button"
+            onClick={() => onClick(name)}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all border flex items-center ${isSelected
+                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-400 hover:text-indigo-600'
+                }`}
+        >
+            {isCustom && <div className="w-1 h-1 bg-amber-400 rounded-full mr-2" title="Store specific" />}
+            {name}
+        </button>
     );
 }

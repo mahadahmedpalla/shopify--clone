@@ -222,6 +222,7 @@ export function ProductsPage() {
                 <AttributesManagerModal
                     isOpen={!!managingVariantsProduct}
                     product={managingVariantsProduct}
+                    storeId={storeId}
                     onClose={() => setManagingVariantsProduct(null)}
                     onSuccess={() => {
                         setManagingVariantsProduct(null);
