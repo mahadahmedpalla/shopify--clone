@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { X, Package, Upload, Camera, LayoutGrid } from 'lucide-react';
+import { X, Package, Upload, Camera, LayoutGrid, Settings2, Trash2, Layers, Plus } from 'lucide-react';
 
 export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, categories }) {
     const [loading, setLoading] = useState(false);
