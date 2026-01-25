@@ -300,6 +300,7 @@ export function StoreBuilder() {
                                                 key={block.id}
                                                 block={block}
                                                 viewMode={viewMode}
+                                                store={store}
                                                 onDelete={() => deleteWidget(block.id)}
                                                 isSelected={selectedElement?.id === block.id}
                                                 onClick={() => setSelectedElement(block)}
@@ -370,7 +371,7 @@ export function StoreBuilder() {
     );
 }
 
-function SortableBlock({ block, onDelete, isSelected, onClick, viewMode }) {
+function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
     const style = {
@@ -398,12 +399,12 @@ function SortableBlock({ block, onDelete, isSelected, onClick, viewMode }) {
                 </button>
             </div>
 
-            <BlockRenderer type={block.type} settings={block.settings} viewMode={viewMode} />
+            <BlockRenderer type={block.type} settings={block.settings} viewMode={viewMode} store={store} />
         </div>
     );
 }
 
-function BlockRenderer({ type, settings, viewMode }) {
+function BlockRenderer({ type, settings, viewMode, store }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
