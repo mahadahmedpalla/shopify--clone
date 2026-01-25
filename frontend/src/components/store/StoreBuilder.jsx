@@ -24,7 +24,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
     X, Save, Eye, Smartphone, Monitor, Tablet, Plus, Settings2, Layers,
     ChevronLeft, Type, Image as ImageIcon, Layout, Box, Play, Undo2,
-    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical, Menu
+    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical, Menu, Upload
 } from 'lucide-react';
 
 const WIDGET_CATEGORIES = [
@@ -782,16 +782,57 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
 
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logo</h3>
-                <input
-                    type="text"
-                    placeholder="Logo URL..."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                    value={settings.logoUrl}
-                    onChange={e => update('logoUrl', e.target.value)}
-                />
-                <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Logo Width (px)</label>
-                    <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.logoWidth)} onChange={e => update('logoWidth', e.target.value + 'px')} />
+                <div className="space-y-3">
+                    {settings.logoUrl ? (
+                        <div className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center">
+                            <img src={settings.logoUrl} className="max-h-full p-4 object-contain" alt="Logo" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                                <button
+                                    onClick={() => update('logoUrl', '')}
+                                    className="p-2 bg-white rounded-full text-red-500 hover:scale-110 transition-transform"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl h-32 hover:border-indigo-400 hover:bg-slate-50 transition-all cursor-pointer group">
+                            <Upload className="h-8 w-8 text-slate-300 group-hover:text-indigo-400 mb-2 transition-colors" />
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Logo</span>
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    const fileExt = file.name.split('.').pop();
+                                    const fileName = `${Math.random()}.${fileExt}`;
+                                    const filePath = `${fileName}`;
+
+                                    const { error: uploadError } = await supabase.storage
+                                        .from('store-assets')
+                                        .upload(filePath, file);
+
+                                    if (uploadError) {
+                                        alert('Upload failed: ' + uploadError.message);
+                                        return;
+                                    }
+
+                                    const { data: { publicUrl } } = supabase.storage
+                                        .from('store-assets')
+                                        .getPublicUrl(filePath);
+
+                                    update('logoUrl', publicUrl);
+                                }}
+                            />
+                        </label>
+                    )}
+                    <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Logo Width (px)</label>
+                        <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.logoWidth)} onChange={e => update('logoWidth', e.target.value + 'px')} />
+                    </div>
                 </div>
             </section>
 
