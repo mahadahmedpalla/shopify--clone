@@ -86,7 +86,7 @@ export function StoreBuilder() {
     const fetchStoreData = async () => {
         // Fetch categories for this store
         const { data: storeCats } = await supabase
-            .from('categories')
+            .from('product_categories')
             .select('*')
             .eq('store_id', storeId)
             .order('name');
