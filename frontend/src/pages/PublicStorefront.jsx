@@ -6,7 +6,8 @@ import { Button } from '../components/ui/Button';
 import { ShoppingCart, ChevronRight, Box, Layout, Menu, X } from 'lucide-react';
 
 export function PublicStorefront() {
-    const { storeSubUrl, pageSlug = 'home' } = useParams();
+    const { storeSubUrl, pageSlug } = useParams();
+    const activeSlug = pageSlug || 'home';
     const [store, setStore] = useState(null);
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -14,7 +15,7 @@ export function PublicStorefront() {
 
     useEffect(() => {
         fetchStoreAndPage();
-    }, [storeSubUrl, pageSlug]);
+    }, [storeSubUrl, activeSlug]);
 
     const fetchStoreAndPage = async () => {
         setLoading(true);
@@ -28,7 +29,7 @@ export function PublicStorefront() {
             .single();
 
         if (storeError || !storeData) {
-            setError('Store not found');
+            setError(`Store "${storeSubUrl}" not found or inactive.`);
             setLoading(false);
             return;
         }
@@ -39,11 +40,11 @@ export function PublicStorefront() {
             .from('store_pages')
             .select('*')
             .eq('store_id', storeData.id)
-            .eq('slug', pageSlug)
+            .eq('slug', activeSlug)
             .single();
 
         if (pageError || !pageData) {
-            setError('Page not found');
+            setError(`Page "${activeSlug}" not found in ${storeData.name}.`);
         } else {
             setPage(pageData);
         }
@@ -227,8 +228,9 @@ function PublicError({ message }) {
                 <Box className="h-16 w-16" />
             </div>
             <h1 className="text-4xl font-black tracking-tight">Wait, something is missing</h1>
-            <p className="text-slate-500 max-w-sm">{message}. The storefront might be private or the link is incorrect.</p>
-            <Link to="/"><Button variant="secondary">Back to Safety</Button></Link>
+            <p className="text-slate-500 max-w-sm">{message}</p>
+            <p className="text-[10px] text-slate-300 uppercase tracking-widest font-bold">The storefront might be private or the link is incorrect.</p>
+            <Link to="/"><Button variant="secondary" className="border-slate-200">Back to Dashboard</Button></Link>
         </div>
     );
 }
