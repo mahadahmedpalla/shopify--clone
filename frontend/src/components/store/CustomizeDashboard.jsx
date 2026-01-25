@@ -1,0 +1,227 @@
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import {
+    Layout,
+    Plus,
+    Smartphone,
+    Monitor,
+    Edit3,
+    Eye,
+    Globe,
+    Trash2,
+    ChevronRight,
+    Home,
+    ShoppingBag,
+    Search,
+    ShoppingCart,
+    CreditCard,
+    CheckCircle,
+    FileText,
+    Settings
+} from 'lucide-react';
+
+const SYSTEM_PAGES = [
+    { name: 'Home', slug: 'home', icon: <Home className="h-4 w-4" />, description: 'Your store front door' },
+    { name: 'Collections', slug: 'shop', icon: <ShoppingBag className="h-4 w-4" />, description: 'Product listing grid' },
+    { name: 'Product Detail', slug: 'pdp', icon: <Search className="h-4 w-4" />, description: 'Single product view' },
+    { name: 'Cart', slug: 'cart', icon: <ShoppingCart className="h-4 w-4" />, description: 'Shopping cart summary' },
+    { name: 'Checkout', slug: 'checkout', icon: <CreditCard className="h-4 w-4" />, description: 'Payment processing' },
+    { name: 'Thank You', slug: 'thank-you', icon: <CheckCircle className="h-4 w-4" />, description: 'Order confirmation' },
+];
+
+const LEGAL_PAGES = [
+    { name: 'Refund Policy', slug: 'refund-policy', icon: <FileText className="h-4 w-4" /> },
+    { name: 'Shipping Policy', slug: 'shipping-policy', icon: <FileText className="h-4 w-4" /> },
+];
+
+export function CustomizeDashboard() {
+    const { storeId } = useParams();
+    const navigate = useNavigate();
+    const [pages, setPages] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchPages();
+    }, [storeId]);
+
+    const fetchPages = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('store_pages')
+            .select('*')
+            .eq('store_id', storeId);
+
+        if (error) console.error('Error fetching pages:', error);
+        else setPages(data || []);
+        setLoading(false);
+    };
+
+    const handleCreateSystemPages = async () => {
+        setLoading(true);
+        const allSystem = [...SYSTEM_PAGES, ...LEGAL_PAGES];
+        const newPages = allSystem
+            .filter(sys => !pages.some(p => p.slug === sys.slug))
+            .map(sys => ({
+                store_id: storeId,
+                name: sys.name,
+                slug: sys.slug,
+                type: LEGAL_PAGES.some(l => l.slug === sys.slug) ? 'legal' : 'system',
+                content: [],
+                is_published: true
+            }));
+
+        if (newPages.length > 0) {
+            const { error } = await supabase.from('store_pages').insert(newPages);
+            if (error) alert('Failed to create pages: ' + error.message);
+            else fetchPages();
+        }
+    };
+
+    const getPageStatus = (slug) => {
+        const page = pages.find(p => p.slug === slug);
+        return page ? (page.is_published ? 'Published' : 'Draft') : 'Not Created';
+    };
+
+    const getPageId = (slug) => {
+        return pages.find(p => p.slug === slug)?.id;
+    };
+
+    return (
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Customize Store</h1>
+                    <p className="text-slate-500 text-sm">Design your online store with our visual builder.</p>
+                </div>
+                <div className="flex space-x-3">
+                    <Button variant="secondary" onClick={handleCreateSystemPages} disabled={loading}>
+                        <Globe className="h-4 w-4 mr-2" />
+                        Init System Pages
+                    </Button>
+                    <Button onClick={() => alert('Custom Pages coming soon!')}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Page
+                    </Button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Pages List */}
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="p-0 overflow-hidden border-slate-200">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Store Pages</h3>
+                            <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                                {pages.length} Total
+                            </span>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                            {SYSTEM_PAGES.map((sys) => {
+                                const pageId = getPageId(sys.slug);
+                                const status = getPageStatus(sys.slug);
+                                return (
+                                    <div key={sys.slug} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-500 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-colors">
+                                                {sys.icon}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-slate-800">{sys.name}</h4>
+                                                <p className="text-xs text-slate-400">{sys.description}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-6">
+                                            <div className="text-right">
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${status === 'Published' ? 'text-green-500' : 'text-slate-400'}`}>
+                                                    {status}
+                                                </span>
+                                            </div>
+                                            {pageId ? (
+                                                <button
+                                                    onClick={() => navigate(`/store/${storeId}/builder/${pageId}`)}
+                                                    className="p-2 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 rounded-lg hover:border-indigo-200 shadow-sm transition-all"
+                                                >
+                                                    <Edit3 className="h-4 w-4" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={handleCreateSystemPages}
+                                                    className="p-2 text-indigo-400 hover:text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg shadow-sm transition-all"
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </Card>
+
+                    <Card className="p-0 overflow-hidden border-slate-200">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Legal & Info</h3>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                            {LEGAL_PAGES.map((sys) => {
+                                const pageId = getPageId(sys.slug);
+                                const status = getPageStatus(sys.slug);
+                                return (
+                                    <div key={sys.slug} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400">
+                                                {sys.icon}
+                                            </div>
+                                            <h4 className="text-sm font-bold text-slate-800">{sys.name}</h4>
+                                        </div>
+                                        <div className="flex items-center space-x-3">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{status}</span>
+                                            <button
+                                                onClick={() => pageId && navigate(`/store/${storeId}/builder/${pageId}`)}
+                                                disabled={!pageId}
+                                                className="p-1.5 text-slate-300 hover:text-indigo-600 disabled:opacity-30"
+                                            >
+                                                <ChevronRight className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </Card>
+                </div>
+
+                {/* Sidebar Config / Quick Settings */}
+                <div className="space-y-6">
+                    <Card className="p-6 bg-indigo-600 text-white relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h3 className="font-bold text-lg mb-2">Global Styles</h3>
+                            <p className="text-indigo-100 text-xs mb-6">Manage colors, fonts and your brand identity across all pages.</p>
+                            <Button variant="secondary" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20">
+                                <Settings className="h-4 w-4 mr-2" />
+                                Theme Settings
+                            </Button>
+                        </div>
+                        <Palette className="absolute -bottom-4 -right-4 h-32 w-32 text-white/10 rotate-12" />
+                    </Card>
+
+                    <Card className="p-6 space-y-4">
+                        <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Store Preview</h3>
+                        <div className="aspect-[4/3] bg-slate-100 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center space-y-3">
+                            <Monitor className="h-8 w-8 text-slate-300" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">Live Preview Coming Soon</p>
+                        </div>
+                        <Button variant="secondary" className="w-full">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Open Storefront
+                        </Button>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    );
+}

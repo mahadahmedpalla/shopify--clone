@@ -9,6 +9,8 @@ import { Navbar } from './components/common/Navbar';
 import { StoreLayout } from './components/store/StoreLayout';
 import { CategoriesPage } from './components/store/CategoriesPage';
 import { ProductsPage } from './components/store/ProductsPage';
+import { CustomizeDashboard } from './components/store/CustomizeDashboard';
+import { StoreBuilder } from './components/store/StoreBuilder';
 
 // Simple Layout Wrapper
 function Layout({ children }) {
@@ -78,9 +80,12 @@ function App() {
             <Route path="analytics" element={<div className="p-8 text-center text-slate-400 font-medium">Analytics Feature Coming Soon</div>} />
             <Route path="coupons" element={<div className="p-8 text-center text-slate-400 font-medium">Coupons Feature Coming Soon</div>} />
             <Route path="discounts" element={<div className="p-8 text-center text-slate-400 font-medium">Discounts Feature Coming Soon</div>} />
-            <Route path="customize" element={<div className="p-8 text-center text-slate-400 font-medium">Customize Store Coming Soon</div>} />
+            <Route path="customize" element={<CustomizeDashboard />} />
             <Route path="settings" element={<div className="p-8 text-center text-slate-400 font-medium">Store Settings Coming Soon</div>} />
           </Route>
+
+          {/* Full Screen Builder Route */}
+          <Route path="/store/:storeId/builder/:pageId" element={<StoreBuilder />} />
         </Route>
       </Routes>
     </BrowserRouter>
