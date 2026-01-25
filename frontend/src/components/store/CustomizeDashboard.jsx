@@ -99,20 +99,32 @@ export function CustomizeDashboard() {
     const navigate = useNavigate();
     const [pages, setPages] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [store, setStore] = useState(null);
 
     useEffect(() => {
-        fetchPages();
+        fetchData();
     }, [storeId]);
 
-    const fetchPages = async () => {
+    const fetchData = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        // Fetch store details (for sub_url)
+        const { data: storeData } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('id', storeId)
+            .single();
+
+        if (storeData) setStore(storeData);
+
+        const { data: pageData, error } = await supabase
             .from('store_pages')
             .select('*')
-            .eq('store_id', storeId);
+            .eq('store_id', storeId)
+            .order('name');
 
         if (error) console.error('Error fetching pages:', error);
-        else setPages(data || []);
+        else setPages(pageData || []);
+
         setLoading(false);
     };
 
@@ -133,8 +145,9 @@ export function CustomizeDashboard() {
         if (newPages.length > 0) {
             const { error } = await supabase.from('store_pages').insert(newPages);
             if (error) alert('Failed to create pages: ' + error.message);
-            else fetchPages();
+            else fetchData(); // Changed from fetchPages to fetchData
         }
+        setLoading(false); // Ensure loading is set to false after operation
     };
 
     const getPageStatus = (slug) => {
@@ -148,13 +161,24 @@ export function CustomizeDashboard() {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex items-center justify-between">
+            <header className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Customize Store</h1>
-                    <p className="text-slate-500 text-sm">Design your online store with our visual builder.</p>
+                    <h1 className="text-2xl font-bold text-slate-800">Store Customization</h1>
+                    <p className="text-slate-500 text-sm">Design and manage your store pages.</p>
                 </div>
-                <div className="flex space-x-3">
-                    <Button variant="secondary" onClick={handleCreateSystemPages} disabled={loading}>
+                <div className="flex items-center space-x-3">
+                    {store?.sub_url && (
+                        <a
+                            href={`/s/${store.sub_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center hover:bg-slate-50 shadow-sm transition-all"
+                        >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Storefront
+                        </a>
+                    )}
+                    <Button onClick={handleCreateSystemPages} disabled={loading}>
                         <Globe className="h-4 w-4 mr-2" />
                         Init System Pages
                     </Button>
@@ -163,7 +187,7 @@ export function CustomizeDashboard() {
                         Create Page
                     </Button>
                 </div>
-            </div>
+            </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Pages List */}
@@ -177,7 +201,8 @@ export function CustomizeDashboard() {
                         </div>
                         <div className="divide-y divide-slate-100">
                             {SYSTEM_PAGES.map((sys) => {
-                                const pageId = getPageId(sys.slug);
+                                const page = pages.find(p => p.slug === sys.slug); // Get the actual page object
+                                const pageId = page?.id;
                                 const status = getPageStatus(sys.slug);
                                 return (
                                     <div key={sys.slug} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
@@ -197,12 +222,24 @@ export function CustomizeDashboard() {
                                                 </span>
                                             </div>
                                             {pageId ? (
-                                                <button
-                                                    onClick={() => navigate(`/store/${storeId}/builder/${pageId}`)}
-                                                    className="p-2 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 rounded-lg hover:border-indigo-200 shadow-sm transition-all"
-                                                >
-                                                    <Edit3 className="h-4 w-4" />
-                                                </button>
+                                                <div className="flex items-center space-x-2">
+                                                    <a
+                                                        href={`/s/${store?.sub_url}/${page.slug}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                        title="View Page"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </a>
+                                                    <button
+                                                        onClick={() => navigate(`/store/${storeId}/builder/${page.id}`)}
+                                                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                        title="Design Page"
+                                                    >
+                                                        <Palette className="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             ) : (
                                                 <button
                                                     onClick={handleCreateSystemPages}

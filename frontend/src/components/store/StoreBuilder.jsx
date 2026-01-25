@@ -78,12 +78,22 @@ export function StoreBuilder() {
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
+    const [store, setStore] = useState(null);
+
     useEffect(() => {
         fetchPage();
         fetchStoreData();
     }, [pageId]);
 
     const fetchStoreData = async () => {
+        // Fetch Store info
+        const { data: storeData } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('id', storeId)
+            .single();
+        if (storeData) setStore(storeData);
+
         // Fetch categories for this store
         const { data: storeCats } = await supabase
             .from('product_categories')
@@ -213,6 +223,17 @@ export function StoreBuilder() {
                 </div>
 
                 <div className="flex items-center space-x-3">
+                    {store?.sub_url && (
+                        <a
+                            href={`/s/${store.sub_url}/${page?.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-slate-400 hover:text-white transition-colors flex items-center text-[10px] font-bold uppercase tracking-widest bg-slate-800 rounded-lg mr-2"
+                        >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Live
+                        </a>
+                    )}
                     <Button variant="secondary" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 hover:text-white">
                         <Eye className="h-4 w-4 mr-2" />
                         Preview
