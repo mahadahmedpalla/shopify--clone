@@ -70,6 +70,8 @@ export function StoreBuilder() {
     const [draggedWidget, setDraggedWidget] = useState(null);
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
+    const [storePages, setStorePages] = useState([]);
+    const [manualProdId, setManualProdId] = useState('');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -83,25 +85,27 @@ export function StoreBuilder() {
 
     const fetchStoreData = async () => {
         // Fetch categories for this store
-        const { data: catData } = await supabase
-            .from('store_categories')
-            .select('*'); // We select all for now, but usually filter by store if they were nested.
-        // Wait, our project structure has store_categories as global but linked to stores?
-        // Let's check listing tables again. Ah, store_categories is global.
-        // But 'categories' table is per-store based on our previous work.
-
         const { data: storeCats } = await supabase
             .from('categories')
             .select('*')
-            .eq('store_id', storeId);
+            .eq('store_id', storeId)
+            .order('name');
 
         const { data: prodData } = await supabase
             .from('products')
             .select('*')
-            .eq('store_id', storeId);
+            .eq('store_id', storeId)
+            .order('name');
+
+        const { data: pageData } = await supabase
+            .from('store_pages')
+            .select('id, name, slug')
+            .eq('store_id', storeId)
+            .order('name');
 
         setCategories(storeCats || []);
         setProducts(prodData || []);
+        setStorePages(pageData || []);
     };
 
     const fetchPage = async () => {
@@ -296,6 +300,7 @@ export function StoreBuilder() {
                                     settings={selectedElement.settings}
                                     categories={categories}
                                     products={products}
+                                    storePages={storePages}
                                     onUpdate={(newSettings) => {
                                         const newContent = canvasContent.map(c =>
                                             c.id === selectedElement.id ? { ...c, settings: newSettings } : c
@@ -530,7 +535,7 @@ function ViewModeBtn({ active, onClick, icon }) {
     );
 }
 
-function NavbarProperties({ settings, onUpdate, categories, products }) {
+function NavbarProperties({ settings, onUpdate, categories, products, storePages }) {
     const update = (key, val) => onUpdate({ ...settings, [key]: val });
 
     return (
@@ -667,11 +672,51 @@ function NavbarProperties({ settings, onUpdate, categories, products }) {
                                     }}
                                 >
                                     <option value="">Select Category...</option>
-                                    {categories.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    {categories.filter(c => !c.parent_id).map(parent => (
+                                        <React.Fragment key={parent.id}>
+                                            <option value={parent.id} className="font-bold">{parent.name}</option>
+                                            {categories.filter(c => c.parent_id === parent.id).map(child => (
+                                                <option key={child.id} value={child.id}>&nbsp;&nbsp;↳ {child.name}</option>
+                                            ))}
+                                        </React.Fragment>
                                     ))}
                                 </select>
                             ) : item.type === 'product' ? (
+                                <div className="space-y-1">
+                                    <select
+                                        className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
+                                        value={products.some(p => p.id === item.value) ? item.value : 'manual'}
+                                        onChange={e => {
+                                            if (e.target.value === 'manual') return;
+                                            const newItems = [...settings.menuItems];
+                                            newItems[idx].value = e.target.value;
+                                            const prod = products.find(p => p.id === e.target.value);
+                                            if (prod && (!newItems[idx].label || newItems[idx].label === 'New Link')) {
+                                                newItems[idx].label = prod.name;
+                                            }
+                                            update('menuItems', newItems);
+                                        }}
+                                    >
+                                        <option value="">Select Product...</option>
+                                        <option value="manual">-- Enter ID Manually --</option>
+                                        {products.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
+                                        ))}
+                                    </select>
+                                    {(!products.some(p => p.id === item.value) || item.value === '') && (
+                                        <input
+                                            className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
+                                            placeholder="Paste Product ID here..."
+                                            value={item.value}
+                                            onChange={e => {
+                                                const newItems = [...settings.menuItems];
+                                                newItems[idx].value = e.target.value;
+                                                update('menuItems', newItems);
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            ) : item.type === 'page' ? (
                                 <select
                                     className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
                                     value={item.value}
@@ -680,21 +725,21 @@ function NavbarProperties({ settings, onUpdate, categories, products }) {
                                         newItems[idx].value = e.target.value;
                                         // Auto-update label if blank
                                         if (!newItems[idx].label || newItems[idx].label === 'New Link') {
-                                            const prod = products.find(p => p.id === e.target.value);
-                                            if (prod) newItems[idx].label = prod.name;
+                                            const p = storePages.find(p => p.slug === e.target.value);
+                                            if (p) newItems[idx].label = p.name;
                                         }
                                         update('menuItems', newItems);
                                     }}
                                 >
-                                    <option value="">Select Product...</option>
-                                    {products.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    <option value="">Select Page...</option>
+                                    {storePages.map(p => (
+                                        <option key={p.id} value={p.slug}>{p.name}</option>
                                     ))}
                                 </select>
                             ) : (
                                 <input
                                     className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
-                                    placeholder={item.type === 'page' ? 'e.g. shop, contact' : 'e.g. https://...'}
+                                    placeholder="e.g. https://..."
                                     value={item.value}
                                     onChange={e => {
                                         const newItems = [...settings.menuItems];
