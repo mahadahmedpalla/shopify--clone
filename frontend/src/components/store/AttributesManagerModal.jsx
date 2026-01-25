@@ -136,6 +136,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                     price: v.use_base_price ? product.price : parseFloat(v.price),
                     quantity: parseInt(v.quantity) || 0,
                     image_urls: v.image_urls,
+                    use_base_price: v.use_base_price !== false,
                     is_active: true
                 })));
 

@@ -44,6 +44,16 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
 
             if (updateError) throw updateError;
 
+            // 2. Automatically sync price with variants that are using base price
+            const newPrice = parseFloat(formData.price);
+            if (newPrice !== product.price) {
+                await supabase
+                    .from('product_variants')
+                    .update({ price: newPrice })
+                    .eq('product_id', product.id)
+                    .eq('use_base_price', true);
+            }
+
             onSuccess();
         } catch (err) {
             setError(err.message);
