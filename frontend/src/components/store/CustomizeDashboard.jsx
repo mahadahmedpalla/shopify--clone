@@ -39,6 +39,31 @@ const LEGAL_PAGES = [
     { name: 'Shipping Policy', slug: 'shipping-policy', icon: <FileText className="h-4 w-4" /> },
 ];
 
+const PAGE_TEMPLATES = {
+    home: [
+        { id: 'h1', type: 'hero', settings: { title: 'Welcome to Our Store', subtitle: 'Experience premium shopping with us.', buttonText: 'Explore Collection' } },
+        { id: 'h2', type: 'product_grid', settings: { title: 'Featured Products', limit: 8 } },
+        { id: 'h3', type: 'text', settings: { content: 'Our Brand Story: Delivering quality since 2026.' } }
+    ],
+    shop: [
+        { id: 's1', type: 'heading', settings: { text: 'Shop All Collections', size: 'h1' } },
+        { id: 's2', type: 'product_grid', settings: { showFilters: true, itemsPerPage: 12 } }
+    ],
+    pdp: [
+        { id: 'p1', type: 'product_detail', settings: { showReviews: true, showSimilar: true } }
+    ],
+    cart: [
+        { id: 'c1', type: 'heading', settings: { text: 'Your Cart', size: 'h2' } },
+        { id: 'c2', type: 'cart_list', settings: {} }
+    ],
+    checkout: [
+        { id: 'ch1', type: 'checkout_flow', settings: {} }
+    ],
+    'thank-you': [
+        { id: 't1', type: 'success_msg', settings: { title: 'Order Confirmed!', message: 'Thank you for your purchase.' } }
+    ]
+};
+
 export function CustomizeDashboard() {
     const { storeId } = useParams();
     const navigate = useNavigate();
@@ -71,7 +96,7 @@ export function CustomizeDashboard() {
                 name: sys.name,
                 slug: sys.slug,
                 type: LEGAL_PAGES.some(l => l.slug === sys.slug) ? 'legal' : 'system',
-                content: [],
+                content: PAGE_TEMPLATES[sys.slug] || [],
                 is_published: true
             }));
 

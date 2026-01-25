@@ -4,27 +4,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import {
-    X,
-    Save,
-    Eye,
-    Smartphone,
-    Monitor,
-    Tablet,
-    Plus,
-    Settings2,
-    Layers,
-    ChevronLeft,
-    Type,
-    Image as ImageIcon,
-    Layout,
-    Box,
-    Play,
-    Undo2,
-    Redo2,
-    ChevronRight,
-    Search,
-    ShoppingBag,
-    ShoppingCart
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+    defaultDropAnimationSideEffects
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
+    X, Save, Eye, Smartphone, Monitor, Tablet, Plus, Settings2, Layers,
+    ChevronLeft, Type, Image as ImageIcon, Layout, Box, Play, Undo2,
+    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical
 } from 'lucide-react';
 
 const WIDGET_CATEGORIES = [
@@ -40,31 +40,38 @@ const WIDGET_CATEGORIES = [
     {
         name: 'Layout',
         widgets: [
+            { type: 'hero', icon: <Layout className="h-4 w-4" />, label: 'Hero Banner' },
             { type: 'section', icon: <Layout className="h-4 w-4" />, label: 'Section' },
-            { type: 'grid', icon: <Layout className="h-4 w-4" />, label: 'Grid' },
             { type: 'spacer', icon: <Box className="h-4 w-4" />, label: 'Spacer' },
-            { type: 'divider', icon: <Box className="h-4 w-4" />, label: 'Divider' },
         ]
     },
     {
         name: 'Shopify Core',
         widgets: [
-            { type: 'product_grid', icon: <ShoppingBag className="h-4 w-4" />, label: 'Product List' },
-            { type: 'featured_collection', icon: <ShoppingBag className="h-4 w-4" />, label: 'Featured Set' },
-            { type: 'cart_btn', icon: <ShoppingCart className="h-4 w-4" />, label: 'Floating Cart' },
+            { type: 'product_grid', icon: <ShoppingBag className="h-4 w-4" />, label: 'Product Grid' },
+            { type: 'cart_list', icon: <ShoppingCart className="h-4 w-4" />, label: 'Cart Items' },
+            { type: 'product_detail', icon: <Search className="h-4 w-4" />, label: 'Product Info' },
         ]
     }
 ];
+
+// Helper to generate IDs
+const genId = () => Math.random().toString(36).substr(2, 9);
 
 export function StoreBuilder() {
     const { storeId, pageId } = useParams();
     const navigate = useNavigate();
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState('desktop'); // desktop, tablet, mobile
-    const [activeTab, setActiveTab] = useState('widgets'); // widgets, layers, settings
+    const [viewMode, setViewMode] = useState('desktop');
     const [canvasContent, setCanvasContent] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
+    const [draggedWidget, setDraggedWidget] = useState(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
 
     useEffect(() => {
         fetchPage();
@@ -77,10 +84,8 @@ export function StoreBuilder() {
             .eq('id', pageId)
             .single();
 
-        if (error) {
-            console.error('Builder fetch error:', error);
-            navigate(`/store/${storeId}/customize`);
-        } else {
+        if (error) navigate(`/store/${storeId}/customize`);
+        else {
             setPage(data);
             setCanvasContent(data.content || []);
         }
@@ -93,63 +98,65 @@ export function StoreBuilder() {
             .from('store_pages')
             .update({ content: canvasContent })
             .eq('id', pageId);
-
-        if (error) alert('Failed to save: ' + error.message);
-        else console.log('Saved successfully');
         setLoading(false);
+        if (error) alert(error.message);
     };
 
-    if (loading) return (
-        <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Initializing Engine...</p>
-        </div>
-    );
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        // If it's a reorder
+        if (active.id !== over.id && canvasContent.find(c => c.id === active.id)) {
+            setCanvasContent((items) => {
+                const oldIndex = items.findIndex(i => i.id === active.id);
+                const newIndex = items.findIndex(i => i.id === over.id);
+                return arrayMove(items, oldIndex, newIndex);
+            });
+        }
+        setDraggedWidget(null);
+    };
+
+    const addWidget = (type) => {
+        const newWidget = {
+            id: `${type}-${genId()}`,
+            type,
+            settings: {
+                title: type === 'hero' ? 'New Hero Banner' : 'New Title',
+                content: 'Sample content for your ' + type
+            }
+        };
+        setCanvasContent([...canvasContent, newWidget]);
+    };
+
+    const deleteWidget = (id) => {
+        setCanvasContent(canvasContent.filter(c => c.id !== id));
+        if (selectedElement?.id === id) setSelectedElement(null);
+    };
+
+    if (loading) return <Loader />;
 
     return (
         <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
-            {/* Top Bar */}
-            <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-50">
+            <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-50 shadow-2xl">
                 <div className="flex items-center space-x-4">
-                    <button
-                        onClick={() => navigate(`/store/${storeId}/customize`)}
-                        className="p-2 text-slate-400 hover:text-white transition-colors"
-                    >
+                    <button onClick={() => navigate(`/store/${storeId}/customize`)} className="p-2 text-slate-400 hover:text-white transition-colors">
                         <ChevronLeft className="h-5 w-5" />
                     </button>
                     <div className="h-6 w-[1px] bg-slate-800" />
                     <div>
                         <h1 className="text-sm font-bold text-white leading-tight">{page?.name}</h1>
-                        <p className="text-[10px] text-slate-500 font-medium">/{page?.slug}</p>
+                        <p className="text-[10px] text-slate-500 font-medium tracking-tight">/{page?.slug}</p>
                     </div>
                 </div>
 
-                <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1">
-                    <button
-                        onClick={() => setViewMode('desktop')}
-                        className={`p-1.5 rounded-md transition-all ${viewMode === 'desktop' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                        <Monitor className="h-4 w-4" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('tablet')}
-                        className={`p-1.5 rounded-md transition-all ${viewMode === 'tablet' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                        <Tablet className="h-4 w-4" />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('mobile')}
-                        className={`p-1.5 rounded-md transition-all ${viewMode === 'mobile' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-                    >
-                        <Smartphone className="h-4 w-4" />
-                    </button>
+                <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1 border border-slate-700">
+                    <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
+                    <ViewModeBtn active={viewMode === 'tablet'} onClick={() => setViewMode('tablet')} icon={<Tablet className="h-4 w-4" />} />
+                    <ViewModeBtn active={viewMode === 'mobile'} onClick={() => setViewMode('mobile')} icon={<Smartphone className="h-4 w-4" />} />
                 </div>
 
                 <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-1 text-slate-500 mr-4">
-                        <button className="p-1.5 hover:text-white transition-colors"><Undo2 className="h-4 w-4" /></button>
-                        <button className="p-1.5 hover:text-white transition-colors"><Redo2 className="h-4 w-4" /></button>
-                    </div>
                     <Button variant="secondary" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 hover:text-white">
                         <Eye className="h-4 w-4 mr-2" />
                         Preview
@@ -162,16 +169,11 @@ export function StoreBuilder() {
             </header>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Left Sidebar - Widgets */}
-                <aside className="w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden">
-                    <div className="p-4 border-b border-slate-100 flex items-center bg-slate-50/30">
-                        <div className="relative flex-1">
+                <aside className="w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden shadow-sm">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/30">
+                        <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Search elements..."
-                                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm"
-                            />
+                            <input type="text" placeholder="Search elements..." className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm" />
                         </div>
                     </div>
 
@@ -181,94 +183,87 @@ export function StoreBuilder() {
                                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {cat.widgets.map(w => (
-                                        <div
+                                        <button
                                             key={w.type}
-                                            className="group p-3 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center space-y-2 cursor-grab active:cursor-grabbing hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 transition-all"
+                                            onClick={() => addWidget(w.type)}
+                                            className="group p-3 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 transition-all active:scale-95"
                                         >
                                             <div className="p-3 bg-slate-50 rounded-xl text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                                                 {w.icon}
                                             </div>
-                                            <span className="text-[10px] font-bold text-slate-600 group-hover:text-indigo-700">{w.label}</span>
-                                        </div>
+                                            <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center">{w.label}</span>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
                         ))}
                     </div>
-
-                    <div className="p-4 border-t border-slate-100 grid grid-cols-3 gap-2">
-                        <button className="flex flex-col items-center p-2 rounded-xl text-indigo-600 bg-indigo-50">
-                            <Plus className="h-5 w-5" />
-                            <span className="text-[8px] font-bold mt-1 uppercase">Add</span>
-                        </button>
-                        <button className="flex flex-col items-center p-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600">
-                            <Layers className="h-5 w-5" />
-                            <span className="text-[8px] font-bold mt-1 uppercase">Layers</span>
-                        </button>
-                        <button className="flex flex-col items-center p-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600">
-                            <Settings2 className="h-5 w-5" />
-                            <span className="text-[8px] font-bold mt-1 uppercase">Styles</span>
-                        </button>
-                    </div>
                 </aside>
 
-                {/* Canvas Area */}
-                <main className="flex-1 bg-slate-100 p-8 overflow-y-auto relative flex justify-center">
-                    <div
-                        className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 overflow-hidden relative
-                            ${viewMode === 'desktop' ? 'w-full' : ''}
-                            ${viewMode === 'tablet' ? 'w-[768px]' : ''}
-                            ${viewMode === 'mobile' ? 'w-[375px]' : ''}
-                        `}
-                        style={{ minHeight: '100%' }}
-                    >
-                        {/* Canvas Content */}
-                        {canvasContent.length === 0 ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-6">
-                                <div className="p-6 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                                    <Layout className="h-12 w-12 text-slate-300" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-900 mb-2">Build your masterpiece</h2>
-                                    <p className="text-sm text-slate-400 max-w-xs mx-auto leading-relaxed">Drag and drop elements from the sidebar to start designing your **{page?.name}**.</p>
-                                </div>
-                                <Button variant="secondary" className="border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100">
-                                    Browse Templates
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="p-8">
-                                {/* Elements will be rendered here */}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Quick Info Overlay */}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-slate-800/90 backdrop-blur-md rounded-full text-white text-[10px] font-bold uppercase tracking-widest flex items-center space-x-4 shadow-2xl z-40 border border-slate-700">
-                        <span className="text-indigo-400">{viewMode} VIEW</span>
-                        <div className="w-1 h-3 bg-slate-600 rounded-full" />
-                        <span>{canvasContent.length} ELEMENTS</span>
-                    </div>
+                <main className="flex-1 bg-slate-100 p-8 overflow-y-auto relative flex justify-center scroll-smooth">
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <div
+                            className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full
+                                ${viewMode === 'desktop' ? 'w-full' : ''}
+                                ${viewMode === 'tablet' ? 'w-[768px]' : ''}
+                                ${viewMode === 'mobile' ? 'w-[375px]' : ''}
+                            `}
+                        >
+                            <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
+                                {canvasContent.length === 0 ? (
+                                    <EmptyState name={page?.name} />
+                                ) : (
+                                    <div className="min-h-[80vh]">
+                                        {canvasContent.map((block) => (
+                                            <SortableBlock
+                                                key={block.id}
+                                                block={block}
+                                                onDelete={() => deleteWidget(block.id)}
+                                                isSelected={selectedElement?.id === block.id}
+                                                onClick={() => setSelectedElement(block)}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </SortableContext>
+                        </div>
+                    </DndContext>
                 </main>
 
-                {/* Right Sidebar - Properties */}
-                <aside className="w-72 bg-white border-l border-slate-200 flex flex-col shrink-0 animate-in slide-in-from-right duration-300">
+                <aside className="w-72 bg-white border-l border-slate-200 flex flex-col shrink-0">
                     <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                         <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
-                        <button className="text-slate-400"><X className="h-4 w-4" /></button>
+                        {selectedElement && <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
                     </div>
                     {selectedElement ? (
-                        <div className="p-4 overflow-y-auto">
-                            {/* Property Editor for selected widget */}
+                        <div className="p-4 space-y-6">
+                            <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                                <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Editing</p>
+                                <p className="text-xs font-bold text-slate-800">{selectedElement.type.replace('_', ' ')}</p>
+                            </div>
+                            <div className="space-y-4">
+                                {/* Sample inputs for properties */}
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Title Text</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                                        value={selectedElement.settings.title || ''}
+                                        onChange={(e) => {
+                                            const newContent = canvasContent.map(c =>
+                                                c.id === selectedElement.id ? { ...c, settings: { ...c.settings, title: e.target.value } } : c
+                                            );
+                                            setCanvasContent(newContent);
+                                            setSelectedElement({ ...selectedElement, settings: { ...selectedElement.settings, title: e.target.value } });
+                                        }}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-                            <div className="p-4 bg-slate-50 rounded-2xl">
-                                <Settings2 className="h-8 w-8 text-slate-200" />
-                            </div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-                                Select an element <br /> on the canvas <br /> to edit its style
-                            </p>
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 opacity-50">
+                            <Settings2 className="h-8 w-8 text-slate-200" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Select an element to edit</p>
                         </div>
                     )}
                 </aside>
@@ -277,3 +272,153 @@ export function StoreBuilder() {
     );
 }
 
+function SortableBlock({ block, onDelete, isSelected, onClick }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : 'auto',
+        opacity: isDragging ? 0.3 : 1
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            onClick={(e) => { e.stopPropagation(); onClick(); }}
+            className={`group relative border-2 transition-all cursor-default
+                ${isSelected ? 'border-indigo-500 ring-4 ring-indigo-50' : 'border-transparent hover:border-indigo-200'}
+            `}
+        >
+            <div className={`absolute -left-10 top-2 flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                <div {...attributes} {...listeners} className="p-2 bg-white shadow-xl rounded-lg border border-slate-200 text-slate-400 hover:text-indigo-600 cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-4 w-4" />
+                </div>
+                <button onClick={onDelete} className="p-2 bg-white shadow-xl rounded-lg border border-slate-200 text-slate-400 hover:text-red-500">
+                    <Trash2 className="h-4 w-4" />
+                </button>
+            </div>
+
+            <BlockRenderer type={block.type} settings={block.settings} />
+        </div>
+    );
+}
+
+function BlockRenderer({ type, settings }) {
+    switch (type) {
+        case 'hero':
+            return (
+                <div className="bg-slate-900 py-24 px-12 text-center text-white relative overflow-hidden">
+                    <div className="relative z-10 space-y-4 max-w-2xl mx-auto">
+                        <h2 className="text-5xl font-extrabold tracking-tight">{settings.title || 'Premium Experience'}</h2>
+                        <p className="text-lg text-slate-300">{settings.subtitle || 'Discover our curated selection of fine goods.'}</p>
+                        <Button className="rounded-full px-8 py-6 text-lg">{settings.buttonText || 'Shop Now'}</Button>
+                    </div>
+                    <div className="absolute top-0 right-0 h-full w-1/2 bg-indigo-500/20 blur-[120px] rounded-full" />
+                </div>
+            );
+        case 'product_grid':
+            return (
+                <div className="p-12 space-y-8 bg-white">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
+                        <span className="text-sm font-bold text-indigo-600">View All</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-6">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="space-y-3">
+                                <div className="aspect-square bg-slate-100 rounded-3xl animate-pulse" />
+                                <div className="h-4 w-3/4 bg-slate-100 rounded-full" />
+                                <div className="h-4 w-1/4 bg-slate-100 rounded-full" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        case 'heading':
+            return (
+                <div className="px-12 py-8 bg-white">
+                    <h2 className="text-4xl font-extrabold text-slate-900 leading-tight">{settings.text || 'Heading'}</h2>
+                </div>
+            );
+        case 'cart_list':
+            return (
+                <div className="p-12 max-w-4xl mx-auto bg-white border-y border-slate-100">
+                    <h3 className="text-xl font-bold text-slate-900 mb-8 pb-4 border-b border-slate-100">Review Items</h3>
+                    <div className="space-y-6">
+                        {[1, 2].map(i => (
+                            <div key={i} className="flex items-center space-x-6 pb-6 border-b border-slate-100 last:border-0 opacity-60">
+                                <div className="h-24 w-24 bg-slate-100 rounded-2xl" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 w-1/2 bg-slate-100 rounded-full" />
+                                    <div className="h-3 w-1/4 bg-slate-100 rounded-full" />
+                                </div>
+                                <div className="text-right font-bold text-slate-900">$299.00</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        case 'product_detail':
+            return (
+                <div className="grid grid-cols-2 gap-12 p-12 bg-white">
+                    <div className="aspect-square bg-slate-100 rounded-3xl" />
+                    <div className="space-y-8 py-4">
+                        <div className="space-y-4">
+                            <div className="h-8 w-3/4 bg-slate-100 rounded-full" />
+                            <div className="h-6 w-1/4 bg-slate-100 rounded-full" />
+                        </div>
+                        <div className="space-y-3">
+                            <div className="h-px bg-slate-100" />
+                            <div className="flex space-x-2">
+                                {[1, 2, 3].map(i => <div key={i} className="h-10 w-10 bg-slate-100 rounded-xl" />)}
+                            </div>
+                        </div>
+                        <div className="w-full h-14 bg-indigo-600/20 rounded-2xl border-2 border-dashed border-indigo-200" />
+                    </div>
+                </div>
+            );
+        default:
+            return (
+                <div className="p-8 border border-dashed border-slate-200 bg-slate-50 text-center text-slate-400 text-xs italic">
+                    {type.toUpperCase()} Component Placeholder
+                </div>
+            );
+    }
+}
+
+function Loader() {
+    return (
+        <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-white space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Initializing Engine...</p>
+        </div>
+    );
+}
+
+function ViewModeBtn({ active, onClick, icon }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`p-1.5 rounded-md transition-all ${active ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+        >
+            {icon}
+        </button>
+    );
+}
+
+function EmptyState({ name }) {
+    return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-6">
+            <div className="p-6 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                <Layout className="h-12 w-12 text-slate-300" />
+            </div>
+            <div>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">Build your masterpiece</h2>
+                <p className="text-sm text-slate-400 max-w-xs mx-auto leading-relaxed">Drag and drop elements from the sidebar to start designing your **{name}**.</p>
+            </div>
+            <Button variant="secondary" className="border-indigo-100 bg-indigo-50 text-indigo-600 hover:bg-indigo-100">Browse Templates</Button>
+        </div>
+    );
+}
