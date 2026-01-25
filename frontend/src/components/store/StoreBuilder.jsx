@@ -183,6 +183,9 @@ export function StoreBuilder() {
                 hamburgerPC: false,
                 hamburgerTablet: true,
                 hamburgerMobile: true,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                fontWeight: '600',
                 menuItems: [
                     { id: 'm1', label: 'Home', type: 'page', value: 'home' },
                     { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
@@ -471,8 +474,13 @@ function BlockRenderer({ type, settings, viewMode }) {
                             {(settings.menuItems || []).map(item => (
                                 <span
                                     key={item.id}
-                                    className="text-sm font-bold cursor-pointer hover:opacity-75 transition-opacity flex items-center uppercase tracking-tight"
-                                    style={{ color: settings.textColor }}
+                                    className="cursor-pointer hover:opacity-75 transition-opacity flex items-center uppercase tracking-tight"
+                                    style={{
+                                        color: settings.textColor,
+                                        fontFamily: settings.fontFamily || 'Inter, sans-serif',
+                                        fontSize: settings.fontSize || '14px',
+                                        fontWeight: settings.fontWeight || '600'
+                                    }}
                                 >
                                     {item.label}
                                     {item.type === 'category' && <ChevronRight className="h-3 w-3 ml-1 rotate-90" />}
@@ -629,6 +637,52 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                         <option value="soft">Soft</option>
                         <option value="strong">Strong</option>
                     </select>
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Typography</h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Family</label>
+                    <select
+                        className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                        value={settings.fontFamily}
+                        onChange={e => update('fontFamily', e.target.value)}
+                    >
+                        <option value="Inter, sans-serif">Inter</option>
+                        <option value="'Outfit', sans-serif">Outfit</option>
+                        <option value="'Playfair Display', serif">Playfair Display</option>
+                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                        <option value="'Lato', sans-serif">Lato</option>
+                        <option value="'Poppins', sans-serif">Poppins</option>
+                    </select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Size (px)</label>
+                        <input
+                            type="number"
+                            className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                            value={parseInt(settings.fontSize)}
+                            onChange={e => update('fontSize', e.target.value + 'px')}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Weight</label>
+                        <select
+                            className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                            value={settings.fontWeight}
+                            onChange={e => update('fontWeight', e.target.value)}
+                        >
+                            <option value="300">Light</option>
+                            <option value="400">Regular</option>
+                            <option value="500">Medium</option>
+                            <option value="600">Semi Bold</option>
+                            <option value="700">Bold</option>
+                            <option value="800">Extra Bold</option>
+                        </select>
+                    </div>
                 </div>
             </section>
 

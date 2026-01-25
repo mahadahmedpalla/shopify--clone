@@ -117,7 +117,14 @@ function BlockRenderer({ type, settings, storeSubUrl }) {
                                 {settings.logoUrl ? (
                                     <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
                                 ) : (
-                                    <span className="text-xl font-black italic tracking-tighter">STORE</span>
+                                    <span
+                                        className="font-black italic tracking-tighter"
+                                        style={{
+                                            fontFamily: settings.fontFamily || 'Inter, sans-serif',
+                                        }}
+                                    >
+                                        STORE
+                                    </span>
                                 )}
                             </Link>
 
@@ -126,7 +133,12 @@ function BlockRenderer({ type, settings, storeSubUrl }) {
                                     <Link
                                         key={item.id}
                                         to={item.type === 'page' ? `/s/${storeSubUrl}/${item.value}` : '#'}
-                                        className="text-sm font-bold hover:opacity-75 transition-opacity uppercase tracking-tight"
+                                        className="hover:opacity-75 transition-opacity uppercase tracking-tight"
+                                        style={{
+                                            fontFamily: settings.fontFamily || 'Inter, sans-serif',
+                                            fontSize: settings.fontSize || '14px',
+                                            fontWeight: settings.fontWeight || '600'
+                                        }}
                                     >
                                         {item.label}
                                     </Link>
