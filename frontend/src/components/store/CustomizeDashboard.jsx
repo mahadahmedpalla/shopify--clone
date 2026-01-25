@@ -39,20 +39,50 @@ const LEGAL_PAGES = [
     { name: 'Shipping Policy', slug: 'shipping-policy', icon: <FileText className="h-4 w-4" /> },
 ];
 
+const DEFAULT_NAVBAR = {
+    id: 'nav-1',
+    type: 'navbar',
+    settings: {
+        bgColor: '#ffffff',
+        textColor: '#1e293b',
+        hoverColor: '#4f46e5',
+        activeColor: '#4f46e5',
+        borderColor: '#f1f5f9',
+        borderRadius: '0px',
+        borderWidth: '1px',
+        shadow: 'soft',
+        opacity: 1,
+        height: '70px',
+        paddingX: '32px',
+        gap: '32px',
+        maxWidth: '1280px',
+        alignment: 'space-between',
+        sticky: 'always',
+        menuItems: [
+            { id: 'm1', label: 'Home', type: 'page', value: 'home' },
+            { id: 'm2', label: 'Products', type: 'page', value: 'shop' },
+            { id: 'm3', label: 'Cart', type: 'page', value: 'cart' }
+        ]
+    }
+};
+
 const PAGE_TEMPLATES = {
     home: [
+        DEFAULT_NAVBAR,
         { id: 'h1', type: 'hero', settings: { title: 'Welcome to Our Store', subtitle: 'Experience premium shopping with us.', buttonText: 'Explore Collection' } },
-        { id: 'h2', type: 'product_grid', settings: { title: 'Featured Products', limit: 8 } },
-        { id: 'h3', type: 'text', settings: { content: 'Our Brand Story: Delivering quality since 2026.' } }
+        { id: 'h2', type: 'product_grid', settings: { title: 'Featured Products', limit: 8 } }
     ],
     shop: [
+        DEFAULT_NAVBAR,
         { id: 's1', type: 'heading', settings: { text: 'Shop All Collections', size: 'h1' } },
         { id: 's2', type: 'product_grid', settings: { showFilters: true, itemsPerPage: 12 } }
     ],
     pdp: [
+        DEFAULT_NAVBAR,
         { id: 'p1', type: 'product_detail', settings: { showReviews: true, showSimilar: true } }
     ],
     cart: [
+        DEFAULT_NAVBAR,
         { id: 'c1', type: 'heading', settings: { text: 'Your Cart', size: 'h2' } },
         { id: 'c2', type: 'cart_list', settings: {} }
     ],

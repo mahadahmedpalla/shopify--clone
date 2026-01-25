@@ -31,6 +31,7 @@ const WIDGET_CATEGORIES = [
     {
         name: 'Basic',
         widgets: [
+            { type: 'navbar', icon: <Box className="h-4 w-4" />, label: 'Navbar' },
             { type: 'text', icon: <Type className="h-4 w-4" />, label: 'Text Block' },
             { type: 'heading', icon: <Type className="h-5 w-5" />, label: 'Heading' },
             { type: 'image', icon: <ImageIcon className="h-4 w-4" />, label: 'Image' },
@@ -121,7 +122,29 @@ export function StoreBuilder() {
         const newWidget = {
             id: `${type}-${genId()}`,
             type,
-            settings: {
+            settings: type === 'navbar' ? {
+                bgColor: '#ffffff',
+                textColor: '#1e293b',
+                hoverColor: '#4f46e5',
+                activeColor: '#4f46e5',
+                borderColor: '#e2e8f0',
+                borderRadius: '0px',
+                borderWidth: '0px',
+                shadow: 'soft',
+                opacity: 1,
+                height: '70px',
+                paddingX: '20px',
+                gap: '24px',
+                maxWidth: '1200px',
+                alignment: 'space-between',
+                logoUrl: '',
+                logoWidth: '120px',
+                sticky: 'always',
+                menuItems: [
+                    { id: 'm1', label: 'Home', type: 'page', value: 'home' },
+                    { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
+                ]
+            } : {
                 title: type === 'hero' ? 'New Hero Banner' : 'New Title',
                 content: 'Sample content for your ' + type
             }
@@ -236,29 +259,42 @@ export function StoreBuilder() {
                         {selectedElement && <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
                     </div>
                     {selectedElement ? (
-                        <div className="p-4 space-y-6">
+                        <div className="p-4 space-y-6 overflow-y-auto flex-1">
                             <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
                                 <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Editing</p>
                                 <p className="text-xs font-bold text-slate-800">{selectedElement.type.replace('_', ' ')}</p>
                             </div>
-                            <div className="space-y-4">
-                                {/* Sample inputs for properties */}
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Title Text</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
-                                        value={selectedElement.settings.title || ''}
-                                        onChange={(e) => {
-                                            const newContent = canvasContent.map(c =>
-                                                c.id === selectedElement.id ? { ...c, settings: { ...c.settings, title: e.target.value } } : c
-                                            );
-                                            setCanvasContent(newContent);
-                                            setSelectedElement({ ...selectedElement, settings: { ...selectedElement.settings, title: e.target.value } });
-                                        }}
-                                    />
+
+                            {selectedElement.type === 'navbar' ? (
+                                <NavbarProperties
+                                    settings={selectedElement.settings}
+                                    onUpdate={(newSettings) => {
+                                        const newContent = canvasContent.map(c =>
+                                            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                        );
+                                        setCanvasContent(newContent);
+                                        setSelectedElement({ ...selectedElement, settings: newSettings });
+                                    }}
+                                />
+                            ) : (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Title Text</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                                            value={selectedElement.settings.title || ''}
+                                            onChange={(e) => {
+                                                const newContent = canvasContent.map(c =>
+                                                    c.id === selectedElement.id ? { ...c, settings: { ...c.settings, title: e.target.value } } : c
+                                                );
+                                                setCanvasContent(newContent);
+                                                setSelectedElement({ ...selectedElement, settings: { ...selectedElement.settings, title: e.target.value } });
+                                            }}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 opacity-50">
@@ -307,6 +343,64 @@ function SortableBlock({ block, onDelete, isSelected, onClick }) {
 
 function BlockRenderer({ type, settings }) {
     switch (type) {
+        case 'navbar':
+            return (
+                <div
+                    className={`flex items-center justify-center transition-all duration-300 w-full z-40`}
+                    style={{
+                        backgroundColor: settings.bgColor,
+                        color: settings.textColor,
+                        height: settings.height,
+                        borderRadius: settings.borderRadius,
+                        borderBottom: `${settings.borderWidth} solid ${settings.borderColor}`,
+                        boxShadow: settings.shadow === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : settings.shadow === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
+                        opacity: settings.opacity,
+                        backdropFilter: settings.blur ? `blur(${settings.blur})` : 'none',
+                        position: settings.sticky === 'always' ? 'sticky' : 'relative',
+                        top: 0
+                    }}
+                >
+                    <div
+                        className="flex items-center w-full px-6"
+                        style={{
+                            maxWidth: settings.maxWidth,
+                            justifyContent: settings.alignment,
+                            gap: settings.gap
+                        }}
+                    >
+                        {/* Logo */}
+                        <div className="flex items-center">
+                            {settings.logoUrl ? (
+                                <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
+                            ) : (
+                                <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
+                            )}
+                        </div>
+
+                        {/* Desktop Menu */}
+                        <div className="hidden md:flex items-center" style={{ gap: settings.gap }}>
+                            {(settings.menuItems || []).map(item => (
+                                <span
+                                    key={item.id}
+                                    className="text-sm font-bold cursor-pointer hover:opacity-75 transition-opacity flex items-center uppercase tracking-tight"
+                                    style={{ color: settings.textColor }}
+                                >
+                                    {item.label}
+                                    {item.type === 'category' && <ChevronRight className="h-3 w-3 ml-1 rotate-90" />}
+                                </span>
+                            ))}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center space-x-4">
+                            <ShoppingCart className="h-5 w-5 cursor-pointer hover:opacity-75" />
+                            <div className="md:hidden">
+                                <Box className="h-6 w-6" /> {/* Hamburger placeholder */}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
         case 'hero':
             return (
                 <div className="bg-slate-900 py-24 px-12 text-center text-white relative overflow-hidden">
@@ -405,6 +499,144 @@ function ViewModeBtn({ active, onClick, icon }) {
         >
             {icon}
         </button>
+    );
+}
+
+function NavbarProperties({ settings, onUpdate }) {
+    const update = (key, val) => onUpdate({ ...settings, [key]: val });
+
+    return (
+        <div className="space-y-6">
+            <section className="space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Colors & Style</h3>
+                <div className="grid grid-cols-2 gap-3">
+                    <ColorInput label="Background" value={settings.bgColor} onChange={v => update('bgColor', v)} />
+                    <ColorInput label="Text" value={settings.textColor} onChange={v => update('textColor', v)} />
+                    <ColorInput label="Hover" value={settings.hoverColor} onChange={v => update('hoverColor', v)} />
+                    <ColorInput label="Border" value={settings.borderColor} onChange={v => update('borderColor', v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Border (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.borderWidth)} onChange={e => update('borderWidth', e.target.value + 'px')} />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Radius (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.borderRadius)} onChange={e => update('borderRadius', e.target.value + 'px')} />
+                    </div>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Shadow</label>
+                    <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={settings.shadow} onChange={e => update('shadow', e.target.value)}>
+                        <option value="none">None</option>
+                        <option value="soft">Soft</option>
+                        <option value="strong">Strong</option>
+                    </select>
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Size & Spacing</h3>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Height (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.height)} onChange={e => update('height', e.target.value + 'px')} />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Gap (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.gap)} onChange={e => update('gap', e.target.value + 'px')} />
+                    </div>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Alignment</label>
+                    <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={settings.alignment} onChange={e => update('alignment', e.target.value)}>
+                        <option value="flex-start">Left</option>
+                        <option value="center">Center</option>
+                        <option value="flex-end">Right</option>
+                        <option value="space-between">Space Between</option>
+                    </select>
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logo</h3>
+                <input
+                    type="text"
+                    placeholder="Logo URL..."
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                    value={settings.logoUrl}
+                    onChange={e => update('logoUrl', e.target.value)}
+                />
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Logo Width (px)</label>
+                    <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.logoWidth)} onChange={e => update('logoWidth', e.target.value + 'px')} />
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between uppercase tracking-widest">
+                    <h3 className="text-[10px] font-bold text-slate-400">Menu Items</h3>
+                    <button
+                        onClick={() => update('menuItems', [...(settings.menuItems || []), { id: genId(), label: 'New Link', type: 'page', value: '' }])}
+                        className="text-indigo-600 hover:text-indigo-800"
+                    >
+                        <Plus className="h-3 w-3" />
+                    </button>
+                </div>
+                <div className="space-y-2">
+                    {(settings.menuItems || []).map((item, idx) => (
+                        <div key={item.id} className="p-2 bg-slate-50 rounded-lg border border-slate-100 space-y-2">
+                            <div className="flex items-center justify-between">
+                                <input
+                                    className="bg-transparent border-none text-[10px] font-bold text-slate-700 p-0 focus:ring-0 w-24"
+                                    value={item.label}
+                                    onChange={e => {
+                                        const newItems = [...settings.menuItems];
+                                        newItems[idx].label = e.target.value;
+                                        update('menuItems', newItems);
+                                    }}
+                                />
+                                <button
+                                    onClick={() => {
+                                        const newItems = settings.menuItems.filter((_, i) => i !== idx);
+                                        update('menuItems', newItems);
+                                    }}
+                                    className="text-slate-300 hover:text-red-500"
+                                >
+                                    <Trash2 className="h-3 w-3" />
+                                </button>
+                            </div>
+                            <select
+                                className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
+                                value={item.type}
+                                onChange={e => {
+                                    const newItems = [...settings.menuItems];
+                                    newItems[idx].type = e.target.value;
+                                    update('menuItems', newItems);
+                                }}
+                            >
+                                <option value="page">Page</option>
+                                <option value="category">Category</option>
+                                <option value="product">Product</option>
+                                <option value="custom">Custom URL</option>
+                            </select>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
+    );
+}
+
+function ColorInput({ label, value, onChange }) {
+    return (
+        <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">{label}</label>
+            <div className="flex items-center space-x-2 bg-slate-50 border rounded p-1">
+                <input type="color" className="h-4 w-4 rounded cursor-pointer border-none bg-transparent" value={value} onChange={e => onChange(e.target.value)} />
+                <span className="text-[9px] font-mono text-slate-500 uppercase">{value}</span>
+            </div>
+        </div>
     );
 }
 
