@@ -167,7 +167,11 @@ function BlockRenderer({ type, settings, storeSubUrl }) {
                                         key={item.id}
                                         to={item.type === 'page' ? `/s/${storeSubUrl}/${item.value}` : '#'}
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className="text-2xl font-bold border-b border-slate-100 pb-4"
+                                        className="text-2xl border-b border-slate-100 pb-4"
+                                        style={{
+                                            fontFamily: settings.fontFamily || 'Inter, sans-serif',
+                                            fontWeight: settings.fontWeight || '700'
+                                        }}
                                     >
                                         {item.label}
                                     </Link>
