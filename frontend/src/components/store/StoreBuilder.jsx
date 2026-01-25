@@ -68,6 +68,8 @@ export function StoreBuilder() {
     const [canvasContent, setCanvasContent] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
     const [draggedWidget, setDraggedWidget] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [products, setProducts] = useState([]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -76,7 +78,31 @@ export function StoreBuilder() {
 
     useEffect(() => {
         fetchPage();
+        fetchStoreData();
     }, [pageId]);
+
+    const fetchStoreData = async () => {
+        // Fetch categories for this store
+        const { data: catData } = await supabase
+            .from('store_categories')
+            .select('*'); // We select all for now, but usually filter by store if they were nested.
+        // Wait, our project structure has store_categories as global but linked to stores?
+        // Let's check listing tables again. Ah, store_categories is global.
+        // But 'categories' table is per-store based on our previous work.
+
+        const { data: storeCats } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('store_id', storeId);
+
+        const { data: prodData } = await supabase
+            .from('products')
+            .select('*')
+            .eq('store_id', storeId);
+
+        setCategories(storeCats || []);
+        setProducts(prodData || []);
+    };
 
     const fetchPage = async () => {
         const { data, error } = await supabase
@@ -268,6 +294,8 @@ export function StoreBuilder() {
                             {selectedElement.type === 'navbar' ? (
                                 <NavbarProperties
                                     settings={selectedElement.settings}
+                                    categories={categories}
+                                    products={products}
                                     onUpdate={(newSettings) => {
                                         const newContent = canvasContent.map(c =>
                                             c.id === selectedElement.id ? { ...c, settings: newSettings } : c
@@ -502,7 +530,7 @@ function ViewModeBtn({ active, onClick, icon }) {
     );
 }
 
-function NavbarProperties({ settings, onUpdate }) {
+function NavbarProperties({ settings, onUpdate, categories, products }) {
     const update = (key, val) => onUpdate({ ...settings, [key]: val });
 
     return (
@@ -612,6 +640,7 @@ function NavbarProperties({ settings, onUpdate }) {
                                 onChange={e => {
                                     const newItems = [...settings.menuItems];
                                     newItems[idx].type = e.target.value;
+                                    newItems[idx].value = ''; // Reset value on type change
                                     update('menuItems', newItems);
                                 }}
                             >
@@ -620,6 +649,60 @@ function NavbarProperties({ settings, onUpdate }) {
                                 <option value="product">Product</option>
                                 <option value="custom">Custom URL</option>
                             </select>
+
+                            {/* Contextual Value Selector */}
+                            {item.type === 'category' ? (
+                                <select
+                                    className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
+                                    value={item.value}
+                                    onChange={e => {
+                                        const newItems = [...settings.menuItems];
+                                        newItems[idx].value = e.target.value;
+                                        // Auto-update label if blank
+                                        if (!newItems[idx].label || newItems[idx].label === 'New Link') {
+                                            const cat = categories.find(c => c.id === e.target.value);
+                                            if (cat) newItems[idx].label = cat.name;
+                                        }
+                                        update('menuItems', newItems);
+                                    }}
+                                >
+                                    <option value="">Select Category...</option>
+                                    {categories.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            ) : item.type === 'product' ? (
+                                <select
+                                    className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
+                                    value={item.value}
+                                    onChange={e => {
+                                        const newItems = [...settings.menuItems];
+                                        newItems[idx].value = e.target.value;
+                                        // Auto-update label if blank
+                                        if (!newItems[idx].label || newItems[idx].label === 'New Link') {
+                                            const prod = products.find(p => p.id === e.target.value);
+                                            if (prod) newItems[idx].label = prod.name;
+                                        }
+                                        update('menuItems', newItems);
+                                    }}
+                                >
+                                    <option value="">Select Product...</option>
+                                    {products.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
+                                    placeholder={item.type === 'page' ? 'e.g. shop, contact' : 'e.g. https://...'}
+                                    value={item.value}
+                                    onChange={e => {
+                                        const newItems = [...settings.menuItems];
+                                        newItems[idx].value = e.target.value;
+                                        update('menuItems', newItems);
+                                    }}
+                                />
+                            )}
                         </div>
                     ))}
                 </div>
