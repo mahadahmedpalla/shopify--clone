@@ -114,7 +114,7 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                         }}
                     >
                         <div className="flex items-center w-full px-6" style={{ maxWidth: settings.maxWidth, justifyContent: settings.alignment, gap: settings.gap }}>
-                            <Link to={`/s/${storeSubUrl}`} className="flex items-center space-x-3">
+                            <Link to={`/s/${storeSubUrl}`} className="flex items-center" style={{ gap: settings.logoGap || '12px' }}>
                                 <div className="flex items-center">
                                     {settings.logoUrl ? (
                                         <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
