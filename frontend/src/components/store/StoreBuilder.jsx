@@ -24,7 +24,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
     X, Save, Eye, Smartphone, Monitor, Tablet, Plus, Settings2, Layers,
     ChevronLeft, Type, Image as ImageIcon, Layout, Box, Play, Undo2,
-    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical
+    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical, Menu
 } from 'lucide-react';
 
 const WIDGET_CATEGORIES = [
