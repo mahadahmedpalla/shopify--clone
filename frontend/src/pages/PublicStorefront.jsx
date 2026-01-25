@@ -62,13 +62,14 @@ export function PublicStorefront() {
                     type={block.type}
                     settings={block.settings}
                     storeSubUrl={storeSubUrl}
+                    storeName={store?.name}
                 />
             ))}
         </div>
     );
 }
 
-function BlockRenderer({ type, settings, storeSubUrl }) {
+function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
@@ -113,17 +114,30 @@ function BlockRenderer({ type, settings, storeSubUrl }) {
                         }}
                     >
                         <div className="flex items-center w-full px-6" style={{ maxWidth: settings.maxWidth, justifyContent: settings.alignment, gap: settings.gap }}>
-                            <Link to={`/s/${storeSubUrl}`} className="flex items-center">
-                                {settings.logoUrl ? (
-                                    <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
-                                ) : (
+                            <Link to={`/s/${storeSubUrl}`} className="flex items-center space-x-3">
+                                <div className="flex items-center">
+                                    {settings.logoUrl ? (
+                                        <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
+                                    ) : (
+                                        <span
+                                            className="font-black italic tracking-tighter"
+                                            style={{
+                                                fontFamily: settings.fontFamily || 'Inter, sans-serif',
+                                            }}
+                                        >
+                                            STORE
+                                        </span>
+                                    )}
+                                </div>
+                                {settings.showStoreName && (
                                     <span
-                                        className="font-black italic tracking-tighter"
+                                        className="font-bold tracking-tight"
                                         style={{
                                             fontFamily: settings.fontFamily || 'Inter, sans-serif',
+                                            fontSize: '18px'
                                         }}
                                     >
-                                        STORE
+                                        {storeName}
                                     </span>
                                 )}
                             </Link>

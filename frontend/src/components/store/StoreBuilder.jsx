@@ -178,6 +178,7 @@ export function StoreBuilder() {
                 maxWidth: '1200px',
                 alignment: 'space-between',
                 logoWidth: '120px',
+                showStoreName: false,
                 sticky: 'always',
                 stickyMode: 'always', // none, always, scroll, hide
                 hamburgerPC: false,
@@ -455,12 +456,19 @@ function BlockRenderer({ type, settings, viewMode }) {
                                 gap: settings.gap
                             }}
                         >
-                            {/* Logo */}
-                            <div className="flex items-center">
-                                {settings.logoUrl ? (
-                                    <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
-                                ) : (
-                                    <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
+                            {/* Logo & Store Name */}
+                            <div className="flex items-center space-x-3">
+                                <div className="flex items-center">
+                                    {settings.logoUrl ? (
+                                        <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
+                                    ) : (
+                                        <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
+                                    )}
+                                </div>
+                                {settings.showStoreName && (
+                                    <span className="font-bold text-sm tracking-tight truncate max-w-[150px]">
+                                        {store?.name || 'My Store'}
+                                    </span>
                                 )}
                             </div>
 
@@ -833,6 +841,18 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                         <label className="text-[10px] font-bold text-slate-400 uppercase">Logo Width (px)</label>
                         <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.logoWidth)} onChange={e => update('logoWidth', e.target.value + 'px')} />
                     </div>
+                </div>
+
+                <div className="pt-2">
+                    <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
+                        <span className="font-bold uppercase tracking-widest text-[9px]">Show Store Name</span>
+                        <input
+                            type="checkbox"
+                            checked={settings.showStoreName}
+                            onChange={e => update('showStoreName', e.target.checked)}
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                    </label>
                 </div>
             </section>
 
