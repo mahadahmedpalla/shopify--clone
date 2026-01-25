@@ -24,7 +24,8 @@ import { CSS } from '@dnd-kit/utilities';
 import {
     X, Save, Eye, Smartphone, Monitor, Tablet, Plus, Settings2, Layers,
     ChevronLeft, Type, Image as ImageIcon, Layout, Box, Play, Undo2,
-    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical, Menu, Upload
+    Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical, Menu, Upload,
+    AlignCenter, AlignLeft, AlignRight, ArrowUp, ArrowDown, Maximize, Minimize, Palette as PaletteIcon
 } from 'lucide-react';
 
 const WIDGET_CATEGORIES = [
@@ -192,6 +193,34 @@ export function StoreBuilder() {
                     { id: 'm1', label: 'Home', type: 'page', value: 'home' },
                     { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
                 ]
+            } : type === 'hero' ? {
+                title: 'Elevate Your Style',
+                subtitle: 'Discover our premium winter collection.',
+                showContentAboveImage: true,
+                backgroundImage: '',
+                primaryBtnText: 'Shop Now',
+                primaryBtnLink: '',
+                secondaryBtnText: '',
+                secondaryBtnLink: '',
+                // Layout
+                heightMode: 'medium', // small, medium, large, full, custom
+                customHeight: '500px',
+                hAlignment: 'center', // flex-start, center, flex-end
+                vAlignment: 'center', // flex-start, center, flex-end
+                maxContentWidth: '800px',
+                // Style
+                overlayColor: '#000000',
+                overlayOpacity: 0.4,
+                useGradient: false,
+                borderRadius: '0px',
+                // Typography
+                headingSize: '48px',
+                headingColor: '#ffffff',
+                subheadingSize: '18px',
+                subheadingColor: '#e2e8f0',
+                // Responsive
+                mobileHeight: '400px',
+                mobileAlignment: 'center'
             } : {
                 title: type === 'hero' ? 'New Hero Banner' : 'New Title',
                 content: 'Sample content for your ' + type
@@ -332,7 +361,18 @@ export function StoreBuilder() {
                                     categories={categories}
                                     products={products}
                                     storePages={storePages}
-                                    onUpdate={(newSettings) => {
+                                    onUpdate={newSettings => {
+                                        const newContent = canvasContent.map(c =>
+                                            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                        );
+                                        setCanvasContent(newContent);
+                                        setSelectedElement({ ...selectedElement, settings: newSettings });
+                                    }}
+                                />
+                            ) : selectedElement.type === 'hero' ? (
+                                <HeroProperties
+                                    settings={selectedElement.settings}
+                                    onUpdate={newSettings => {
                                         const newContent = canvasContent.map(c =>
                                             c.id === selectedElement.id ? { ...c, settings: newSettings } : c
                                         );
@@ -545,14 +585,109 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                 </>
             );
         case 'hero':
+            const isBanner = !settings.showContentAboveImage;
+            const heroHeight = settings.heightMode === 'full' ? '100vh' :
+                settings.heightMode === 'large' ? '80vh' :
+                    settings.heightMode === 'medium' ? '60vh' :
+                        settings.heightMode === 'small' ? '40vh' : settings.customHeight;
+
             return (
-                <div className="bg-slate-900 py-24 px-12 text-center text-white relative overflow-hidden">
-                    <div className="relative z-10 space-y-4 max-w-2xl mx-auto">
-                        <h2 className="text-5xl font-extrabold tracking-tight">{settings.title || 'Premium Experience'}</h2>
-                        <p className="text-lg text-slate-300">{settings.subtitle || 'Discover our curated selection of fine goods.'}</p>
-                        <Button className="rounded-full px-8 py-6 text-lg">{settings.buttonText || 'Shop Now'}</Button>
+                <div
+                    className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
+                    style={{ borderRadius: settings.borderRadius }}
+                >
+                    <div
+                        className="relative w-full overflow-hidden flex"
+                        style={{
+                            height: heroHeight,
+                            backgroundColor: settings.overlayColor || '#f1f5f9',
+                            justifyContent: settings.hAlignment,
+                            alignItems: settings.vAlignment
+                        }}
+                    >
+                        {settings.backgroundImage && (
+                            <img
+                                src={settings.backgroundImage}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                alt="Hero Background"
+                            />
+                        )}
+
+                        {!isBanner && (
+                            <div
+                                className="absolute inset-0 z-10"
+                                style={{
+                                    backgroundColor: settings.overlayColor,
+                                    opacity: settings.overlayOpacity,
+                                    background: settings.useGradient ? `linear-gradient(to bottom, transparent, ${settings.overlayColor})` : 'none'
+                                }}
+                            />
+                        )}
+
+                        {settings.showContentAboveImage && (
+                            <div
+                                className="relative z-20 px-12 text-center space-y-6"
+                                style={{
+                                    maxWidth: settings.maxContentWidth,
+                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                }}
+                            >
+                                <h2
+                                    className="font-extrabold tracking-tighter leading-tight animate-in slide-in-from-bottom duration-500"
+                                    style={{
+                                        fontSize: settings.headingSize,
+                                        color: settings.headingColor,
+                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                    }}
+                                >
+                                    {settings.title}
+                                </h2>
+                                <p
+                                    className="font-medium opacity-90"
+                                    style={{
+                                        fontSize: settings.subheadingSize,
+                                        color: settings.subheadingColor,
+                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                    }}
+                                >
+                                    {settings.subtitle}
+                                </p>
+                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
+                                    {settings.primaryBtnText && <Button className="rounded-full px-8 py-6 text-lg shadow-xl hover:scale-105 transition-transform">{settings.primaryBtnText}</Button>}
+                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full px-8 py-6 text-lg bg-white/10 text-white border-white/20 hover:bg-white/20">{settings.secondaryBtnText}</Button>}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <div className="absolute top-0 right-0 h-full w-1/2 bg-indigo-500/20 blur-[120px] rounded-full" />
+
+                    {!settings.showContentAboveImage && (
+                        <div className="py-12 px-12 bg-white space-y-6">
+                            <div
+                                className="mx-auto space-y-6"
+                                style={{
+                                    maxWidth: settings.maxContentWidth,
+                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                }}
+                            >
+                                <h2
+                                    className="text-slate-900 font-extrabold tracking-tight"
+                                    style={{ fontSize: settings.headingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                >
+                                    {settings.title}
+                                </h2>
+                                <p
+                                    className="text-slate-500 font-medium"
+                                    style={{ fontSize: settings.subheadingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                >
+                                    {settings.subtitle}
+                                </p>
+                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
+                                    {settings.primaryBtnText && <Button className="rounded-full px-8 py-6 text-lg shadow-lg">{settings.primaryBtnText}</Button>}
+                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full px-8 py-6 text-lg">{settings.secondaryBtnText}</Button>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         case 'product_grid':
@@ -1014,6 +1149,169 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                             )}
                         </div>
                     ))}
+                </div>
+            </section>
+        </div>
+    );
+}
+
+function HeroProperties({ settings, onUpdate }) {
+    const update = (key, val) => onUpdate({ ...settings, [key]: val });
+
+    return (
+        <div className="space-y-6 pb-20">
+            {/* 1. Content */}
+            <section className="space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Content</h3>
+
+                <div className="pt-2">
+                    <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
+                        <span className="font-bold uppercase tracking-widest text-[9px]">Show Content Above Image</span>
+                        <input
+                            type="checkbox"
+                            checked={settings.showContentAboveImage}
+                            onChange={e => update('showContentAboveImage', e.target.checked)}
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                    </label>
+                </div>
+
+                <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Background Image</label>
+                    {settings.backgroundImage ? (
+                        <div className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center">
+                            <img src={settings.backgroundImage} className="max-h-full w-full object-cover" alt="Hero BG" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button onClick={() => update('backgroundImage', '')} className="p-2 bg-white rounded-full text-red-500 hover:scale-110 transition-transform">
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl h-32 hover:border-indigo-400 hover:bg-slate-50 transition-all cursor-pointer group">
+                            <Upload className="h-8 w-8 text-slate-300 group-hover:text-indigo-400 mb-2 transition-colors" />
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Upload Banner</span>
+                            <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+
+                                    const fileExt = file.name.split('.').pop();
+                                    const fileName = `${Math.random()}.${fileExt}`;
+                                    const filePath = `${fileName}`;
+
+                                    const { data, error } = await supabase.storage
+                                        .from('store-assets')
+                                        .upload(filePath, file);
+
+                                    if (error) return alert('Upload failed: ' + error.message);
+
+                                    const { data: { publicUrl } } = supabase.storage
+                                        .from('store-assets')
+                                        .getPublicUrl(filePath);
+
+                                    update('backgroundImage', publicUrl);
+                                }}
+                            />
+                        </label>
+                    )}
+                </div>
+
+                <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Texts</label>
+                    <input type="text" placeholder="Heading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.title} onChange={e => update('title', e.target.value)} />
+                    <textarea rows={3} placeholder="Subheading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.subtitle} onChange={e => update('subtitle', e.target.value)} />
+                </div>
+
+                <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Buttons</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <input type="text" placeholder="Primary Btn..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.primaryBtnText} onChange={e => update('primaryBtnText', e.target.value)} />
+                        <input type="text" placeholder="Secondary Btn..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.secondaryBtnText} onChange={e => update('secondaryBtnText', e.target.value)} />
+                    </div>
+                </div>
+            </section>
+
+            {/* 2. Layout */}
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Layout</h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Hero Height</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        {['small', 'medium', 'large', 'full', 'custom'].map(m => (
+                            <button
+                                key={m}
+                                onClick={() => update('heightMode', m)}
+                                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${settings.heightMode === m ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                            >
+                                {m}
+                            </button>
+                        ))}
+                    </div>
+                    {settings.heightMode === 'custom' && (
+                        <input type="text" className="w-full mt-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.customHeight} onChange={e => update('customHeight', e.target.value)} placeholder="e.g. 500px or 70vh" />
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">H-Alignment</label>
+                        <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
+                            <button onClick={() => update('hAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.hAlignment === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignLeft className="h-4 w-4" /></button>
+                            <button onClick={() => update('hAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.hAlignment === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignCenter className="h-4 w-4" /></button>
+                            <button onClick={() => update('hAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.hAlignment === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignRight className="h-4 w-4" /></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">V-Alignment</label>
+                        <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
+                            <button onClick={() => update('vAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.vAlignment === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><ArrowUp className="h-4 w-4" /></button>
+                            <button onClick={() => update('vAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.vAlignment === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><Move className="h-4 w-4" /></button>
+                            <button onClick={() => update('vAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.vAlignment === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><ArrowDown className="h-4 w-4" /></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. Style */}
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Style</h3>
+                <div className="grid grid-cols-2 gap-3">
+                    <ColorInput label="Overlay Color" value={settings.overlayColor} onChange={v => update('overlayColor', v)} />
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Opacity</label>
+                        <input type="range" min="0" max="1" step="0.1" className="w-full accent-indigo-600" value={settings.overlayOpacity} onChange={e => update('overlayOpacity', parseFloat(e.target.value))} />
+                    </div>
+                </div>
+                <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer">
+                    <span className="font-bold uppercase tracking-widest text-[9px]">Use Gradient Overlay</span>
+                    <input type="checkbox" checked={settings.useGradient} onChange={e => update('useGradient', e.target.checked)} className="rounded border-slate-300 text-indigo-600" />
+                </label>
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Border Radius (px)</label>
+                    <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.borderRadius)} onChange={e => update('borderRadius', e.target.value + 'px')} />
+                </div>
+            </section>
+
+            {/* 4. Typography */}
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Typography</h3>
+                <div className="grid grid-cols-2 gap-3">
+                    <ColorInput label="Heading Color" value={settings.headingColor} onChange={v => update('headingColor', v)} />
+                    <ColorInput label="Text Color" value={settings.subheadingColor} onChange={v => update('subheadingColor', v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading Size</label>
+                        <input type="text" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.headingSize} onChange={e => update('headingSize', e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sub-heading Size</label>
+                        <input type="text" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.subheadingSize} onChange={e => update('subheadingSize', e.target.value)} />
+                    </div>
                 </div>
             </section>
         </div>

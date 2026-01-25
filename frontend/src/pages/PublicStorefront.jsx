@@ -196,17 +196,109 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                 </>
             );
         case 'hero':
+            const isBanner = !settings.showContentAboveImage;
+            const heroHeight = settings.heightMode === 'full' ? '100vh' :
+                settings.heightMode === 'large' ? '80vh' :
+                    settings.heightMode === 'medium' ? '60vh' :
+                        settings.heightMode === 'small' ? '40vh' : (settings.customHeight || '60vh');
+
             return (
-                <div className="relative h-[80vh] flex items-center justify-center bg-slate-900 text-white overflow-hidden">
-                    <div className="relative z-10 text-center space-y-8 px-6 max-w-4xl mx-auto">
-                        <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] animate-in slide-in-from-bottom duration-700">{settings.title || 'PREMIUM GOODS'}</h1>
-                        <p className="text-xl text-slate-300 font-medium max-w-xl mx-auto">{settings.subtitle}</p>
-                        <Button className="rounded-full px-12 py-8 text-xl font-bold bg-white text-black hover:bg-slate-100 transition-all scale-110">
-                            {settings.buttonText || 'Shop Now'}
-                        </Button>
+                <div
+                    className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
+                    style={{ borderRadius: settings.borderRadius }}
+                >
+                    <div
+                        className="relative w-full overflow-hidden flex"
+                        style={{
+                            height: heroHeight,
+                            backgroundColor: settings.overlayColor || '#f1f5f9',
+                            justifyContent: settings.hAlignment,
+                            alignItems: settings.vAlignment
+                        }}
+                    >
+                        {settings.backgroundImage && (
+                            <img
+                                src={settings.backgroundImage}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                alt="Hero Background"
+                            />
+                        )}
+
+                        {!isBanner && (
+                            <div
+                                className="absolute inset-0 z-10"
+                                style={{
+                                    backgroundColor: settings.overlayColor,
+                                    opacity: settings.overlayOpacity,
+                                    background: settings.useGradient ? `linear-gradient(to bottom, transparent, ${settings.overlayColor})` : 'none'
+                                }}
+                            />
+                        )}
+
+                        {settings.showContentAboveImage && (
+                            <div
+                                className="relative z-20 px-12 text-center space-y-6"
+                                style={{
+                                    maxWidth: settings.maxContentWidth,
+                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                }}
+                            >
+                                <h2
+                                    className="font-extrabold tracking-tighter leading-tight"
+                                    style={{
+                                        fontSize: settings.headingSize,
+                                        color: settings.headingColor,
+                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                    }}
+                                >
+                                    {settings.title}
+                                </h2>
+                                <p
+                                    className="font-medium opacity-90"
+                                    style={{
+                                        fontSize: settings.subheadingSize,
+                                        color: settings.subheadingColor,
+                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                    }}
+                                >
+                                    {settings.subtitle}
+                                </p>
+                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
+                                    {settings.primaryBtnText && <Button className="rounded-full md:px-8 md:py-6 text-lg shadow-xl">{settings.primaryBtnText}</Button>}
+                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full md:px-8 md:py-6 text-lg bg-white/10 text-white border-white/20 hover:bg-white/20">{settings.secondaryBtnText}</Button>}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-600/20 to-purple-600/20" />
-                    <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/30 blur-[150px] rounded-full" />
+
+                    {!settings.showContentAboveImage && (
+                        <div className="py-12 px-12 bg-white space-y-6">
+                            <div
+                                className="mx-auto space-y-6"
+                                style={{
+                                    maxWidth: settings.maxContentWidth,
+                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                }}
+                            >
+                                <h2
+                                    className="text-slate-900 font-extrabold tracking-tight"
+                                    style={{ fontSize: settings.headingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                >
+                                    {settings.title}
+                                </h2>
+                                <p
+                                    className="text-slate-500 font-medium"
+                                    style={{ fontSize: settings.subheadingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                >
+                                    {settings.subtitle}
+                                </p>
+                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
+                                    {settings.primaryBtnText && <Button className="rounded-full md:px-8 md:py-6 text-lg shadow-lg">{settings.primaryBtnText}</Button>}
+                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full md:px-8 md:py-6 text-lg">{settings.secondaryBtnText}</Button>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         case 'product_grid':
