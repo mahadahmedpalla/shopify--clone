@@ -21,7 +21,8 @@ import {
     CreditCard,
     CheckCircle,
     FileText,
-    Settings
+    Settings,
+    Palette
 } from 'lucide-react';
 
 const SYSTEM_PAGES = [
