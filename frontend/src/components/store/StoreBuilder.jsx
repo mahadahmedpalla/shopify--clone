@@ -167,9 +167,12 @@ export function StoreBuilder() {
                 gap: '24px',
                 maxWidth: '1200px',
                 alignment: 'space-between',
-                logoUrl: '',
                 logoWidth: '120px',
                 sticky: 'always',
+                stickyMode: 'always', // none, always, scroll, hide
+                hamburgerPC: false,
+                hamburgerTablet: true,
+                hamburgerMobile: true,
                 menuItems: [
                     { id: 'm1', label: 'Home', type: 'page', value: 'home' },
                     { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
@@ -271,6 +274,7 @@ export function StoreBuilder() {
                                             <SortableBlock
                                                 key={block.id}
                                                 block={block}
+                                                viewMode={viewMode}
                                                 onDelete={() => deleteWidget(block.id)}
                                                 isSelected={selectedElement?.id === block.id}
                                                 onClick={() => setSelectedElement(block)}
@@ -341,7 +345,7 @@ export function StoreBuilder() {
     );
 }
 
-function SortableBlock({ block, onDelete, isSelected, onClick }) {
+function SortableBlock({ block, onDelete, isSelected, onClick, viewMode }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
     const style = {
@@ -369,17 +373,41 @@ function SortableBlock({ block, onDelete, isSelected, onClick }) {
                 </button>
             </div>
 
-            <BlockRenderer type={block.type} settings={block.settings} />
+            <BlockRenderer type={block.type} settings={block.settings} viewMode={viewMode} />
         </div>
     );
 }
 
-function BlockRenderer({ type, settings }) {
+function BlockRenderer({ type, settings, viewMode }) {
+    const [scrolled, setScrolled] = useState(false);
+    const [visible, setVisible] = useState(true);
+    const [lastScroll, setLastScroll] = useState(0);
+
+    useEffect(() => {
+        if (type !== 'navbar') return;
+        const handleScroll = () => {
+            const currentScroll = window.scrollY || document.documentElement.scrollTop;
+            setScrolled(currentScroll > 50);
+
+            if (settings.stickyMode === 'hide') {
+                setVisible(currentScroll < lastScroll || currentScroll < 100);
+            } else {
+                setVisible(true);
+            }
+            setLastScroll(currentScroll);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [type, lastScroll, settings.stickyMode]);
+
     switch (type) {
         case 'navbar':
+            const isSticky = settings.stickyMode === 'always' || (settings.stickyMode === 'scroll' && scrolled) || (settings.stickyMode === 'hide' && scrolled);
+            const isHidden = settings.stickyMode === 'hide' && scrolled && !visible;
+
             return (
                 <div
-                    className={`flex items-center justify-center transition-all duration-300 w-full z-40`}
+                    className={`flex items-center justify-center transition-all duration-500 w-full z-40 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
                     style={{
                         backgroundColor: settings.bgColor,
                         color: settings.textColor,
@@ -389,7 +417,7 @@ function BlockRenderer({ type, settings }) {
                         boxShadow: settings.shadow === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : settings.shadow === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
                         opacity: settings.opacity,
                         backdropFilter: settings.blur ? `blur(${settings.blur})` : 'none',
-                        position: settings.sticky === 'always' ? 'sticky' : 'relative',
+                        position: isSticky ? 'sticky' : 'relative',
                         top: 0
                     }}
                 >
@@ -410,8 +438,15 @@ function BlockRenderer({ type, settings }) {
                             )}
                         </div>
 
-                        {/* Desktop Menu */}
-                        <div className="hidden md:flex items-center" style={{ gap: settings.gap }}>
+                        {/* Desktop Menu - Conditional based on viewMode & settings */}
+                        <div className="items-center" style={{
+                            display: (
+                                (viewMode === 'desktop' && !settings.hamburgerPC) ||
+                                (viewMode === 'tablet' && !settings.hamburgerTablet) ||
+                                (viewMode === 'mobile' && !settings.hamburgerMobile)
+                            ) ? 'flex' : 'none',
+                            gap: settings.gap
+                        }}>
                             {(settings.menuItems || []).map(item => (
                                 <span
                                     key={item.id}
@@ -427,8 +462,16 @@ function BlockRenderer({ type, settings }) {
                         {/* Actions */}
                         <div className="flex items-center space-x-4">
                             <ShoppingCart className="h-5 w-5 cursor-pointer hover:opacity-75" />
-                            <div className="md:hidden">
-                                <Box className="h-6 w-6" /> {/* Hamburger placeholder */}
+
+                            {/* Hamburger Logic - Conditional based on viewMode & settings */}
+                            <div style={{
+                                display: (
+                                    (viewMode === 'desktop' && settings.hamburgerPC) ||
+                                    (viewMode === 'tablet' && settings.hamburgerTablet) ||
+                                    (viewMode === 'mobile' && settings.hamburgerMobile)
+                                ) ? 'flex' : 'none'
+                            }}>
+                                <Box className="h-6 w-6 cursor-pointer" />
                             </div>
                         </div>
                     </div>
@@ -588,6 +631,49 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                         <option value="flex-end">Right</option>
                         <option value="space-between">Space Between</option>
                     </select>
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Behavior</h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sticky Mode</label>
+                    <div className="grid grid-cols-1 gap-2">
+                        <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                            <input type="radio" name="sticky" checked={settings.stickyMode === 'none'} onChange={() => update('stickyMode', 'none')} />
+                            <span>Static (No Sticky)</span>
+                        </label>
+                        <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                            <input type="radio" name="sticky" checked={settings.stickyMode === 'always'} onChange={() => update('stickyMode', 'always')} />
+                            <span>Always Sticky</span>
+                        </label>
+                        <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                            <input type="radio" name="sticky" checked={settings.stickyMode === 'scroll'} onChange={() => update('stickyMode', 'scroll')} />
+                            <span>Sticky on Scroll</span>
+                        </label>
+                        <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                            <input type="radio" name="sticky" checked={settings.stickyMode === 'hide'} onChange={() => update('stickyMode', 'hide')} />
+                            <span>Hide on Scroll</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Hamburger Menu</label>
+                    <div className="flex flex-col space-y-2">
+                        <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                            <span className="flex items-center"><Monitor className="h-3 w-3 mr-2 text-slate-400" /> PC</span>
+                            <input type="checkbox" checked={settings.hamburgerPC} onChange={e => update('hamburgerPC', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                        </label>
+                        <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                            <span className="flex items-center"><Tablet className="h-3 w-3 mr-2 text-slate-400" /> Tablet</span>
+                            <input type="checkbox" checked={settings.hamburgerTablet} onChange={e => update('hamburgerTablet', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                        </label>
+                        <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                            <span className="flex items-center"><Smartphone className="h-3 w-3 mr-2 text-slate-400" /> Mobile</span>
+                            <input type="checkbox" checked={settings.hamburgerMobile} onChange={e => update('hamburgerMobile', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                        </label>
+                    </div>
                 </div>
             </section>
 
