@@ -135,7 +135,7 @@ export function StoreBuilder() {
                 }
             } else {
                 // Create default if not exists (for prototype simplicity)
-                setPage({ name: 'Home Page', slug: 'home' });
+                setPage({ name: 'Home Page', slug: 'home', type: 'custom' });
             }
         } catch (e) {
             console.error("Error loading page:", e);
@@ -152,6 +152,7 @@ export function StoreBuilder() {
                     store_id: storeId,
                     slug: page?.slug || 'home',
                     name: page?.name || 'Home Page',
+                    type: page?.type || 'custom',
                     content: canvasContent,
                     is_published: true // auto-publish for now
                 }, { onConflict: 'store_id, slug' });
