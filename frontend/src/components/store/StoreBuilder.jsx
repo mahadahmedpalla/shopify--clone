@@ -121,12 +121,16 @@ export function StoreBuilder() {
         setLoading(true);
         try {
             // 1. Try fetching the specific page
-            const { data: pageData, error } = await supabase
-                .from('store_pages')
-                .select('*')
-                .eq('store_id', storeId)
-                .eq('slug', pageId || 'home')
-                .single();
+            let query = supabase.from('store_pages').select('*').eq('store_id', storeId);
+
+            // Check if pageId looks like a UUID (simple check) or just assume ID if present
+            if (pageId) {
+                query = query.eq('id', pageId);
+            } else {
+                query = query.eq('slug', 'home');
+            }
+
+            const { data: pageData, error } = await query.single();
 
             if (pageData) {
                 setPage(pageData);
@@ -134,8 +138,8 @@ export function StoreBuilder() {
                     setCanvasContent(pageData.content);
                 }
             } else {
-                // Create default if not exists (for prototype simplicity)
-                setPage({ name: 'Home Page', slug: 'home', type: 'custom' });
+                // Create default if not exists
+                setPage({ name: 'Home Page', slug: 'home', type: 'system' });
             }
         } catch (e) {
             console.error("Error loading page:", e);
