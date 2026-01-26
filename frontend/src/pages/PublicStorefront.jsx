@@ -248,7 +248,7 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                     style={{
                                         fontSize: settings.headingSize,
                                         color: settings.headingColor,
-                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
                                     {settings.title}
@@ -258,14 +258,49 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                     style={{
                                         fontSize: settings.subheadingSize,
                                         color: settings.subheadingColor,
-                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
                                     {settings.subtitle}
                                 </p>
-                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
-                                    {settings.primaryBtnText && <Button className="rounded-full md:px-8 md:py-6 text-lg shadow-xl">{settings.primaryBtnText}</Button>}
-                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full md:px-8 md:py-6 text-lg bg-white/10 text-white border-white/20 hover:bg-white/20">{settings.secondaryBtnText}</Button>}
+                                <div
+                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: settings.btnMarginTop || '24px' }}
+                                >
+                                    {settings.primaryBtnText && (
+                                        <Button
+                                            className="shadow-xl"
+                                            style={{
+                                                backgroundColor: settings.btnBgColor,
+                                                color: settings.btnTextColor,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                                borderRadius: settings.btnBorderRadius,
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {settings.primaryBtnText}
+                                        </Button>
+                                    )}
+                                    {settings.secondaryBtnText && (
+                                        <Button
+                                            variant="secondary"
+                                            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                                            style={{
+                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                            }}
+                                        >
+                                            {settings.secondaryBtnText}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -274,7 +309,7 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                     {!settings.showContentAboveImage && (
                         <div className="py-12 px-12 bg-white space-y-6">
                             <div
-                                className="mx-auto space-y-6"
+                                className="mx-auto"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
                                     textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
@@ -282,19 +317,59 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                             >
                                 <h2
                                     className="text-slate-900 font-extrabold tracking-tight"
-                                    style={{ fontSize: settings.headingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                    style={{
+                                        fontSize: settings.headingSize,
+                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
+                                    }}
                                 >
                                     {settings.title}
                                 </h2>
                                 <p
-                                    className="text-slate-500 font-medium"
-                                    style={{ fontSize: settings.subheadingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                    className="text-slate-500 font-medium mt-4"
+                                    style={{
+                                        fontSize: settings.subheadingSize,
+                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
+                                    }}
                                 >
                                     {settings.subtitle}
                                 </p>
-                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
-                                    {settings.primaryBtnText && <Button className="rounded-full md:px-8 md:py-6 text-lg shadow-lg">{settings.primaryBtnText}</Button>}
-                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full md:px-8 md:py-6 text-lg">{settings.secondaryBtnText}</Button>}
+                                <div
+                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: settings.btnMarginTop || '40px' }}
+                                >
+                                    {settings.primaryBtnText && (
+                                        <Button
+                                            className="shadow-lg"
+                                            style={{
+                                                backgroundColor: settings.btnBgColor,
+                                                color: settings.btnTextColor,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                                borderRadius: settings.btnBorderRadius,
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {settings.primaryBtnText}
+                                        </Button>
+                                    )}
+                                    {settings.secondaryBtnText && (
+                                        <Button
+                                            variant="secondary"
+                                            style={{
+                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                            }}
+                                        >
+                                            {settings.secondaryBtnText}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -213,11 +213,24 @@ export function StoreBuilder() {
                 overlayOpacity: 0.4,
                 useGradient: false,
                 borderRadius: '0px',
-                // Typography
+                headingFontFamily: 'Inter, sans-serif',
+                subheadingFontFamily: 'Inter, sans-serif',
                 headingSize: '48px',
                 headingColor: '#ffffff',
                 subheadingSize: '18px',
                 subheadingColor: '#e2e8f0',
+                // Buttons
+                btnBgColor: '#ffffff',
+                btnTextColor: '#000000',
+                btnPaddingX: '32px',
+                btnPaddingY: '16px',
+                btnFontSize: '16px',
+                btnBorderRadius: '9999px',
+                btnMarginTop: '24px',
+                secondaryBtnText: '',
+                secondaryBtnLink: '',
+                secondaryBtnBgColor: 'transparent',
+                secondaryBtnTextColor: '#ffffff',
                 // Responsive
                 mobileHeight: '400px',
                 mobileAlignment: 'center'
@@ -637,7 +650,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                     style={{
                                         fontSize: settings.headingSize,
                                         color: settings.headingColor,
-                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
                                     {settings.title}
@@ -647,14 +660,50 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                     style={{
                                         fontSize: settings.subheadingSize,
                                         color: settings.subheadingColor,
-                                        fontFamily: settings.fontFamily || 'Inter, sans-serif'
+                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
                                     {settings.subtitle}
                                 </p>
-                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
-                                    {settings.primaryBtnText && <Button className="rounded-full px-8 py-6 text-lg shadow-xl hover:scale-105 transition-transform">{settings.primaryBtnText}</Button>}
-                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full px-8 py-6 text-lg bg-white/10 text-white border-white/20 hover:bg-white/20">{settings.secondaryBtnText}</Button>}
+                                <div
+                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: settings.btnMarginTop || '24px' }}
+                                >
+                                    {settings.primaryBtnText && (
+                                        <Button
+                                            className="shadow-xl hover:scale-105 transition-all"
+                                            style={{
+                                                backgroundColor: settings.btnBgColor,
+                                                color: settings.btnTextColor,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                                borderRadius: settings.btnBorderRadius,
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {settings.primaryBtnText}
+                                        </Button>
+                                    )}
+                                    {settings.secondaryBtnText && (
+                                        <Button
+                                            variant="secondary"
+                                            className="bg-white/10 border-white/20 hover:bg-white/20 transition-all"
+                                            style={{
+                                                color: settings.secondaryBtnTextColor || '#ffffff',
+                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                            }}
+                                        >
+                                            {settings.secondaryBtnText}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -663,27 +712,68 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                     {!settings.showContentAboveImage && (
                         <div className="py-12 px-12 bg-white space-y-6">
                             <div
-                                className="mx-auto space-y-6"
+                                className="mx-auto"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
-                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left',
                                 }}
                             >
                                 <h2
                                     className="text-slate-900 font-extrabold tracking-tight"
-                                    style={{ fontSize: settings.headingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                    style={{
+                                        fontSize: settings.headingSize,
+                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
+                                    }}
                                 >
                                     {settings.title}
                                 </h2>
                                 <p
-                                    className="text-slate-500 font-medium"
-                                    style={{ fontSize: settings.subheadingSize, fontFamily: settings.fontFamily || 'Inter, sans-serif' }}
+                                    className="text-slate-500 font-medium mt-4"
+                                    style={{
+                                        fontSize: settings.subheadingSize,
+                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
+                                    }}
                                 >
                                     {settings.subtitle}
                                 </p>
-                                <div className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
-                                    {settings.primaryBtnText && <Button className="rounded-full px-8 py-6 text-lg shadow-lg">{settings.primaryBtnText}</Button>}
-                                    {settings.secondaryBtnText && <Button variant="secondary" className="rounded-full px-8 py-6 text-lg">{settings.secondaryBtnText}</Button>}
+                                <div
+                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: settings.btnMarginTop || '40px' }}
+                                >
+                                    {settings.primaryBtnText && (
+                                        <Button
+                                            className="shadow-lg hover:scale-105 transition-all"
+                                            style={{
+                                                backgroundColor: settings.btnBgColor,
+                                                color: settings.btnTextColor,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                                borderRadius: settings.btnBorderRadius,
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {settings.primaryBtnText}
+                                        </Button>
+                                    )}
+                                    {settings.secondaryBtnText && (
+                                        <Button
+                                            variant="secondary"
+                                            className="hover:scale-105 transition-all"
+                                            style={{
+                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: settings.btnPaddingX,
+                                                paddingRight: settings.btnPaddingX,
+                                                paddingTop: settings.btnPaddingY,
+                                                paddingBottom: settings.btnPaddingY,
+                                                fontSize: settings.btnFontSize,
+                                            }}
+                                        >
+                                            {settings.secondaryBtnText}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1299,6 +1389,38 @@ function HeroProperties({ settings, onUpdate }) {
             {/* 4. Typography */}
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Typography</h3>
+                <div className="space-y-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading Font</label>
+                        <select
+                            className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                            value={settings.headingFontFamily}
+                            onChange={e => update('headingFontFamily', e.target.value)}
+                        >
+                            <option value="Inter, sans-serif">Inter</option>
+                            <option value="'Outfit', sans-serif">Outfit</option>
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'Montserrat', sans-serif">Montserrat</option>
+                            <option value="'Roboto', sans-serif">Roboto</option>
+                            <option value="'Poppins', sans-serif">Poppins</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Subheading Font</label>
+                        <select
+                            className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                            value={settings.subheadingFontFamily}
+                            onChange={e => update('subheadingFontFamily', e.target.value)}
+                        >
+                            <option value="Inter, sans-serif">Inter</option>
+                            <option value="'Outfit', sans-serif">Outfit</option>
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'Montserrat', sans-serif">Montserrat</option>
+                            <option value="'Roboto', sans-serif">Roboto</option>
+                            <option value="'Poppins', sans-serif">Poppins</option>
+                        </select>
+                    </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                     <ColorInput label="Heading Color" value={settings.headingColor} onChange={v => update('headingColor', v)} />
                     <ColorInput label="Text Color" value={settings.subheadingColor} onChange={v => update('subheadingColor', v)} />
@@ -1312,6 +1434,39 @@ function HeroProperties({ settings, onUpdate }) {
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sub-heading Size</label>
                         <input type="text" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.subheadingSize} onChange={e => update('subheadingSize', e.target.value)} />
                     </div>
+                </div>
+            </section>
+
+            {/* 5. Button Styles */}
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Button Styles</h3>
+                <div className="grid grid-cols-2 gap-3">
+                    <ColorInput label="Btn Background" value={settings.btnBgColor} onChange={v => update('btnBgColor', v)} />
+                    <ColorInput label="Btn Text" value={settings.btnTextColor} onChange={v => update('btnTextColor', v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Padding X (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnPaddingX)} onChange={e => update('btnPaddingX', e.target.value + 'px')} />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Padding Y (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnPaddingY)} onChange={e => update('btnPaddingY', e.target.value + 'px')} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Size</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnFontSize)} onChange={e => update('btnFontSize', e.target.value + 'px')} />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Radius (px)</label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnBorderRadius)} onChange={e => update('btnBorderRadius', e.target.value + 'px')} />
+                    </div>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Margin Top (px)</label>
+                    <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnMarginTop)} onChange={e => update('btnMarginTop', e.target.value + 'px')} />
                 </div>
             </section>
         </div>
