@@ -93,8 +93,14 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
 
     // Responsive Helper
     const rVal = (key, defaultVal) => {
-        if (!settings.responsive || !settings.responsive[viewMode]) return settings[key] || defaultVal;
-        return settings.responsive[viewMode][key] !== undefined ? settings.responsive[viewMode][key] : (settings[key] || defaultVal);
+        let mode = viewMode;
+        // Legacy fallback: if mode is 'pc' but only 'desktop' settings exist, use 'desktop'
+        if (mode === 'pc' && settings.responsive && !settings.responsive['pc'] && settings.responsive['desktop']) {
+            mode = 'desktop';
+        }
+
+        if (!settings.responsive || !settings.responsive[mode]) return settings[key] || defaultVal;
+        return settings.responsive[mode][key] !== undefined ? settings.responsive[mode][key] : (settings[key] || defaultVal);
     };
 
     useEffect(() => {
@@ -121,9 +127,9 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             return (
                 <>
                     <nav
-                        className={`fixed top-0 left-0 w-full transition-all duration-500 z-[100] flex justify-center
+                        className={`transition-all duration-500 z-[100] flex justify-center
                             ${isHidden ? '-translate-y-full' : 'translate-y-0'}
-                            ${isSticky ? 'shadow-md border-b' : ''}
+                            ${isSticky ? 'fixed top-0 left-0 w-full shadow-md border-b' : 'relative'}
                         `}
                         style={{
                             backgroundColor: settings.bgColor,
@@ -233,12 +239,14 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
+                    style={{
+                        borderRadius: rVal('borderRadius', settings.borderRadius),
+                        height: heroHeight
+                    }}
                 >
                     <div
-                        className="relative w-full overflow-hidden flex"
+                        className="absolute inset-0 overflow-hidden flex"
                         style={{
-                            height: heroHeight,
                             backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
                             justifyContent: hAlign,
                             alignItems: vAlign
@@ -262,10 +270,19 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                 }}
                             />
                         )}
+                    </div>
 
-                        {showContentAboveImage && (
+                    {showContentAboveImage && (
+                        <div
+                            className="relative z-20 w-full h-full flex"
+                            style={{
+                                justifyContent: hAlign,
+                                alignItems: vAlign,
+                                padding: '0 48px'
+                            }}
+                        >
                             <div
-                                className="relative z-20 px-12 text-center space-y-6"
+                                className="text-center space-y-6"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
                                     textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
@@ -351,7 +368,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                 </div>
                             </div>
                         )}
-                    </div>
+                        </div>
 
                     {/* Content is only shown if overlay is enabled */}
                 </div>
