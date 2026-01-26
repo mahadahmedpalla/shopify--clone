@@ -220,8 +220,7 @@ export function StoreBuilder() {
                 btnFontSize: '16px',
                 btnBorderRadius: '9999px',
                 btnMarginTop: '24px',
-                secondaryBtnText: '',
-                secondaryBtnLink: '',
+                btnMarginTop: '24px',
                 secondaryBtnBgColor: 'transparent',
                 secondaryBtnTextColor: '#ffffff',
                 // Responsive
