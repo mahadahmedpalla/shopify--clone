@@ -709,75 +709,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                         )}
                     </div>
 
-                    {!showContentAboveImage && (
-                        <div className="py-12 px-12 bg-white space-y-6">
-                            <div
-                                className="mx-auto"
-                                style={{
-                                    maxWidth: settings.maxContentWidth,
-                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left',
-                                }}
-                            >
-                                <h2
-                                    className="text-slate-900 font-extrabold tracking-tight"
-                                    style={{
-                                        fontSize: rVal('headingSize', settings.headingSize),
-                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
-                                    }}
-                                >
-                                    {settings.title}
-                                </h2>
-                                <p
-                                    className="text-slate-500 font-medium mt-4"
-                                    style={{
-                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
-                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
-                                    }}
-                                >
-                                    {settings.subtitle}
-                                </p>
-                                <div
-                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '40px') }}
-                                >
-                                    {settings.primaryBtnText && (
-                                        <Button
-                                            className="shadow-lg hover:scale-105 transition-all"
-                                            style={{
-                                                backgroundColor: settings.btnBgColor,
-                                                color: settings.btnTextColor,
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                border: 'none'
-                                            }}
-                                        >
-                                            {settings.primaryBtnText}
-                                        </Button>
-                                    )}
-                                    {settings.secondaryBtnText && (
-                                        <Button
-                                            variant="secondary"
-                                            className="hover:scale-105 transition-all"
-                                            style={{
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            }}
-                                        >
-                                            {settings.secondaryBtnText}
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* Content is only shown if overlay is enabled */}
                 </div>
             );
         case 'product_grid':
@@ -1301,7 +1233,7 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                 <div className="pt-2">
                     <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
                         <span className="font-bold uppercase tracking-widest text-[9px] flex items-center">
-                            Show Content Above Image <ResponsiveIndicator k="showContentAboveImage" />
+                            Show Content Overlay <ResponsiveIndicator k="showContentAboveImage" />
                         </span>
                         <input
                             type="checkbox"
