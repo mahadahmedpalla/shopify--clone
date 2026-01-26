@@ -219,7 +219,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             const heroHeight = heightMode === 'full' ? '100vh' :
                 heightMode === 'large' ? '80vh' :
                     heightMode === 'medium' ? '60vh' :
-                        heightMode === 'small' ? '40vh' : (rVal('customHeight', settings.customHeight) || '500px');
+                        heightMode === 'small' ? '40vh' : rVal('customHeight', settings.customHeight);
 
             const hAlign = rVal('hAlignment', settings.hAlignment);
             const vAlign = rVal('vAlignment', settings.vAlignment);
@@ -232,123 +232,128 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
 
             return (
                 <div
-                    className={`relative overflow-hidden w-full flex ${isBanner ? 'bg-white' : ''}`}
-                    style={{
-                        borderRadius: rVal('borderRadius', settings.borderRadius),
-                        height: heroHeight,
-                        minHeight: '200px',
-                        backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
-                        justifyContent: hAlign,
-                        alignItems: vAlign
-                    }}
+                    className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
+                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
                 >
-                    {bgImage && (
-                        <img
-                            src={bgImage}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            alt="Hero Background"
-                        />
-                    )}
+                    <div
+                        className="relative w-full overflow-hidden flex"
+                        style={{
+                            height: heroHeight,
+                            backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
+                            justifyContent: hAlign,
+                            alignItems: vAlign
+                        }}
+                    >
+                        {bgImage && (
+                            <img
+                                src={bgImage}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                alt="Hero Background"
+                            />
+                        )}
 
-                    {!isBanner && (
-                        <div
-                            className="absolute inset-0 z-10"
-                            style={{
-                                backgroundColor: rVal('overlayColor', settings.overlayColor),
-                                opacity: rVal('overlayOpacity', settings.overlayOpacity),
-                                background: rVal('useGradient', settings.useGradient) ? `linear-gradient(to bottom, transparent, ${rVal('overlayColor', settings.overlayColor)})` : 'none'
-                            }}
-                        />
-                    )}
-
-                    {showContentAboveImage && (
-                        <div
-                            className="relative z-20 px-12 text-center space-y-6"
-                            style={{
-                                maxWidth: settings.maxContentWidth,
-                                textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
-                            }}
-                        >
-                            <h2
-                                className="font-extrabold tracking-tighter leading-tight"
-                                style={{
-                                    fontSize: rVal('headingSize', settings.headingSize),
-                                    color: rVal('headingColor', settings.headingColor),
-                                    fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
-                                }}
-                            >
-                                {rVal('title', settings.title)}
-                            </h2>
-                            <p
-                                className="font-medium opacity-90"
-                                style={{
-                                    fontSize: rVal('subheadingSize', settings.subheadingSize),
-                                    color: rVal('subheadingColor', settings.subheadingColor),
-                                    fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
-                                }}
-                            >
-                                {rVal('subtitle', settings.subtitle)}
-                            </p>
+                        {!isBanner && (
                             <div
-                                className={`flex flex-wrap items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
+                                className="absolute inset-0 z-10"
+                                style={{
+                                    backgroundColor: rVal('overlayColor', settings.overlayColor),
+                                    opacity: rVal('overlayOpacity', settings.overlayOpacity),
+                                    background: rVal('useGradient', settings.useGradient) ? `linear-gradient(to bottom, transparent, ${rVal('overlayColor', settings.overlayColor)})` : 'none'
+                                }}
+                            />
+                        )}
+
+                        {showContentAboveImage && (
+                            <div
+                                className="relative z-20 px-12 text-center space-y-6"
+                                style={{
+                                    maxWidth: settings.maxContentWidth,
+                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
+                                }}
                             >
-                                {showPrimary && settings.primaryBtnText && (
-                                    <Button
-                                        className="shadow-xl"
-                                        style={{
-                                            backgroundColor: rVal('btnBgColor', settings.btnBgColor),
-                                            color: rVal('btnTextColor', settings.btnTextColor),
-                                            paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                            paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                            paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                            paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                            fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                            border: 'none'
-                                        }}
-                                    >
-                                        {rVal('primaryBtnText', settings.primaryBtnText)}
-                                    </Button>
-                                )}
-                                {showSecondary && settings.secondaryBtnText && (
-                                    <Button
-                                        variant="secondary"
-                                        className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                                        style={{
-                                            borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                            paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                            paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                            paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                            paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                            fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                        }}
-                                    >
-                                        {rVal('secondaryBtnText', settings.secondaryBtnText)}
-                                    </Button>
-                                )}
-                                {extraButtons.map((btn, idx) => (
-                                    <Button
-                                        key={idx}
-                                        variant={btn.type === 'primary' ? 'default' : 'secondary'}
-                                        className={btn.type === 'primary' ? '' : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}
-                                        style={{
-                                            backgroundColor: btn.type === 'primary' ? rVal('btnBgColor', settings.btnBgColor) : undefined,
-                                            color: btn.type === 'primary' ? rVal('btnTextColor', settings.btnTextColor) : undefined,
-                                            borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                            paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                            paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                            paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                            paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                            fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                        }}
-                                    >
-                                        {btn.text}
-                                    </Button>
-                                ))}
+                                <h2
+                                    className="font-extrabold tracking-tighter leading-tight"
+                                    style={{
+                                        fontSize: rVal('headingSize', settings.headingSize),
+                                        color: rVal('headingColor', settings.headingColor),
+                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
+                                    }}
+                                >
+                                    {rVal('title', settings.title)}
+                                </h2>
+                                <p
+                                    className="font-medium opacity-90"
+                                    style={{
+                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
+                                        color: rVal('subheadingColor', settings.subheadingColor),
+                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
+                                    }}
+                                >
+                                    {rVal('subtitle', settings.subtitle)}
+                                </p>
+                                <div
+                                    className={`flex flex-wrap items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
+                                >
+                                    {showPrimary && settings.primaryBtnText && (
+                                        <Button
+                                            className="shadow-xl"
+                                            style={{
+                                                backgroundColor: rVal('btnBgColor', settings.btnBgColor),
+                                                color: rVal('btnTextColor', settings.btnTextColor),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {rVal('primaryBtnText', settings.primaryBtnText)}
+                                        </Button>
+                                    )}
+                                    {showSecondary && settings.secondaryBtnText && (
+                                        <Button
+                                            variant="secondary"
+                                            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                                            style={{
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                            }}
+                                        >
+                                            {rVal('secondaryBtnText', settings.secondaryBtnText)}
+                                        </Button>
+                                    )}
+                                    {extraButtons.map((btn, idx) => (
+                                        <Button
+                                            key={idx}
+                                            variant={btn.type === 'primary' ? 'default' : 'secondary'}
+                                            className={btn.type === 'primary' ? '' : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}
+                                            style={{
+                                                backgroundColor: btn.type === 'primary' ? rVal('btnBgColor', settings.btnBgColor) : undefined,
+                                                color: btn.type === 'primary' ? rVal('btnTextColor', settings.btnTextColor) : undefined,
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                            }}
+                                        >
+                                            {btn.text}
+                                        </Button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
+
+                    {/* Content is only shown if overlay is enabled */}
                 </div>
             );
         case 'product_grid':
