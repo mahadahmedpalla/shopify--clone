@@ -441,6 +441,19 @@ export function StoreBuilder() {
                                         setSelectedElement({ ...selectedElement, settings: newSettings });
                                     }}
                                 />
+                            ) : selectedElement.type === 'product_grid' ? (
+                                <ProductGridProperties
+                                    settings={selectedElement.settings}
+                                    categories={categories}
+                                    viewMode={viewMode}
+                                    onUpdate={newSettings => {
+                                        const newContent = canvasContent.map(c =>
+                                            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                        );
+                                        setCanvasContent(newContent);
+                                        setSelectedElement({ ...selectedElement, settings: newSettings });
+                                    }}
+                                />
                             ) : (
                                 <div className="space-y-4">
                                     <div>
@@ -501,12 +514,12 @@ function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, 
                 </button>
             </div>
 
-            <BlockRenderer type={block.type} settings={block.settings} viewMode={viewMode} store={store} />
+            <BlockRenderer type={block.type} settings={block.settings} viewMode={viewMode} store={store} products={products} categories={categories} />
         </div>
     );
 }
 
-function BlockRenderer({ type, settings, viewMode, store }) {
+function BlockRenderer({ type, settings, viewMode, store, products, categories }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
