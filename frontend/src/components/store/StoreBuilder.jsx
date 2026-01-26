@@ -119,22 +119,48 @@ export function StoreBuilder() {
 
     const fetchPage = async () => {
         setLoading(true);
-        // Ensure page exists or create default
-        // For prototype, we mock "loading" the canvas content
-        // In real app, fetch from 'pages' table
-        setTimeout(() => {
-            setPage({ name: 'Home Page', slug: 'home' });
-            // Mock initial content if empty
-            if (canvasContent.length === 0) {
-                // If it were a real fetch, we'd setCanvasContent(data.content)
+        try {
+            // 1. Try fetching the specific page
+            const { data: pageData, error } = await supabase
+                .from('pages')
+                .select('*')
+                .eq('store_id', storeId)
+                .eq('slug', pageId || 'home')
+                .single();
+
+            if (pageData) {
+                setPage(pageData);
+                if (pageData.content && Array.isArray(pageData.content)) {
+                    setCanvasContent(pageData.content);
+                }
+            } else {
+                // Create default if not exists (for prototype simplicity)
+                setPage({ name: 'Home Page', slug: 'home' });
             }
+        } catch (e) {
+            console.error("Error loading page:", e);
+        } finally {
             setLoading(false);
-        }, 800);
+        }
     };
 
     const handleSave = async () => {
-        // Save logic to Supabase
-        alert('Layout Saved! (Prototype)');
+        try {
+            const { error } = await supabase
+                .from('pages')
+                .upsert({
+                    store_id: storeId,
+                    slug: page?.slug || 'home',
+                    name: page?.name || 'Home Page',
+                    content: canvasContent,
+                    is_published: true // auto-publish for now
+                }, { onConflict: 'store_id, slug' });
+
+            if (error) throw error;
+            alert('Layout Saved & Published! 🚀');
+        } catch (e) {
+            alert('Save failed: ' + e.message);
+        }
     };
 
     const handleDragEnd = (event) => {
