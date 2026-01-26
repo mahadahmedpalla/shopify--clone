@@ -244,7 +244,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                         {bgImage && (
                             <img
                                 src={bgImage}
-                                className="absolute inset-0 w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover object-top"
                                 alt="Hero Background"
                             />
                         )}

@@ -622,16 +622,16 @@ function BlockRenderer({ type, settings, viewMode, store }) {
             const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
             return (
-                <div 
+                <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{ 
+                    style={{
                         height: heroHeight,
-                        borderRadius: rVal('borderRadius', settings.borderRadius) 
+                        borderRadius: rVal('borderRadius', settings.borderRadius)
                     }}
                 >
-                    <div 
+                    <div
                         className="relative w-full h-full overflow-hidden flex"
-                        style={{ 
+                        style={{
                             backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
                             justifyContent: hAlign,
                             alignItems: vAlign
@@ -640,7 +640,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                         {bgImage && (
                             <img
                                 src={bgImage}
-                                className="absolute inset-0 w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover object-top"
                                 alt="Hero Background"
                             />
                         )}
