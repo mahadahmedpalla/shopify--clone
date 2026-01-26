@@ -790,10 +790,22 @@ function BlockRenderer({ type, settings, viewMode, store, products, categories }
             const colsTablet = settings.columns?.tablet || 3;
             const colsMobile = settings.columns?.mobile || 2;
 
+            const colsMap = {
+                1: 'grid-cols-1',
+                2: 'grid-cols-2',
+                3: 'grid-cols-3',
+                4: 'grid-cols-4',
+                5: 'grid-cols-5',
+                6: 'grid-cols-6'
+            };
+
             const getColsClass = () => {
-                if (viewMode === 'mobile') return `grid-cols-${colsMobile}`;
-                if (viewMode === 'tablet') return `grid-cols-${colsTablet}`;
-                return `grid-cols-${colsDesktop}`;
+                let columns = 4;
+                if (viewMode === 'mobile') columns = colsMobile;
+                else if (viewMode === 'tablet') columns = colsTablet;
+                else columns = colsDesktop;
+
+                return colsMap[columns] || 'grid-cols-4';
             };
 
             return (
