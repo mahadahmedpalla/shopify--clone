@@ -14,14 +14,14 @@ export function PublicStorefront() {
     const [error, setError] = useState(null);
 
     // Responsive Detection
-    const [viewMode, setViewMode] = useState('desktop');
+    const [viewMode, setViewMode] = useState('pc');
 
     useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
             if (width < 640) setViewMode('mobile');
             else if (width < 1024) setViewMode('tablet');
-            else setViewMode('desktop');
+            else setViewMode('pc');
         };
         handleResize();
         window.addEventListener('resize', handleResize);
@@ -219,7 +219,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             const heroHeight = heightMode === 'full' ? '100vh' :
                 heightMode === 'large' ? '80vh' :
                     heightMode === 'medium' ? '60vh' :
-                        heightMode === 'small' ? '40vh' : rVal('customHeight', settings.customHeight);
+                        heightMode === 'small' ? '40vh' : (rVal('customHeight', settings.customHeight) || '60vh');
 
             const hAlign = rVal('hAlignment', settings.hAlignment);
             const vAlign = rVal('vAlignment', settings.vAlignment);
