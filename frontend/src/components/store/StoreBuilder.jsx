@@ -200,8 +200,6 @@ export function StoreBuilder() {
                 backgroundImage: '',
                 primaryBtnText: 'Shop Now',
                 primaryBtnLink: '',
-                secondaryBtnText: '',
-                secondaryBtnLink: '',
                 // Layout
                 heightMode: 'medium', // small, medium, large, full, custom
                 customHeight: '500px',

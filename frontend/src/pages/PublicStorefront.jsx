@@ -367,10 +367,8 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                     ))}
                                 </div>
                             </div>
-                        )}
                         </div>
-
-                    {/* Content is only shown if overlay is enabled */}
+                    )}
                 </div>
             );
         case 'product_grid':
