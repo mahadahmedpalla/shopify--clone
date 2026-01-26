@@ -1315,14 +1315,6 @@ function HeroProperties({ settings, onUpdate }) {
                     <input type="text" placeholder="Heading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.title} onChange={e => update('title', e.target.value)} />
                     <textarea rows={3} placeholder="Subheading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.subtitle} onChange={e => update('subtitle', e.target.value)} />
                 </div>
-
-                <div className="space-y-3">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Buttons</label>
-                    <div className="grid grid-cols-2 gap-2">
-                        <input type="text" placeholder="Primary Btn..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.primaryBtnText} onChange={e => update('primaryBtnText', e.target.value)} />
-                        <input type="text" placeholder="Secondary Btn..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.secondaryBtnText} onChange={e => update('secondaryBtnText', e.target.value)} />
-                    </div>
-                </div>
             </section>
 
             {/* 2. Layout */}
@@ -1427,19 +1419,28 @@ function HeroProperties({ settings, onUpdate }) {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading Size</label>
-                        <input type="text" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.headingSize} onChange={e => update('headingSize', e.target.value)} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading Size (px)</label>
+                        <input type="number" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={parseInt(settings.headingSize)} onChange={e => update('headingSize', e.target.value + 'px')} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sub-heading Size</label>
-                        <input type="text" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.subheadingSize} onChange={e => update('subheadingSize', e.target.value)} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Subheading Size (px)</label>
+                        <input type="number" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={parseInt(settings.subheadingSize)} onChange={e => update('subheadingSize', e.target.value + 'px')} />
                     </div>
                 </div>
             </section>
 
-            {/* 5. Button Styles */}
+            {/* 5. Button Configuration */}
             <section className="space-y-4 pt-4 border-t border-slate-100">
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Button Styles</h3>
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Button Configuration</h3>
+
+                <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Button Labels</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <input type="text" placeholder="Primary Label..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.primaryBtnText} onChange={e => update('primaryBtnText', e.target.value)} />
+                        <input type="text" placeholder="Secondary Label..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.secondaryBtnText} onChange={e => update('secondaryBtnText', e.target.value)} />
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                     <ColorInput label="Btn Background" value={settings.btnBgColor} onChange={v => update('btnBgColor', v)} />
                     <ColorInput label="Btn Text" value={settings.btnTextColor} onChange={v => update('btnTextColor', v)} />
