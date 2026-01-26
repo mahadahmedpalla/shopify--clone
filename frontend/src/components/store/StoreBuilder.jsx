@@ -67,6 +67,7 @@ export function StoreBuilder() {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('desktop');
     const [previewMode, setPreviewMode] = useState(false);
+    const [fitToWidth, setFitToWidth] = useState(true);
     const [canvasContent, setCanvasContent] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
     const [draggedWidget, setDraggedWidget] = useState(null);
@@ -268,6 +269,19 @@ export function StoreBuilder() {
                     <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
                     <ViewModeBtn active={viewMode === 'tablet'} onClick={() => setViewMode('tablet')} icon={<Tablet className="h-4 w-4" />} />
                     <ViewModeBtn active={viewMode === 'mobile'} onClick={() => setViewMode('mobile')} icon={<Smartphone className="h-4 w-4" />} />
+
+                    {viewMode === 'desktop' && (
+                        <>
+                            <div className="w-[1px] h-4 bg-slate-700 mx-1" />
+                            <button
+                                onClick={() => setFitToWidth(!fitToWidth)}
+                                className={`p-1.5 rounded-md transition-all ${fitToWidth ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-400 hover:text-white'}`}
+                                title={fitToWidth ? "Scale: Fit" : "Scale: 100%"}
+                            >
+                                {fitToWidth ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex items-center space-x-3">
@@ -337,7 +351,7 @@ export function StoreBuilder() {
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <div
                             className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
-                                ${viewMode === 'desktop' ? 'w-[1280px]' : ''}
+                                ${viewMode === 'desktop' ? (fitToWidth ? 'w-full' : 'w-[1280px]') : ''}
                                 ${viewMode === 'tablet' ? 'w-[768px]' : ''}
                                 ${viewMode === 'mobile' ? 'w-[375px]' : ''}
                             `}
