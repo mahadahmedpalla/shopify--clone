@@ -14,14 +14,14 @@ export function PublicStorefront() {
     const [error, setError] = useState(null);
 
     // Responsive Detection
-    const [viewMode, setViewMode] = useState('pc');
+    const [viewMode, setViewMode] = useState('desktop');
 
     useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
             if (width < 640) setViewMode('mobile');
             else if (width < 1024) setViewMode('tablet');
-            else setViewMode('pc');
+            else setViewMode('desktop');
         };
         handleResize();
         window.addEventListener('resize', handleResize);
@@ -93,14 +93,8 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
 
     // Responsive Helper
     const rVal = (key, defaultVal) => {
-        let mode = viewMode;
-        // Legacy fallback: if mode is 'pc' but only 'desktop' settings exist, use 'desktop'
-        if (mode === 'pc' && settings.responsive && !settings.responsive['pc'] && settings.responsive['desktop']) {
-            mode = 'desktop';
-        }
-
-        if (!settings.responsive || !settings.responsive[mode]) return settings[key] || defaultVal;
-        return settings.responsive[mode][key] !== undefined ? settings.responsive[mode][key] : (settings[key] || defaultVal);
+        if (!settings.responsive || !settings.responsive[viewMode]) return settings[key] || defaultVal;
+        return settings.responsive[viewMode][key] !== undefined ? settings.responsive[viewMode][key] : (settings[key] || defaultVal);
     };
 
     useEffect(() => {
@@ -127,9 +121,9 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             return (
                 <>
                     <nav
-                        className={`transition-all duration-500 z-[100] flex justify-center
+                        className={`fixed top-0 left-0 w-full transition-all duration-500 z-[100] flex justify-center
                             ${isHidden ? '-translate-y-full' : 'translate-y-0'}
-                            ${isSticky ? 'fixed top-0 left-0 w-full shadow-md border-b' : 'relative'}
+                            ${isSticky ? 'shadow-md border-b' : ''}
                         `}
                         style={{
                             backgroundColor: settings.bgColor,
@@ -225,28 +219,21 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             const heroHeight = heightMode === 'full' ? '100vh' :
                 heightMode === 'large' ? '80vh' :
                     heightMode === 'medium' ? '60vh' :
-                        heightMode === 'small' ? '40vh' : (rVal('customHeight', settings.customHeight) || '60vh');
+                        heightMode === 'small' ? '40vh' : rVal('customHeight', settings.customHeight);
 
             const hAlign = rVal('hAlignment', settings.hAlignment);
             const vAlign = rVal('vAlignment', settings.vAlignment);
             const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
-            // Visibility & Responsive Text Overrides
-            const showPrimary = rVal('showPrimaryBtn', settings.showPrimaryBtn !== false);
-            const showSecondary = rVal('showSecondaryBtn', settings.showSecondaryBtn !== false);
-            const extraButtons = rVal('extraButtons', settings.extraButtons || []);
-
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{
-                        borderRadius: rVal('borderRadius', settings.borderRadius),
-                        height: heroHeight
-                    }}
+                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
                 >
                     <div
-                        className="absolute inset-0 overflow-hidden flex"
+                        className="relative w-full overflow-hidden flex"
                         style={{
+                            height: heroHeight,
                             backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
                             justifyContent: hAlign,
                             alignItems: vAlign
@@ -270,19 +257,10 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                 }}
                             />
                         )}
-                    </div>
 
-                    {showContentAboveImage && (
-                        <div
-                            className="relative z-20 w-full h-full flex"
-                            style={{
-                                justifyContent: hAlign,
-                                alignItems: vAlign,
-                                padding: '0 48px'
-                            }}
-                        >
+                        {showContentAboveImage && (
                             <div
-                                className="text-center space-y-6"
+                                className="relative z-20 px-12 text-center space-y-6"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
                                     textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
@@ -296,7 +274,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
-                                    {rVal('title', settings.title)}
+                                    {settings.title}
                                 </h2>
                                 <p
                                     className="font-medium opacity-90"
@@ -306,13 +284,13 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
-                                    {rVal('subtitle', settings.subtitle)}
+                                    {settings.subtitle}
                                 </p>
                                 <div
-                                    className={`flex flex-wrap items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
                                     style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
                                 >
-                                    {showPrimary && settings.primaryBtnText && (
+                                    {settings.primaryBtnText && (
                                         <Button
                                             className="shadow-xl"
                                             style={{
@@ -327,10 +305,10 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                                 border: 'none'
                                             }}
                                         >
-                                            {rVal('primaryBtnText', settings.primaryBtnText)}
+                                            {settings.primaryBtnText}
                                         </Button>
                                     )}
-                                    {showSecondary && settings.secondaryBtnText && (
+                                    {settings.secondaryBtnText && (
                                         <Button
                                             variant="secondary"
                                             className="bg-white/10 text-white border-white/20 hover:bg-white/20"
@@ -343,32 +321,15 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                                 fontSize: rVal('btnFontSize', settings.btnFontSize),
                                             }}
                                         >
-                                            {rVal('secondaryBtnText', settings.secondaryBtnText)}
+                                            {settings.secondaryBtnText}
                                         </Button>
                                     )}
-                                    {extraButtons.map((btn, idx) => (
-                                        <Button
-                                            key={idx}
-                                            variant={btn.type === 'primary' ? 'default' : 'secondary'}
-                                            className={btn.type === 'primary' ? '' : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}
-                                            style={{
-                                                backgroundColor: btn.type === 'primary' ? rVal('btnBgColor', settings.btnBgColor) : undefined,
-                                                color: btn.type === 'primary' ? rVal('btnTextColor', settings.btnTextColor) : undefined,
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            }}
-                                        >
-                                            {btn.text}
-                                        </Button>
-                                    ))}
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
+
+                    {/* Content is only shown if overlay is enabled */}
                 </div>
             );
         case 'product_grid':

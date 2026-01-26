@@ -65,7 +65,7 @@ export function StoreBuilder() {
     const navigate = useNavigate();
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState('pc');
+    const [viewMode, setViewMode] = useState('desktop');
     const [canvasContent, setCanvasContent] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
     const [draggedWidget, setDraggedWidget] = useState(null);
@@ -200,6 +200,8 @@ export function StoreBuilder() {
                 backgroundImage: '',
                 primaryBtnText: 'Shop Now',
                 primaryBtnLink: '',
+                secondaryBtnText: '',
+                secondaryBtnLink: '',
                 // Layout
                 heightMode: 'medium', // small, medium, large, full, custom
                 customHeight: '500px',
@@ -262,7 +264,7 @@ export function StoreBuilder() {
                 </div>
 
                 <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1 border border-slate-700">
-                    <ViewModeBtn active={viewMode === 'pc'} onClick={() => setViewMode('pc')} icon={<Monitor className="h-4 w-4" />} />
+                    <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
                     <ViewModeBtn active={viewMode === 'tablet'} onClick={() => setViewMode('tablet')} icon={<Tablet className="h-4 w-4" />} />
                     <ViewModeBtn active={viewMode === 'mobile'} onClick={() => setViewMode('mobile')} icon={<Smartphone className="h-4 w-4" />} />
                 </div>
@@ -466,14 +468,8 @@ function BlockRenderer({ type, settings, viewMode, store }) {
 
     // Responsive Helper: Resolves value based on viewMode
     const rVal = (key, defaultVal) => {
-        let mode = viewMode;
-        // Legacy fallback: if mode is 'pc' but only 'desktop' settings exist, use 'desktop'
-        if (mode === 'pc' && settings.responsive && !settings.responsive['pc'] && settings.responsive['desktop']) {
-            mode = 'desktop';
-        }
-
-        if (!settings.responsive || !settings.responsive[mode]) return settings[key] || defaultVal;
-        return settings.responsive[mode][key] !== undefined ? settings.responsive[mode][key] : (settings[key] || defaultVal);
+        if (!settings.responsive || !settings.responsive[viewMode]) return settings[key] || defaultVal;
+        return settings.responsive[viewMode][key] !== undefined ? settings.responsive[viewMode][key] : (settings[key] || defaultVal);
     };
 
     useEffect(() => {
@@ -625,22 +621,15 @@ function BlockRenderer({ type, settings, viewMode, store }) {
             const vAlign = rVal('vAlignment', settings.vAlignment);
             const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
-            // Visibility & Responsive Text Overrides
-            const showPrimary = rVal('showPrimaryBtn', settings.showPrimaryBtn !== false);
-            const showSecondary = rVal('showSecondaryBtn', settings.showSecondaryBtn !== false);
-            const extraButtons = rVal('extraButtons', settings.extraButtons || []);
-
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{
-                        borderRadius: rVal('borderRadius', settings.borderRadius),
-                        height: heroHeight
-                    }}
+                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
                 >
                     <div
-                        className="absolute inset-0 overflow-hidden flex"
+                        className="relative w-full overflow-hidden flex"
                         style={{
+                            height: heroHeight,
                             backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
                             justifyContent: hAlign,
                             alignItems: vAlign
@@ -664,19 +653,10 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                 }}
                             />
                         )}
-                    </div>
 
-                    {showContentAboveImage && (
-                        <div
-                            className="relative z-20 w-full h-full flex"
-                            style={{
-                                justifyContent: hAlign,
-                                alignItems: vAlign,
-                                padding: '0 48px'
-                            }}
-                        >
+                        {showContentAboveImage && (
                             <div
-                                className="text-center space-y-6"
+                                className="relative z-20 px-12 text-center space-y-6"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
                                     textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
@@ -690,7 +670,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
-                                    {rVal('title', settings.title)}
+                                    {settings.title}
                                 </h2>
                                 <p
                                     className="font-medium opacity-90"
@@ -700,13 +680,13 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
-                                    {rVal('subtitle', settings.subtitle)}
+                                    {settings.subtitle}
                                 </p>
                                 <div
-                                    className={`flex flex-wrap items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
                                     style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
                                 >
-                                    {showPrimary && settings.primaryBtnText && (
+                                    {settings.primaryBtnText && (
                                         <Button
                                             className="shadow-xl hover:scale-105 transition-all"
                                             style={{
@@ -721,48 +701,15 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                                 border: 'none'
                                             }}
                                         >
-                                            {rVal('primaryBtnText', settings.primaryBtnText)}
+                                            {settings.primaryBtnText}
                                         </Button>
                                     )}
-                                    {showSecondary && settings.secondaryBtnText && (
-                                        <Button
-                                            variant="secondary"
-                                            className="hover:scale-105 transition-all"
-                                            style={{
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            }}
-                                        >
-                                            {rVal('secondaryBtnText', settings.secondaryBtnText)}
-                                        </Button>
-                                    )}
-                                    {extraButtons.map((btn, idx) => (
-                                        <Button
-                                            key={idx}
-                                            variant={btn.type === 'primary' ? 'default' : 'secondary'}
-                                            className="hover:scale-105 transition-all"
-                                            style={{
-                                                backgroundColor: btn.type === 'primary' ? rVal('btnBgColor', settings.btnBgColor) : undefined,
-                                                color: btn.type === 'primary' ? rVal('btnTextColor', settings.btnTextColor) : undefined,
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            }}
-                                        >
-                                            {btn.text}
-                                        </Button>
-                                    ))}
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
+
+                    {/* Content is only shown if overlay is enabled */}
                 </div>
             );
         case 'product_grid':
@@ -857,7 +804,7 @@ function ViewModeBtn({ active, onClick, icon }) {
 
 function NavbarProperties({ settings, onUpdate, categories, products, storePages, viewMode }) {
     const update = (key, val) => {
-        if (viewMode === 'pc') {
+        if (viewMode === 'desktop') {
             onUpdate({ ...settings, [key]: val });
         } else {
             const responsive = { ...(settings.responsive || {}) };
@@ -1349,109 +1296,6 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                     </label>
                     <input type="text" placeholder="Heading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('title', '')} onChange={e => update('title', e.target.value)} />
                     <textarea rows={3} placeholder="Subheading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('subtitle', '')} onChange={e => update('subtitle', e.target.value)} />
-                </div>
-            </section>
-
-            {/* Buttons Management */}
-            <section className="space-y-4 pt-4 border-t border-slate-100">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Buttons</h3>
-                    <button
-                        onClick={() => {
-                            const current = getV('extraButtons', []);
-                            if (current.length >= 3) return;
-                            update('extraButtons', [...current, { text: 'New Button', link: '#', type: 'secondary' }]);
-                        }}
-                        disabled={getV('extraButtons', []).length >= 3}
-                        className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed uppercase flex items-center"
-                    >
-                        <Plus className="h-3 w-3 mr-1" /> Add Button
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    {/* Primary Button */}
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Primary Button</span>
-                            <input
-                                type="checkbox"
-                                checked={getV('showPrimaryBtn', true)}
-                                onChange={e => update('showPrimaryBtn', e.target.checked)}
-                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                        </div>
-                        {getV('showPrimaryBtn', true) && (
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Label <ResponsiveIndicator k="primaryBtnText" /></label>
-                                <input type="text" className="w-full px-2 py-1 bg-white border rounded text-xs" value={getV('primaryBtnText', '')} onChange={e => update('primaryBtnText', e.target.value)} />
-                                <input type="text" placeholder="Link (e.g. /shop)" className="w-full px-2 py-1 bg-white border rounded text-[10px]" value={getV('primaryBtnLink', '')} onChange={e => update('primaryBtnLink', e.target.value)} />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Secondary Button */}
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Secondary Button</span>
-                            <input
-                                type="checkbox"
-                                checked={getV('showSecondaryBtn', true)}
-                                onChange={e => update('showSecondaryBtn', e.target.checked)}
-                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                        </div>
-                        {getV('showSecondaryBtn', true) && (
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Label <ResponsiveIndicator k="secondaryBtnText" /></label>
-                                <input type="text" className="w-full px-2 py-1 bg-white border rounded text-xs" value={getV('secondaryBtnText', '')} onChange={e => update('secondaryBtnText', e.target.value)} />
-                                <input type="text" placeholder="Link (e.g. /about)" className="w-full px-2 py-1 bg-white border rounded text-[10px]" value={getV('secondaryBtnLink', '')} onChange={e => update('secondaryBtnLink', e.target.value)} />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Extra Buttons */}
-                    {getV('extraButtons', []).map((btn, idx) => (
-                        <div key={idx} className="p-3 bg-indigo-50/30 rounded-xl border border-indigo-100 space-y-3 relative group/btn">
-                            <button
-                                onClick={() => {
-                                    const current = [...getV('extraButtons', [])];
-                                    current.splice(idx, 1);
-                                    update('extraButtons', current);
-                                }}
-                                className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover/btn:opacity-100 transition-opacity"
-                            >
-                                <Trash2 className="h-3 w-3" />
-                            </button>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-indigo-400 uppercase">Extra Button {idx + 1}</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <input type="text" placeholder="Text" className="w-full px-2 py-1 bg-white border rounded text-xs" value={btn.text} onChange={e => {
-                                        const current = [...getV('extraButtons', [])];
-                                        current[idx].text = e.target.value;
-                                        update('extraButtons', current);
-                                    }} />
-                                    <select
-                                        className="w-full px-2 py-1 bg-white border rounded text-[10px]"
-                                        value={btn.type}
-                                        onChange={e => {
-                                            const current = [...getV('extraButtons', [])];
-                                            current[idx].type = e.target.value;
-                                            update('extraButtons', current);
-                                        }}
-                                    >
-                                        <option value="primary">Primary Style</option>
-                                        <option value="secondary">Secondary Style</option>
-                                    </select>
-                                </div>
-                                <input type="text" placeholder="Link" className="w-full px-2 py-1 bg-white border rounded text-[10px]" value={btn.link} onChange={e => {
-                                    const current = [...getV('extraButtons', [])];
-                                    current[idx].link = e.target.value;
-                                    update('extraButtons', current);
-                                }} />
-                            </div>
-                        </div>
-                    ))}
                 </div>
             </section>
 
