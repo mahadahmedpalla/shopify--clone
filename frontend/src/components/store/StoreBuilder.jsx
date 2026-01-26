@@ -66,6 +66,7 @@ export function StoreBuilder() {
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('desktop');
+    const [previewMode, setPreviewMode] = useState(false);
     const [canvasContent, setCanvasContent] = useState([]);
     const [selectedElement, setSelectedElement] = useState(null);
     const [draggedWidget, setDraggedWidget] = useState(null);
@@ -281,9 +282,14 @@ export function StoreBuilder() {
                             Live
                         </a>
                     )}
-                    <Button variant="secondary" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 hover:text-white">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setPreviewMode(!previewMode)}
+                        className={`bg-slate-800 border-slate-700 text-slate-300 hover:text-white ${previewMode ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : ''}`}
+                    >
                         <Eye className="h-4 w-4 mr-2" />
-                        Preview
+                        {previewMode ? 'Edit' : 'Preview'}
                     </Button>
                     <Button size="sm" onClick={handleSave} isLoading={loading}>
                         <Save className="h-4 w-4 mr-2" />
@@ -293,42 +299,45 @@ export function StoreBuilder() {
             </header>
 
             <div className="flex-1 flex overflow-hidden">
-                <aside className="w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-hidden shadow-sm">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50/30">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input type="text" placeholder="Search elements..." className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm" />
-                        </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
-                        {WIDGET_CATEGORIES.map(cat => (
-                            <div key={cat.name} className="space-y-3">
-                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {cat.widgets.map(w => (
-                                        <button
-                                            key={w.type}
-                                            onClick={() => addWidget(w.type)}
-                                            className="group p-3 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 transition-all active:scale-95"
-                                        >
-                                            <div className="p-3 bg-slate-50 rounded-xl text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                                                {w.icon}
-                                            </div>
-                                            <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center">{w.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                {!previewMode && (
+                    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out">
+                        <div className="p-4 border-b border-slate-100">
+                            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Widgets</h2>
+                            <div className="mt-4 relative">
+                                <Search className="absolute left-3 top-2.5 h-3 w-3 text-slate-400" />
+                                <input type="text" placeholder="Search elements..." className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm" />
                             </div>
-                        ))}
-                    </div>
-                </aside>
+                        </div>
 
-                <main className="flex-1 bg-slate-100 p-8 overflow-y-auto relative flex justify-center scroll-smooth">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
+                            {WIDGET_CATEGORIES.map(cat => (
+                                <div key={cat.name} className="space-y-3">
+                                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {cat.widgets.map(w => (
+                                            <button
+                                                key={w.type}
+                                                onClick={() => addWidget(w.type)}
+                                                className="group p-3 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:border-indigo-400 hover:shadow-md hover:shadow-indigo-500/10 transition-all active:scale-95"
+                                            >
+                                                <div className="p-3 bg-slate-50 rounded-xl text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                                    {w.icon}
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center">{w.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </aside>
+                )}
+
+                <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <div
-                            className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full
-                                ${viewMode === 'desktop' ? 'w-full' : ''}
+                            className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
+                                ${viewMode === 'desktop' ? 'w-[1280px]' : ''}
                                 ${viewMode === 'tablet' ? 'w-[768px]' : ''}
                                 ${viewMode === 'mobile' ? 'w-[375px]' : ''}
                             `}
@@ -356,72 +365,74 @@ export function StoreBuilder() {
                     </DndContext>
                 </main>
 
-                <aside className="w-72 bg-white border-l border-slate-200 flex flex-col shrink-0">
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-                        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
-                        {selectedElement && <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
-                    </div>
-                    {selectedElement ? (
-                        <div className="p-4 space-y-6 overflow-y-auto flex-1">
-                            <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                                <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Editing</p>
-                                <p className="text-xs font-bold text-slate-800">{selectedElement.type.replace('_', ' ')}</p>
-                            </div>
-
-                            {selectedElement.type === 'navbar' ? (
-                                <NavbarProperties
-                                    settings={selectedElement.settings}
-                                    viewMode={viewMode}
-                                    categories={categories}
-                                    products={products}
-                                    storePages={storePages}
-                                    onUpdate={newSettings => {
-                                        const newContent = canvasContent.map(c =>
-                                            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
-                                        );
-                                        setCanvasContent(newContent);
-                                        setSelectedElement({ ...selectedElement, settings: newSettings });
-                                    }}
-                                />
-                            ) : selectedElement.type === 'hero' ? (
-                                <HeroProperties
-                                    settings={selectedElement.settings}
-                                    viewMode={viewMode}
-                                    onUpdate={newSettings => {
-                                        const newContent = canvasContent.map(c =>
-                                            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
-                                        );
-                                        setCanvasContent(newContent);
-                                        setSelectedElement({ ...selectedElement, settings: newSettings });
-                                    }}
-                                />
-                            ) : (
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Title Text</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
-                                            value={selectedElement.settings.title || ''}
-                                            onChange={(e) => {
-                                                const newContent = canvasContent.map(c =>
-                                                    c.id === selectedElement.id ? { ...c, settings: { ...c.settings, title: e.target.value } } : c
-                                                );
-                                                setCanvasContent(newContent);
-                                                setSelectedElement({ ...selectedElement, settings: { ...selectedElement.settings, title: e.target.value } });
-                                            }}
-                                        />
-                                    </div>
+                {!previewMode && (
+                    <aside className="w-72 bg-white border-l border-slate-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out">
+                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+                            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
+                            {selectedElement && <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
+                        </div>
+                        {selectedElement ? (
+                            <div className="p-4 space-y-6 overflow-y-auto flex-1">
+                                <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Editing</p>
+                                    <p className="text-xs font-bold text-slate-800">{selectedElement.type.replace('_', ' ')}</p>
                                 </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 opacity-50">
-                            <Settings2 className="h-8 w-8 text-slate-200" />
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Select an element to edit</p>
-                        </div>
-                    )}
-                </aside>
+
+                                {selectedElement.type === 'navbar' ? (
+                                    <NavbarProperties
+                                        settings={selectedElement.settings}
+                                        viewMode={viewMode}
+                                        categories={categories}
+                                        products={products}
+                                        storePages={storePages}
+                                        onUpdate={newSettings => {
+                                            const newContent = canvasContent.map(c =>
+                                                c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                            );
+                                            setCanvasContent(newContent);
+                                            setSelectedElement({ ...selectedElement, settings: newSettings });
+                                        }}
+                                    />
+                                ) : selectedElement.type === 'hero' ? (
+                                    <HeroProperties
+                                        settings={selectedElement.settings}
+                                        viewMode={viewMode}
+                                        onUpdate={newSettings => {
+                                            const newContent = canvasContent.map(c =>
+                                                c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                            );
+                                            setCanvasContent(newContent);
+                                            setSelectedElement({ ...selectedElement, settings: newSettings });
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Title Text</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                                                value={selectedElement.settings.title || ''}
+                                                onChange={(e) => {
+                                                    const newContent = canvasContent.map(c =>
+                                                        c.id === selectedElement.id ? { ...c, settings: { ...c.settings, title: e.target.value } } : c
+                                                    );
+                                                    setCanvasContent(newContent);
+                                                    setSelectedElement({ ...selectedElement, settings: { ...selectedElement.settings, title: e.target.value } });
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 opacity-50">
+                                <Settings2 className="h-8 w-8 text-slate-200" />
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Select an element to edit</p>
+                            </div>
+                        )}
+                    </aside>
+                )}
             </div>
         </div>
     );
