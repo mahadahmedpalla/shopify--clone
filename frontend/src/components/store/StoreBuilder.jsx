@@ -122,7 +122,7 @@ export function StoreBuilder() {
         try {
             // 1. Try fetching the specific page
             const { data: pageData, error } = await supabase
-                .from('pages')
+                .from('store_pages')
                 .select('*')
                 .eq('store_id', storeId)
                 .eq('slug', pageId || 'home')
@@ -147,7 +147,7 @@ export function StoreBuilder() {
     const handleSave = async () => {
         try {
             const { error } = await supabase
-                .from('pages')
+                .from('store_pages')
                 .upsert({
                     store_id: storeId,
                     slug: page?.slug || 'home',
