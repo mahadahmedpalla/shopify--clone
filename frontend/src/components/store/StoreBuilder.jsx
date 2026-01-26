@@ -896,24 +896,38 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
         }
     };
 
+    const getV = (key, defaultVal) => {
+        if (viewMode === 'desktop') return settings[key] !== undefined ? settings[key] : defaultVal;
+        const override = settings.responsive?.[viewMode]?.[key];
+        return override !== undefined ? override : (settings[key] !== undefined ? settings[key] : defaultVal);
+    };
+
+    const isO = (key) => viewMode !== 'desktop' && settings.responsive?.[viewMode]?.[key] !== undefined;
+
+    const ResponsiveIndicator = ({ k }) => isO(k) ? (
+        <span className="ml-1.5 px-1 py-0.5 bg-indigo-100 text-indigo-600 text-[8px] font-bold rounded uppercase flex items-center inline-flex">
+            {viewMode === 'mobile' ? <Smartphone className="h-2 w-2 mr-0.5" /> : <Tablet className="h-2 w-2 mr-0.5" />} Override
+        </span>
+    ) : null;
+
     return (
         <div className="space-y-6">
             <section className="space-y-4">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Colors & Style</h3>
                 <div className="grid grid-cols-2 gap-3">
-                    <ColorInput label="Background" value={settings.bgColor} onChange={v => update('bgColor', v)} />
-                    <ColorInput label="Text" value={settings.textColor} onChange={v => update('textColor', v)} />
-                    <ColorInput label="Hover" value={settings.hoverColor} onChange={v => update('hoverColor', v)} />
-                    <ColorInput label="Border" value={settings.borderColor} onChange={v => update('borderColor', v)} />
+                    <ColorInput label="Background" value={getV('bgColor')} onChange={v => update('bgColor', v)} />
+                    <ColorInput label="Text" value={getV('textColor')} onChange={v => update('textColor', v)} />
+                    <ColorInput label="Hover" value={getV('hoverColor')} onChange={v => update('hoverColor', v)} />
+                    <ColorInput label="Border" value={getV('borderColor')} onChange={v => update('borderColor', v)} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Border (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.borderWidth)} onChange={e => update('borderWidth', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Border (px) <ResponsiveIndicator k="borderWidth" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('borderWidth', '0px'))} onChange={e => update('borderWidth', e.target.value + 'px')} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Radius (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.borderRadius)} onChange={e => update('borderRadius', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Radius (px) <ResponsiveIndicator k="borderRadius" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('borderRadius', '0px'))} onChange={e => update('borderRadius', e.target.value + 'px')} />
                     </div>
                 </div>
                 <div>
@@ -929,10 +943,10 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Typography</h3>
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Family</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Font Family <ResponsiveIndicator k="fontFamily" /></label>
                     <select
                         className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                        value={settings.fontFamily}
+                        value={getV('fontFamily', 'Inter, sans-serif')}
                         onChange={e => update('fontFamily', e.target.value)}
                     >
                         <option value="Inter, sans-serif">Inter</option>
@@ -946,19 +960,19 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Size (px)</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Size (px) <ResponsiveIndicator k="fontSize" /></label>
                         <input
                             type="number"
                             className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                            value={parseInt(settings.fontSize)}
+                            value={parseInt(getV('fontSize', '14px'))}
                             onChange={e => update('fontSize', e.target.value + 'px')}
                         />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Weight</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Weight <ResponsiveIndicator k="fontWeight" /></label>
                         <select
                             className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                            value={settings.fontWeight}
+                            value={getV('fontWeight', '400')}
                             onChange={e => update('fontWeight', e.target.value)}
                         >
                             <option value="300">Light</option>
@@ -976,17 +990,17 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Size & Spacing</h3>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Height (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.height)} onChange={e => update('height', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Height (px) <ResponsiveIndicator k="height" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('height', '60px'))} onChange={e => update('height', e.target.value + 'px')} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Gap (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.gap)} onChange={e => update('gap', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Gap (px) <ResponsiveIndicator k="gap" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('gap', '12px'))} onChange={e => update('gap', e.target.value + 'px')} />
                     </div>
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Alignment</label>
-                    <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={settings.alignment} onChange={e => update('alignment', e.target.value)}>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Alignment <ResponsiveIndicator k="alignment" /></label>
+                    <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={getV('alignment', 'center')} onChange={e => update('alignment', e.target.value)}>
                         <option value="flex-start">Left</option>
                         <option value="center">Center</option>
                         <option value="flex-end">Right</option>
@@ -1041,9 +1055,9 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logo</h3>
                 <div className="space-y-3">
-                    {settings.logoUrl ? (
+                    {getV('logoUrl') ? (
                         <div className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center">
-                            <img src={settings.logoUrl} className="max-h-full p-4 object-contain" alt="Logo" />
+                            <img src={getV('logoUrl')} className="max-h-full p-4 object-contain" alt="Logo" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
                                 <button
                                     onClick={() => update('logoUrl', '')}
@@ -1088,29 +1102,29 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
                         </label>
                     )}
                     <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">Logo Width (px)</label>
-                        <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.logoWidth)} onChange={e => update('logoWidth', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Logo Width (px) <ResponsiveIndicator k="logoWidth" /></label>
+                        <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('logoWidth', '100px'))} onChange={e => update('logoWidth', e.target.value + 'px')} />
                     </div>
                 </div>
 
                 <div className="space-y-4 pt-4">
                     <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
-                        <span className="font-bold uppercase tracking-widest text-[9px]">Show Store Name</span>
+                        <span className="font-bold uppercase tracking-widest text-[9px] flex items-center">Show Store Name <ResponsiveIndicator k="showStoreName" /></span>
                         <input
                             type="checkbox"
-                            checked={settings.showStoreName}
+                            checked={getV('showStoreName')}
                             onChange={e => update('showStoreName', e.target.checked)}
                             className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
                     </label>
 
-                    {settings.showStoreName && (
+                    {getV('showStoreName') && (
                         <div className="flex items-center justify-between px-1">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logo Gap (px)</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center">Logo Gap (px) <ResponsiveIndicator k="logoGap" /></label>
                             <input
                                 type="number"
                                 className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs"
-                                value={parseInt(settings.logoGap || 12)}
+                                value={parseInt(getV('logoGap', '12px'))}
                                 onChange={e => update('logoGap', e.target.value + 'px')}
                             />
                         </div>
@@ -1279,6 +1293,20 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
         }
     };
 
+    const getV = (key, defaultVal) => {
+        if (viewMode === 'desktop') return settings[key] !== undefined ? settings[key] : defaultVal;
+        const override = settings.responsive?.[viewMode]?.[key];
+        return override !== undefined ? override : (settings[key] !== undefined ? settings[key] : defaultVal);
+    };
+
+    const isO = (key) => viewMode !== 'desktop' && settings.responsive?.[viewMode]?.[key] !== undefined;
+
+    const ResponsiveIndicator = ({ k }) => isO(k) ? (
+        <span className="ml-1.5 px-1 py-0.5 bg-indigo-100 text-indigo-600 text-[8px] font-bold rounded uppercase flex items-center inline-flex">
+            {viewMode === 'mobile' ? <Smartphone className="h-2 w-2 mr-0.5" /> : <Tablet className="h-2 w-2 mr-0.5" />} Override
+        </span>
+    ) : null;
+
     return (
         <div className="space-y-6 pb-20">
             {/* 1. Content */}
@@ -1287,10 +1315,12 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
 
                 <div className="pt-2">
                     <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors">
-                        <span className="font-bold uppercase tracking-widest text-[9px]">Show Content Above Image</span>
+                        <span className="font-bold uppercase tracking-widest text-[9px] flex items-center">
+                            Show Content Above Image <ResponsiveIndicator k="showContentAboveImage" />
+                        </span>
                         <input
                             type="checkbox"
-                            checked={settings.showContentAboveImage}
+                            checked={getV('showContentAboveImage')}
                             onChange={e => update('showContentAboveImage', e.target.checked)}
                             className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                         />
@@ -1298,10 +1328,12 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Background Image</label>
-                    {settings.backgroundImage ? (
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">
+                        Background Image <ResponsiveIndicator k="backgroundImage" />
+                    </label>
+                    {getV('backgroundImage') ? (
                         <div className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center">
-                            <img src={settings.backgroundImage} className="max-h-full w-full object-cover" alt="Hero BG" />
+                            <img src={getV('backgroundImage')} className="max-h-full w-full object-cover" alt="Hero BG" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <button onClick={() => update('backgroundImage', '')} className="p-2 bg-white rounded-full text-red-500 hover:scale-110 transition-transform">
                                     <Trash2 className="h-4 w-4" />
@@ -1342,9 +1374,11 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Texts</label>
-                    <input type="text" placeholder="Heading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.title} onChange={e => update('title', e.target.value)} />
-                    <textarea rows={3} placeholder="Subheading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.subtitle} onChange={e => update('subtitle', e.target.value)} />
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block flex items-center">
+                        Texts <ResponsiveIndicator k="title" />
+                    </label>
+                    <input type="text" placeholder="Heading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('title', '')} onChange={e => update('title', e.target.value)} />
+                    <textarea rows={3} placeholder="Subheading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('subtitle', '')} onChange={e => update('subtitle', e.target.value)} />
                 </div>
             </section>
 
@@ -1352,38 +1386,38 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Layout</h3>
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Hero Height</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Hero Height <ResponsiveIndicator k="heightMode" /></label>
                     <div className="grid grid-cols-2 gap-2">
                         {['small', 'medium', 'large', 'full', 'custom'].map(m => (
                             <button
                                 key={m}
                                 onClick={() => update('heightMode', m)}
-                                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${settings.heightMode === m ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
+                                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${getV('heightMode') === m ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100'}`}
                             >
                                 {m}
                             </button>
                         ))}
                     </div>
-                    {settings.heightMode === 'custom' && (
-                        <input type="text" className="w-full mt-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.customHeight} onChange={e => update('customHeight', e.target.value)} placeholder="e.g. 500px or 70vh" />
+                    {getV('heightMode') === 'custom' && (
+                        <input type="text" className="w-full mt-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('customHeight', '')} onChange={e => update('customHeight', e.target.value)} placeholder="e.g. 500px or 70vh" />
                     )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">H-Alignment</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">H-Alignment <ResponsiveIndicator k="hAlignment" /></label>
                         <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
-                            <button onClick={() => update('hAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.hAlignment === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignLeft className="h-4 w-4" /></button>
-                            <button onClick={() => update('hAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.hAlignment === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignCenter className="h-4 w-4" /></button>
-                            <button onClick={() => update('hAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.hAlignment === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignRight className="h-4 w-4" /></button>
+                            <button onClick={() => update('hAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${getV('hAlignment') === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignLeft className="h-4 w-4" /></button>
+                            <button onClick={() => update('hAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${getV('hAlignment') === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignCenter className="h-4 w-4" /></button>
+                            <button onClick={() => update('hAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${getV('hAlignment') === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><AlignRight className="h-4 w-4" /></button>
                         </div>
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">V-Alignment</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">V-Alignment <ResponsiveIndicator k="vAlignment" /></label>
                         <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
-                            <button onClick={() => update('vAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.vAlignment === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><ArrowUp className="h-4 w-4" /></button>
-                            <button onClick={() => update('vAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.vAlignment === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><Move className="h-4 w-4" /></button>
-                            <button onClick={() => update('vAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${settings.vAlignment === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><ArrowDown className="h-4 w-4" /></button>
+                            <button onClick={() => update('vAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${getV('vAlignment') === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><ArrowUp className="h-4 w-4" /></button>
+                            <button onClick={() => update('vAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${getV('vAlignment') === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><Move className="h-4 w-4" /></button>
+                            <button onClick={() => update('vAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${getV('vAlignment') === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}><ArrowDown className="h-4 w-4" /></button>
                         </div>
                     </div>
                 </div>
@@ -1393,19 +1427,19 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Style</h3>
                 <div className="grid grid-cols-2 gap-3">
-                    <ColorInput label="Overlay Color" value={settings.overlayColor} onChange={v => update('overlayColor', v)} />
+                    <ColorInput label="Overlay Color" value={getV('overlayColor')} onChange={v => update('overlayColor', v)} />
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Opacity</label>
-                        <input type="range" min="0" max="1" step="0.1" className="w-full accent-indigo-600" value={settings.overlayOpacity} onChange={e => update('overlayOpacity', parseFloat(e.target.value))} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Opacity <ResponsiveIndicator k="overlayOpacity" /></label>
+                        <input type="range" min="0" max="1" step="0.1" className="w-full accent-indigo-600" value={getV('overlayOpacity', 0.4)} onChange={e => update('overlayOpacity', parseFloat(e.target.value))} />
                     </div>
                 </div>
                 <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 cursor-pointer">
-                    <span className="font-bold uppercase tracking-widest text-[9px]">Use Gradient Overlay</span>
-                    <input type="checkbox" checked={settings.useGradient} onChange={e => update('useGradient', e.target.checked)} className="rounded border-slate-300 text-indigo-600" />
+                    <span className="font-bold uppercase tracking-widest text-[9px] flex items-center">Use Gradient Overlay <ResponsiveIndicator k="useGradient" /></span>
+                    <input type="checkbox" checked={getV('useGradient')} onChange={e => update('useGradient', e.target.checked)} className="rounded border-slate-300 text-indigo-600" />
                 </label>
                 <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Border Radius (px)</label>
-                    <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.borderRadius)} onChange={e => update('borderRadius', e.target.value + 'px')} />
+                    <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Border Radius (px) <ResponsiveIndicator k="borderRadius" /></label>
+                    <input type="number" className="w-20 px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('borderRadius', '0px'))} onChange={e => update('borderRadius', e.target.value + 'px')} />
                 </div>
             </section>
 
@@ -1414,10 +1448,10 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Typography</h3>
                 <div className="space-y-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading Font</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Heading Font <ResponsiveIndicator k="headingFontFamily" /></label>
                         <select
                             className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                            value={settings.headingFontFamily}
+                            value={getV('headingFontFamily', 'Inter, sans-serif')}
                             onChange={e => update('headingFontFamily', e.target.value)}
                         >
                             <option value="Inter, sans-serif">Inter</option>
@@ -1429,10 +1463,10 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                         </select>
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Subheading Font</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Subheading Font <ResponsiveIndicator k="subheadingFontFamily" /></label>
                         <select
                             className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                            value={settings.subheadingFontFamily}
+                            value={getV('subheadingFontFamily', 'Inter, sans-serif')}
                             onChange={e => update('subheadingFontFamily', e.target.value)}
                         >
                             <option value="Inter, sans-serif">Inter</option>
@@ -1445,17 +1479,17 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                    <ColorInput label="Heading Color" value={settings.headingColor} onChange={v => update('headingColor', v)} />
-                    <ColorInput label="Text Color" value={settings.subheadingColor} onChange={v => update('subheadingColor', v)} />
+                    <ColorInput label="Heading Color" value={getV('headingColor')} onChange={v => update('headingColor', v)} />
+                    <ColorInput label="Text Color" value={getV('subheadingColor')} onChange={v => update('subheadingColor', v)} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading Size (px)</label>
-                        <input type="number" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={parseInt(settings.headingSize)} onChange={e => update('headingSize', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Heading Size (px) <ResponsiveIndicator k="headingSize" /></label>
+                        <input type="number" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={parseInt(getV('headingSize', '48px'))} onChange={e => update('headingSize', e.target.value + 'px')} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Subheading Size (px)</label>
-                        <input type="number" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={parseInt(settings.subheadingSize)} onChange={e => update('subheadingSize', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Subheading Size (px) <ResponsiveIndicator k="subheadingSize" /></label>
+                        <input type="number" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={parseInt(getV('subheadingSize', '18px'))} onChange={e => update('subheadingSize', e.target.value + 'px')} />
                     </div>
                 </div>
             </section>
@@ -1465,40 +1499,40 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Button Configuration</h3>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Button Labels</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block flex items-center">Button Labels <ResponsiveIndicator k="primaryBtnText" /></label>
                     <div className="grid grid-cols-2 gap-2">
-                        <input type="text" placeholder="Primary Label..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.primaryBtnText} onChange={e => update('primaryBtnText', e.target.value)} />
-                        <input type="text" placeholder="Secondary Label..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={settings.secondaryBtnText} onChange={e => update('secondaryBtnText', e.target.value)} />
+                        <input type="text" placeholder="Primary Label..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={getV('primaryBtnText', '')} onChange={e => update('primaryBtnText', e.target.value)} />
+                        <input type="text" placeholder="Secondary Label..." className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[10px]" value={getV('secondaryBtnText', '')} onChange={e => update('secondaryBtnText', e.target.value)} />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <ColorInput label="Btn Background" value={settings.btnBgColor} onChange={v => update('btnBgColor', v)} />
-                    <ColorInput label="Btn Text" value={settings.btnTextColor} onChange={v => update('btnTextColor', v)} />
+                    <ColorInput label="Btn Background" value={getV('btnBgColor')} onChange={v => update('btnBgColor', v)} />
+                    <ColorInput label="Btn Text" value={getV('btnTextColor')} onChange={v => update('btnTextColor', v)} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Padding X (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnPaddingX)} onChange={e => update('btnPaddingX', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Padding X (px) <ResponsiveIndicator k="btnPaddingX" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('btnPaddingX', '32px'))} onChange={e => update('btnPaddingX', e.target.value + 'px')} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Padding Y (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnPaddingY)} onChange={e => update('btnPaddingY', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Padding Y (px) <ResponsiveIndicator k="btnPaddingY" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('btnPaddingY', '16px'))} onChange={e => update('btnPaddingY', e.target.value + 'px')} />
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Size</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnFontSize)} onChange={e => update('btnFontSize', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Font Size <ResponsiveIndicator k="btnFontSize" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('btnFontSize', '16px'))} onChange={e => update('btnFontSize', e.target.value + 'px')} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Radius (px)</label>
-                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnBorderRadius)} onChange={e => update('btnBorderRadius', e.target.value + 'px')} />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Radius (px) <ResponsiveIndicator k="btnBorderRadius" /></label>
+                        <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('btnBorderRadius', '9999px'))} onChange={e => update('btnBorderRadius', e.target.value + 'px')} />
                     </div>
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Margin Top (px)</label>
-                    <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(settings.btnMarginTop)} onChange={e => update('btnMarginTop', e.target.value + 'px')} />
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Margin Top (px) <ResponsiveIndicator k="btnMarginTop" /></label>
+                    <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('btnMarginTop', '24px'))} onChange={e => update('btnMarginTop', e.target.value + 'px')} />
                 </div>
             </section>
         </div>
