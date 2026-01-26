@@ -236,6 +236,15 @@ export function StoreBuilder() {
                 // Responsive
                 mobileHeight: '400px',
                 mobileAlignment: 'center'
+            } : type === 'product_grid' ? {
+                title: 'Featured Collection',
+                categoryId: 'all', // all, or specific UUID
+                limit: 8,
+                columns: {
+                    desktop: 4,
+                    tablet: 3,
+                    mobile: 2
+                }
             } : {
                 title: type === 'hero' ? 'New Hero Banner' : 'New Title',
                 content: 'Sample content for your ' + type
@@ -375,6 +384,8 @@ export function StoreBuilder() {
                                                 block={block}
                                                 viewMode={viewMode}
                                                 store={store}
+                                                products={products}
+                                                categories={categories}
                                                 onDelete={() => deleteWidget(block.id)}
                                                 isSelected={selectedElement?.id === block.id}
                                                 onClick={() => setSelectedElement(block)}
@@ -462,7 +473,7 @@ export function StoreBuilder() {
     );
 }
 
-function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store }) {
+function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, products, categories }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
     const style = {
@@ -752,21 +763,62 @@ function BlockRenderer({ type, settings, viewMode, store }) {
 
             );
         case 'product_grid':
+            // Filter products logic
+            let displayProducts = products || [];
+            if (settings.categoryId && settings.categoryId !== 'all') {
+                displayProducts = displayProducts.filter(p => p.category_id === settings.categoryId);
+            }
+            if (settings.limit) {
+                displayProducts = displayProducts.slice(0, parseInt(settings.limit));
+            }
+
+            // Layout (Columns) - Responsive default fallback
+            const colsDesktop = settings.columns?.desktop || 4;
+            const colsTablet = settings.columns?.tablet || 3;
+            const colsMobile = settings.columns?.mobile || 2;
+
+            const getColsClass = () => {
+                if (viewMode === 'mobile') return `grid-cols-${colsMobile}`;
+                if (viewMode === 'tablet') return `grid-cols-${colsTablet}`;
+                return `grid-cols-${colsDesktop}`;
+            };
+
             return (
                 <div className="p-12 space-y-8 bg-white">
                     <div className="flex items-center justify-between">
                         <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
-                        <span className="text-sm font-bold text-indigo-600">View All</span>
+                        <span className="text-sm font-bold text-indigo-600 cursor-pointer hover:underline">View All</span>
                     </div>
-                    <div className="grid grid-cols-4 gap-6">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="space-y-3">
-                                <div className="aspect-square bg-slate-100 rounded-3xl animate-pulse" />
-                                <div className="h-4 w-3/4 bg-slate-100 rounded-full" />
-                                <div className="h-4 w-1/4 bg-slate-100 rounded-full" />
-                            </div>
-                        ))}
-                    </div>
+                    {displayProducts.length === 0 ? (
+                        <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                            <p className="text-slate-400 font-medium">No products found in this collection.</p>
+                        </div>
+                    ) : (
+                        <div className={`grid gap-6 ${getColsClass()}`}>
+                            {displayProducts.map(product => (
+                                <div key={product.id} className="space-y-3 p-4 border border-transparent hover:border-slate-100 rounded-2xl hover:shadow-lg transition-all group cursor-pointer bg-white">
+                                    <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden relative">
+                                        {product.images?.[0] ? (
+                                            <img src={product.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={product.name} />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                <Box className="h-8 w-8" />
+                                            </div>
+                                        )}
+                                        {/* Sale Badge Placeholder */}
+                                        {/* <span className="absolute top-2 left-2 px-2 py-1 bg-black text-white text-[10px] font-bold uppercase rounded">New</span> */}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-sm text-slate-900 leading-tight mb-1 line-clamp-2">{product.name}</h4>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
+                                            {/* <span className="text-xs text-slate-400 line-through">$129.00</span> */}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             );
         case 'heading':
@@ -1501,6 +1553,70 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Margin Top (px) <ResponsiveIndicator k="btnMarginTop" /></label>
                     <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getV('btnMarginTop', '24px'))} onChange={e => update('btnMarginTop', e.target.value + 'px')} />
+                </div>
+            </section>
+        </div>
+    );
+}
+
+function ProductGridProperties({ settings, onUpdate, categories, viewMode }) {
+    const update = (key, val) => {
+        onUpdate({ ...settings, [key]: val });
+    };
+
+    const updateResponsive = (key, val) => {
+        const columns = { ...settings.columns };
+        columns[viewMode] = val;
+        onUpdate({ ...settings, columns });
+    };
+
+    return (
+        <div className="space-y-6 pb-20">
+            <section className="space-y-4">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Content</h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Section Title</label>
+                    <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.title || ''} onChange={e => update('title', e.target.value)} />
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Collection Source</label>
+                    <select
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        value={settings.categoryId || 'all'}
+                        onChange={e => update('categoryId', e.target.value)}
+                    >
+                        <option value="all">All Products</option>
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Product Limit</label>
+                    <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.limit || 8} onChange={e => update('limit', parseInt(e.target.value))} />
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Layout</h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">
+                        Columns per row
+                        <span className="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[8px] font-bold rounded uppercase">
+                            {viewMode}
+                        </span>
+                    </label>
+                    <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
+                        {[1, 2, 3, 4, 5, 6].map(n => (
+                            <button
+                                key={n}
+                                onClick={() => updateResponsive('columns', n)}
+                                className={`flex-1 py-1 rounded text-[10px] font-bold transition-all ${settings.columns?.[viewMode] === n ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                {n}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </section>
         </div>

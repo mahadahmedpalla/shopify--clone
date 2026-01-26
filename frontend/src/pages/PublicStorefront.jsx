@@ -338,25 +338,10 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
 
         case 'product_grid':
             return (
-                <section className="py-24 px-6" style={{ maxWidth: '1280px', margin: '0 auto' }}>
-                    <div className="flex items-center justify-between mb-12">
-                        <h2 className="text-4xl font-black tracking-tight">{settings.title || 'FEATURED'}</h2>
-                        <Link to={`/s/${storeSubUrl}/shop`} className="font-bold flex items-center group">
-                            VIEW ALL <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                            <div key={i} className="group cursor-pointer">
-                                <div className="aspect-[3/4] bg-slate-100 rounded-3xl mb-4 overflow-hidden relative">
-                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
-                                </div>
-                                <h4 className="font-bold text-lg mb-1">Modern Collection Item</h4>
-                                <p className="text-slate-500 font-bold">$129.00</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                <ProductGridSection
+                    settings={settings}
+                    storeSubUrl={storeSubUrl}
+                />
             );
         case 'heading':
             return (
@@ -367,6 +352,104 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
         default:
             return null;
     }
+}
+
+function ProductGridSection({ settings, storeSubUrl }) {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchProducts();
+    }, [settings.categoryId, settings.limit]);
+
+    const fetchProducts = async () => {
+        setLoading(true);
+        // 1. Get Store ID first (could optimize by passing storeId down, but sub_url is safer for public)
+        const { data: storeData } = await supabase.from('stores').select('id').eq('sub_url', storeSubUrl).single();
+        if (!storeData) return;
+
+        let query = supabase
+            .from('products')
+            .select('*')
+            .eq('store_id', storeData.id)
+            .order('name'); // Default sort
+
+        if (settings.categoryId && settings.categoryId !== 'all') {
+            query = query.eq('category_id', settings.categoryId);
+        }
+
+        if (settings.limit) {
+            query = query.limit(parseInt(settings.limit));
+        }
+
+        const { data } = await query;
+        setProducts(data || []);
+        setLoading(false);
+    };
+
+    // Layout (Columns) - Simplified for public view responsive logic
+    // We rely on standard Tailwind breakpoints for now, but respect builder settings if we want to add dynamic classes
+    const colsDesktop = settings.columns?.desktop || 4;
+    const colsTablet = settings.columns?.tablet || 3;
+    const colsMobile = settings.columns?.mobile || 2;
+
+    const getGridClass = () => {
+        // Using arbitrary values or map to standard tailwind classes
+        // Dynamic construction: grid-cols-[mobile] md:grid-cols-[tablet] lg:grid-cols-[desktop]
+        return `grid-cols-${colsMobile} md:grid-cols-${colsTablet} lg:grid-cols-${colsDesktop}`;
+    };
+
+    if (loading) {
+        return (
+            <section className="py-24 px-6" style={{ maxWidth: '1280px', margin: '0 auto' }}>
+                <div className="flex items-center justify-between mb-12">
+                    <div className="h-10 w-48 bg-slate-100 rounded-lg animate-pulse" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="space-y-4">
+                            <div className="aspect-[3/4] bg-slate-100 rounded-3xl animate-pulse" />
+                            <div className="h-6 w-3/4 bg-slate-100 rounded-full" />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        );
+    }
+
+    if (products.length === 0) return null; // Or empty state
+
+    return (
+        <section className="py-24 px-6" style={{ maxWidth: '1280px', margin: '0 auto' }}>
+            <div className="flex items-center justify-between mb-12">
+                <h2 className="text-4xl font-black tracking-tight uppercase">{settings.title || 'Featured'}</h2>
+                <Link to={`/s/${storeSubUrl}/shop`} className="font-bold flex items-center group text-sm tracking-widest hover:text-indigo-600 transition-colors">
+                    VIEW ALL <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+            </div>
+
+            <div className={`grid gap-8 ${getGridClass()}`}>
+                {products.map(product => (
+                    <div key={product.id} className="group cursor-pointer">
+                        <div className="aspect-[3/4] bg-slate-100 rounded-3xl mb-4 overflow-hidden relative">
+                            {product.images?.[0] ? (
+                                <img src={product.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={product.name} />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
+                                    <Box className="h-10 w-10" />
+                                </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+                            {/* Badge Placeholder */}
+                            {/* <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">New</div> */}
+                        </div>
+                        <h4 className="font-bold text-lg mb-1 group-hover:text-indigo-600 transition-colors">{product.name}</h4>
+                        <p className="text-slate-500 font-bold">${parseFloat(product.price).toFixed(2)}</p>
+                    </div>
+                ))}
+            </div>
+        </section>
+    );
 }
 
 function PublicLoader() {
