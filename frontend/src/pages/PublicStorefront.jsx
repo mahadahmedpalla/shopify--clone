@@ -225,6 +225,8 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             const vAlign = rVal('vAlignment', settings.vAlignment);
             const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
+            const bgPosition = rVal('backgroundPosition', settings.backgroundPosition || 'center');
+
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
@@ -244,7 +246,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                         {bgImage && (
                             <img
                                 src={bgImage}
-                                className="absolute inset-0 w-full h-full object-cover object-top"
+                                className={`absolute inset-0 w-full h-full object-cover object-${bgPosition}`}
                                 alt="Hero Background"
                             />
                         )}

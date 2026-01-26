@@ -621,6 +621,8 @@ function BlockRenderer({ type, settings, viewMode, store }) {
             const vAlign = rVal('vAlignment', settings.vAlignment);
             const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
+            const bgPosition = rVal('backgroundPosition', settings.backgroundPosition || 'center');
+
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
@@ -640,7 +642,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                         {bgImage && (
                             <img
                                 src={bgImage}
-                                className="absolute inset-0 w-full h-full object-cover object-top"
+                                className={`absolute inset-0 w-full h-full object-cover object-${bgPosition}`}
                                 alt="Hero Background"
                             />
                         )}
@@ -1289,6 +1291,18 @@ function HeroProperties({ settings, onUpdate, viewMode }) {
                                 }}
                             />
                         </label>
+                    )}
+
+                    {/* Background Position Control */}
+                    {getV('backgroundImage') && (
+                        <div className="flex items-center justify-between pt-2">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Image Position <ResponsiveIndicator k="backgroundPosition" /></label>
+                            <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
+                                <button onClick={() => update('backgroundPosition', 'top')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase transition-all ${getV('backgroundPosition', 'center') === 'top' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>Top</button>
+                                <button onClick={() => update('backgroundPosition', 'center')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase transition-all ${getV('backgroundPosition', 'center') === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>Mid</button>
+                                <button onClick={() => update('backgroundPosition', 'bottom')} className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase transition-all ${getV('backgroundPosition', 'center') === 'bottom' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>Bot</button>
+                            </div>
+                        </div>
                     )}
                 </div>
 
