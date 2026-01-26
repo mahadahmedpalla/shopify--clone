@@ -111,7 +111,7 @@ export function HeroProperties({ settings, onUpdate, viewMode }) {
 
                 <div className="space-y-3">
                     <label className="text-[10px] font-bold text-slate-400 uppercase block flex items-center">
-                        Texts <ResponsiveIndicator k="title" /> <ResponsiveIndicator k="subtitle" />
+                        Texts <ResponsiveIndicator k="title" />
                     </label>
                     <input type="text" placeholder="Heading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('title', '')} onChange={e => update('title', e.target.value)} />
                     <textarea rows={3} placeholder="Subheading..." className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={getV('subtitle', '')} onChange={e => update('subtitle', e.target.value)} />

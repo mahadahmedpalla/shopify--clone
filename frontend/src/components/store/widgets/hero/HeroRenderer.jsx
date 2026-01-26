@@ -67,26 +67,26 @@ export function HeroRenderer({ settings, viewMode }) {
                             style={{
                                 fontSize: rVal('headingSize', settings.headingSize),
                                 color: rVal('headingColor', settings.headingColor),
-                                fontFamily: rVal('headingFontFamily', settings.headingFontFamily) || settings.fontFamily || 'Inter, sans-serif'
+                                fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                             }}
                         >
-                            {rVal('title', settings.title)}
+                            {settings.title}
                         </h2>
                         <p
                             className="font-medium opacity-90"
                             style={{
                                 fontSize: rVal('subheadingSize', settings.subheadingSize),
                                 color: rVal('subheadingColor', settings.subheadingColor),
-                                fontFamily: rVal('subheadingFontFamily', settings.subheadingFontFamily) || settings.fontFamily || 'Inter, sans-serif'
+                                fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                             }}
                         >
-                            {rVal('subtitle', settings.subtitle)}
+                            {settings.subtitle}
                         </p>
                         <div
                             className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
                             style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
                         >
-                            {rVal('primaryBtnText', settings.primaryBtnText) && (
+                            {settings.primaryBtnText && (
                                 <Button
                                     className="shadow-xl hover:scale-105 transition-all"
                                     style={{
@@ -101,7 +101,7 @@ export function HeroRenderer({ settings, viewMode }) {
                                         border: 'none'
                                     }}
                                 >
-                                    {rVal('primaryBtnText', settings.primaryBtnText)}
+                                    {settings.primaryBtnText}
                                 </Button>
                             )}
                         </div>
