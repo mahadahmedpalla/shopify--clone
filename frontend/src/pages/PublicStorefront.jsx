@@ -329,8 +329,78 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                         )}
                     </div>
 
-                    {/* Content is only shown if overlay is enabled */}
-                </div>
+                    {!showContentAboveImage && (
+                        <div className="py-12 px-12 bg-white space-y-6">
+                            <div
+                                className="mx-auto"
+                                style={{
+                                    maxWidth: settings.maxContentWidth,
+                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
+                                }}
+                            >
+                                <h2
+                                    className="text-slate-900 font-extrabold tracking-tight"
+                                    style={{
+                                        fontSize: rVal('headingSize', settings.headingSize),
+                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif',
+                                        color: rVal('headingColor', settings.headingColor)
+                                    }}
+                                >
+                                    {settings.title}
+                                </h2>
+                                <p
+                                    className="text-slate-500 font-medium mt-4"
+                                    style={{
+                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
+                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif',
+                                        color: rVal('subheadingColor', settings.subheadingColor)
+                                    }}
+                                >
+                                    {settings.subtitle}
+                                </p>
+                                <div
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '40px') }}
+                                >
+                                    {settings.primaryBtnText && (
+                                        <Button
+                                            className="shadow-lg"
+                                            style={{
+                                                backgroundColor: rVal('btnBgColor', settings.btnBgColor),
+                                                color: rVal('btnTextColor', settings.btnTextColor),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {settings.primaryBtnText}
+                                        </Button>
+                                    )}
+                                    {settings.secondaryBtnText && (
+                                        <Button
+                                            variant="secondary"
+                                            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                                            style={{
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                            }}
+                                        >
+                                            {settings.secondaryBtnText}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div >
             );
         case 'product_grid':
             return (
