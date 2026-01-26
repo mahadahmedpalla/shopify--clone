@@ -274,7 +274,13 @@ export function StoreBuilder() {
                         <>
                             <div className="w-[1px] h-4 bg-slate-700 mx-1" />
                             <button
-                                onClick={() => setFitToWidth(!fitToWidth)}
+                                onClick={() => {
+                                    const nextFit = !fitToWidth;
+                                    setFitToWidth(nextFit);
+                                    // If switching to 1:1 (false), collapse sidebars (true). 
+                                    // If switching to Fit (true), expand sidebars (false).
+                                    setPreviewMode(!nextFit);
+                                }}
                                 className={`p-1.5 rounded-md transition-all ${fitToWidth ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-400 hover:text-white'}`}
                                 title={fitToWidth ? "Scale: Fit" : "Scale: 100%"}
                             >
