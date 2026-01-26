@@ -228,12 +228,14 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
+                    style={{
+                        height: heroHeight,
+                        borderRadius: rVal('borderRadius', settings.borderRadius)
+                    }}
                 >
                     <div
-                        className="relative w-full overflow-hidden flex"
+                        className="relative w-full h-full overflow-hidden flex"
                         style={{
-                            height: heroHeight,
                             backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
                             justifyContent: hAlign,
                             alignItems: vAlign
