@@ -371,6 +371,7 @@ export function StoreBuilder() {
                             {selectedElement.type === 'navbar' ? (
                                 <NavbarProperties
                                     settings={selectedElement.settings}
+                                    viewMode={viewMode}
                                     categories={categories}
                                     products={products}
                                     storePages={storePages}
@@ -385,6 +386,7 @@ export function StoreBuilder() {
                             ) : selectedElement.type === 'hero' ? (
                                 <HeroProperties
                                     settings={selectedElement.settings}
+                                    viewMode={viewMode}
                                     onUpdate={newSettings => {
                                         const newContent = canvasContent.map(c =>
                                             c.id === selectedElement.id ? { ...c, settings: newSettings } : c
@@ -464,6 +466,12 @@ function BlockRenderer({ type, settings, viewMode, store }) {
     const [lastScroll, setLastScroll] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    // Responsive Helper: Resolves value based on viewMode
+    const rVal = (key, defaultVal) => {
+        if (!settings.responsive || !settings.responsive[viewMode]) return settings[key] || defaultVal;
+        return settings.responsive[viewMode][key] !== undefined ? settings.responsive[viewMode][key] : (settings[key] || defaultVal);
+    };
+
     useEffect(() => {
         if (type !== 'navbar') return;
         const handleScroll = () => {
@@ -493,9 +501,9 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                         style={{
                             backgroundColor: settings.bgColor,
                             color: settings.textColor,
-                            height: settings.height,
-                            borderRadius: settings.borderRadius,
-                            borderBottom: `${settings.borderWidth} solid ${settings.borderColor}`,
+                            height: rVal('height', settings.height),
+                            borderRadius: rVal('borderRadius', settings.borderRadius),
+                            borderBottom: `${rVal('borderWidth', settings.borderWidth)} solid ${settings.borderColor}`,
                             boxShadow: settings.shadow === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : settings.shadow === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
                             opacity: settings.opacity,
                             backdropFilter: settings.blur ? `blur(${settings.blur})` : 'none',
@@ -507,21 +515,24 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                             className="flex items-center w-full px-6"
                             style={{
                                 maxWidth: settings.maxWidth,
-                                justifyContent: settings.alignment,
-                                gap: settings.gap
+                                justifyContent: rVal('alignment', settings.alignment),
+                                gap: rVal('gap', settings.gap)
                             }}
                         >
                             {/* Logo & Store Name */}
-                            <div className="flex items-center" style={{ gap: settings.logoGap || '12px' }}>
+                            <div className="flex items-center" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }}>
                                 <div className="flex items-center">
                                     {settings.logoUrl ? (
-                                        <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
+                                        <img src={settings.logoUrl} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
                                     ) : (
                                         <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
                                     )}
                                 </div>
                                 {settings.showStoreName && (
-                                    <span className="font-bold text-sm tracking-tight truncate max-w-[150px]">
+                                    <span
+                                        className="font-bold text-sm tracking-tight truncate max-w-[150px]"
+                                        style={{ fontSize: rVal('fontSize', settings.fontSize) }}
+                                    >
                                         {store?.name || 'My Store'}
                                     </span>
                                 )}
@@ -599,23 +610,27 @@ function BlockRenderer({ type, settings, viewMode, store }) {
             );
         case 'hero':
             const isBanner = !settings.showContentAboveImage;
-            const heroHeight = settings.heightMode === 'full' ? '100vh' :
-                settings.heightMode === 'large' ? '80vh' :
-                    settings.heightMode === 'medium' ? '60vh' :
-                        settings.heightMode === 'small' ? '40vh' : settings.customHeight;
+            const heightMode = rVal('heightMode', settings.heightMode);
+            const heroHeight = heightMode === 'full' ? '100vh' :
+                heightMode === 'large' ? '80vh' :
+                    heightMode === 'medium' ? '60vh' :
+                        heightMode === 'small' ? '40vh' : rVal('customHeight', settings.customHeight);
+
+            const hAlign = rVal('hAlignment', settings.hAlignment);
+            const vAlign = rVal('vAlignment', settings.vAlignment);
 
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{ borderRadius: settings.borderRadius }}
+                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
                 >
                     <div
                         className="relative w-full overflow-hidden flex"
                         style={{
                             height: heroHeight,
                             backgroundColor: settings.overlayColor || '#f1f5f9',
-                            justifyContent: settings.hAlignment,
-                            alignItems: settings.vAlignment
+                            justifyContent: hAlign,
+                            alignItems: vAlign
                         }}
                     >
                         {settings.backgroundImage && (
@@ -642,13 +657,13 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                 className="relative z-20 px-12 text-center space-y-6"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
-                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
                                 }}
                             >
                                 <h2
                                     className="font-extrabold tracking-tighter leading-tight animate-in slide-in-from-bottom duration-500"
                                     style={{
-                                        fontSize: settings.headingSize,
+                                        fontSize: rVal('headingSize', settings.headingSize),
                                         color: settings.headingColor,
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
@@ -658,7 +673,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                 <p
                                     className="font-medium opacity-90"
                                     style={{
-                                        fontSize: settings.subheadingSize,
+                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
                                         color: settings.subheadingColor,
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
@@ -666,8 +681,8 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                     {settings.subtitle}
                                 </p>
                                 <div
-                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                    style={{ marginTop: settings.btnMarginTop || '24px' }}
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
                                 >
                                     {settings.primaryBtnText && (
                                         <Button
@@ -675,12 +690,12 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                             style={{
                                                 backgroundColor: settings.btnBgColor,
                                                 color: settings.btnTextColor,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
-                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
                                                 border: 'none'
                                             }}
                                         >
@@ -693,12 +708,12 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                             className="bg-white/10 border-white/20 hover:bg-white/20 transition-all"
                                             style={{
                                                 color: settings.secondaryBtnTextColor || '#ffffff',
-                                                borderRadius: settings.btnBorderRadius,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
                                             }}
                                         >
                                             {settings.secondaryBtnText}
@@ -715,13 +730,13 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                 className="mx-auto"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
-                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left',
+                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left',
                                 }}
                             >
                                 <h2
                                     className="text-slate-900 font-extrabold tracking-tight"
                                     style={{
-                                        fontSize: settings.headingSize,
+                                        fontSize: rVal('headingSize', settings.headingSize),
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
@@ -730,15 +745,15 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                 <p
                                     className="text-slate-500 font-medium mt-4"
                                     style={{
-                                        fontSize: settings.subheadingSize,
+                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
                                     {settings.subtitle}
                                 </p>
                                 <div
-                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                    style={{ marginTop: settings.btnMarginTop || '40px' }}
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '40px') }}
                                 >
                                     {settings.primaryBtnText && (
                                         <Button
@@ -746,12 +761,12 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                             style={{
                                                 backgroundColor: settings.btnBgColor,
                                                 color: settings.btnTextColor,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
-                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
                                                 border: 'none'
                                             }}
                                         >
@@ -763,12 +778,12 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                             variant="secondary"
                                             className="hover:scale-105 transition-all"
                                             style={{
-                                                borderRadius: settings.btnBorderRadius,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
                                             }}
                                         >
                                             {settings.secondaryBtnText}
@@ -870,8 +885,16 @@ function ViewModeBtn({ active, onClick, icon }) {
     );
 }
 
-function NavbarProperties({ settings, onUpdate, categories, products, storePages }) {
-    const update = (key, val) => onUpdate({ ...settings, [key]: val });
+function NavbarProperties({ settings, onUpdate, categories, products, storePages, viewMode }) {
+    const update = (key, val) => {
+        if (viewMode === 'desktop') {
+            onUpdate({ ...settings, [key]: val });
+        } else {
+            const responsive = { ...(settings.responsive || {}) };
+            responsive[viewMode] = { ...(responsive[viewMode] || {}), [key]: val };
+            onUpdate({ ...settings, responsive });
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -1245,8 +1268,16 @@ function NavbarProperties({ settings, onUpdate, categories, products, storePages
     );
 }
 
-function HeroProperties({ settings, onUpdate }) {
-    const update = (key, val) => onUpdate({ ...settings, [key]: val });
+function HeroProperties({ settings, onUpdate, viewMode }) {
+    const update = (key, val) => {
+        if (viewMode === 'desktop') {
+            onUpdate({ ...settings, [key]: val });
+        } else {
+            const responsive = { ...(settings.responsive || {}) };
+            responsive[viewMode] = { ...(responsive[viewMode] || {}), [key]: val };
+            onUpdate({ ...settings, responsive });
+        }
+    };
 
     return (
         <div className="space-y-6 pb-20">

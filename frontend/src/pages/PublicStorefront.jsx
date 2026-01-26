@@ -13,6 +13,21 @@ export function PublicStorefront() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Responsive Detection
+    const [viewMode, setViewMode] = useState('desktop');
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            if (width < 640) setViewMode('mobile');
+            else if (width < 1024) setViewMode('tablet');
+            else setViewMode('desktop');
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     useEffect(() => {
         fetchStoreAndPage();
     }, [storeSubUrl, activeSlug]);
@@ -61,6 +76,7 @@ export function PublicStorefront() {
                     key={block.id}
                     type={block.type}
                     settings={block.settings}
+                    viewMode={viewMode}
                     storeSubUrl={storeSubUrl}
                     storeName={store?.name}
                 />
@@ -69,11 +85,17 @@ export function PublicStorefront() {
     );
 }
 
-function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
+function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Responsive Helper
+    const rVal = (key, defaultVal) => {
+        if (!settings.responsive || !settings.responsive[viewMode]) return settings[key] || defaultVal;
+        return settings.responsive[viewMode][key] !== undefined ? settings.responsive[viewMode][key] : (settings[key] || defaultVal);
+    };
 
     useEffect(() => {
         if (type !== 'navbar') return;
@@ -106,35 +128,30 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                         style={{
                             backgroundColor: settings.bgColor,
                             color: settings.textColor,
-                            height: settings.height,
-                            borderRadius: settings.borderRadius,
-                            borderBottomColor: settings.borderColor,
+                            height: rVal('height', settings.height),
+                            borderRadius: rVal('borderRadius', settings.borderRadius),
+                            borderBottom: `${rVal('borderWidth', settings.borderWidth)} solid ${settings.borderColor}`,
+                            boxShadow: settings.shadow === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : settings.shadow === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
                             opacity: settings.opacity,
-                            backdropFilter: settings.blur ? `blur(${settings.blur})` : 'none',
+                            position: isSticky ? 'sticky' : 'relative',
+                            top: 0
                         }}
                     >
-                        <div className="flex items-center w-full px-6" style={{ maxWidth: settings.maxWidth, justifyContent: settings.alignment, gap: settings.gap }}>
-                            <Link to={`/s/${storeSubUrl}`} className="flex items-center" style={{ gap: settings.logoGap || '12px' }}>
+                        <div className="flex items-center w-full px-6" style={{ maxWidth: settings.maxWidth, justifyContent: rVal('alignment', settings.alignment), gap: rVal('gap', settings.gap) }}>
+                            <Link to={`/s/${storeSubUrl}`} className="flex items-center" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }}>
                                 <div className="flex items-center">
                                     {settings.logoUrl ? (
-                                        <img src={settings.logoUrl} style={{ width: settings.logoWidth }} alt="Logo" />
+                                        <img src={settings.logoUrl} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
                                     ) : (
-                                        <span
-                                            className="font-black italic tracking-tighter"
-                                            style={{
-                                                fontFamily: settings.fontFamily || 'Inter, sans-serif',
-                                            }}
-                                        >
-                                            STORE
-                                        </span>
+                                        <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
                                     )}
                                 </div>
                                 {settings.showStoreName && (
                                     <span
-                                        className="font-bold tracking-tight"
+                                        className="font-bold text-sm tracking-tight"
                                         style={{
-                                            fontFamily: settings.fontFamily || 'Inter, sans-serif',
-                                            fontSize: '18px'
+                                            fontSize: rVal('fontSize', settings.fontSize),
+                                            fontFamily: settings.fontFamily || 'Inter, sans-serif'
                                         }}
                                     >
                                         {storeName}
@@ -197,23 +214,27 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
             );
         case 'hero':
             const isBanner = !settings.showContentAboveImage;
-            const heroHeight = settings.heightMode === 'full' ? '100vh' :
-                settings.heightMode === 'large' ? '80vh' :
-                    settings.heightMode === 'medium' ? '60vh' :
-                        settings.heightMode === 'small' ? '40vh' : (settings.customHeight || '60vh');
+            const heightMode = rVal('heightMode', settings.heightMode);
+            const heroHeight = heightMode === 'full' ? '100vh' :
+                heightMode === 'large' ? '80vh' :
+                    heightMode === 'medium' ? '60vh' :
+                        heightMode === 'small' ? '40vh' : rVal('customHeight', settings.customHeight);
+
+            const hAlign = rVal('hAlignment', settings.hAlignment);
+            const vAlign = rVal('vAlignment', settings.vAlignment);
 
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{ borderRadius: settings.borderRadius }}
+                    style={{ borderRadius: rVal('borderRadius', settings.borderRadius) }}
                 >
                     <div
                         className="relative w-full overflow-hidden flex"
                         style={{
                             height: heroHeight,
                             backgroundColor: settings.overlayColor || '#f1f5f9',
-                            justifyContent: settings.hAlignment,
-                            alignItems: settings.vAlignment
+                            justifyContent: hAlign,
+                            alignItems: vAlign
                         }}
                     >
                         {settings.backgroundImage && (
@@ -240,13 +261,13 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                 className="relative z-20 px-12 text-center space-y-6"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
-                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
                                 }}
                             >
                                 <h2
                                     className="font-extrabold tracking-tighter leading-tight"
                                     style={{
-                                        fontSize: settings.headingSize,
+                                        fontSize: rVal('headingSize', settings.headingSize),
                                         color: settings.headingColor,
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
@@ -256,7 +277,7 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                 <p
                                     className="font-medium opacity-90"
                                     style={{
-                                        fontSize: settings.subheadingSize,
+                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
                                         color: settings.subheadingColor,
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
@@ -264,8 +285,8 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                     {settings.subtitle}
                                 </p>
                                 <div
-                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                    style={{ marginTop: settings.btnMarginTop || '24px' }}
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
                                 >
                                     {settings.primaryBtnText && (
                                         <Button
@@ -273,12 +294,12 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                             style={{
                                                 backgroundColor: settings.btnBgColor,
                                                 color: settings.btnTextColor,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
-                                                borderRadius: settings.btnBorderRadius,
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
                                                 border: 'none'
                                             }}
                                         >
@@ -290,12 +311,12 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                             variant="secondary"
                                             className="bg-white/10 text-white border-white/20 hover:bg-white/20"
                                             style={{
-                                                borderRadius: settings.btnBorderRadius,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
                                             }}
                                         >
                                             {settings.secondaryBtnText}
@@ -312,13 +333,13 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                 className="mx-auto"
                                 style={{
                                     maxWidth: settings.maxContentWidth,
-                                    textAlign: settings.hAlignment === 'center' ? 'center' : settings.hAlignment === 'flex-end' ? 'right' : 'left'
+                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
                                 }}
                             >
                                 <h2
                                     className="text-slate-900 font-extrabold tracking-tight"
                                     style={{
-                                        fontSize: settings.headingSize,
+                                        fontSize: rVal('headingSize', settings.headingSize),
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
@@ -327,15 +348,15 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                 <p
                                     className="text-slate-500 font-medium mt-4"
                                     style={{
-                                        fontSize: settings.subheadingSize,
+                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
                                     {settings.subtitle}
                                 </p>
                                 <div
-                                    className={`flex items-center gap-4 ${settings.hAlignment === 'center' ? 'justify-center' : settings.hAlignment === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                    style={{ marginTop: settings.btnMarginTop || '40px' }}
+                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '40px') }}
                                 >
                                     {settings.primaryBtnText && (
                                         <Button
@@ -343,27 +364,6 @@ function BlockRenderer({ type, settings, storeSubUrl, storeName }) {
                                             style={{
                                                 backgroundColor: settings.btnBgColor,
                                                 color: settings.btnTextColor,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
-                                                fontSize: settings.btnFontSize,
-                                                borderRadius: settings.btnBorderRadius,
-                                                border: 'none'
-                                            }}
-                                        >
-                                            {settings.primaryBtnText}
-                                        </Button>
-                                    )}
-                                    {settings.secondaryBtnText && (
-                                        <Button
-                                            variant="secondary"
-                                            style={{
-                                                borderRadius: settings.btnBorderRadius,
-                                                paddingLeft: settings.btnPaddingX,
-                                                paddingRight: settings.btnPaddingX,
-                                                paddingTop: settings.btnPaddingY,
-                                                paddingBottom: settings.btnPaddingY,
                                                 fontSize: settings.btnFontSize,
                                             }}
                                         >
