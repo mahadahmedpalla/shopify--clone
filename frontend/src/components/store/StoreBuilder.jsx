@@ -609,7 +609,8 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                 </>
             );
         case 'hero':
-            const isBanner = !settings.showContentAboveImage;
+            const showContentAboveImage = rVal('showContentAboveImage', settings.showContentAboveImage);
+            const isBanner = !showContentAboveImage;
             const heightMode = rVal('heightMode', settings.heightMode);
             const heroHeight = heightMode === 'full' ? '100vh' :
                 heightMode === 'large' ? '80vh' :
@@ -618,6 +619,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
 
             const hAlign = rVal('hAlignment', settings.hAlignment);
             const vAlign = rVal('vAlignment', settings.vAlignment);
+            const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
             return (
                 <div
@@ -628,14 +630,14 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                         className="relative w-full overflow-hidden flex"
                         style={{
                             height: heroHeight,
-                            backgroundColor: settings.overlayColor || '#f1f5f9',
+                            backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
                             justifyContent: hAlign,
                             alignItems: vAlign
                         }}
                     >
-                        {settings.backgroundImage && (
+                        {bgImage && (
                             <img
-                                src={settings.backgroundImage}
+                                src={bgImage}
                                 className="absolute inset-0 w-full h-full object-cover"
                                 alt="Hero Background"
                             />
@@ -645,14 +647,14 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                             <div
                                 className="absolute inset-0 z-10"
                                 style={{
-                                    backgroundColor: settings.overlayColor,
-                                    opacity: settings.overlayOpacity,
-                                    background: settings.useGradient ? `linear-gradient(to bottom, transparent, ${settings.overlayColor})` : 'none'
+                                    backgroundColor: rVal('overlayColor', settings.overlayColor),
+                                    opacity: rVal('overlayOpacity', settings.overlayOpacity),
+                                    background: rVal('useGradient', settings.useGradient) ? `linear-gradient(to bottom, transparent, ${rVal('overlayColor', settings.overlayColor)})` : 'none'
                                 }}
                             />
                         )}
 
-                        {settings.showContentAboveImage && (
+                        {showContentAboveImage && (
                             <div
                                 className="relative z-20 px-12 text-center space-y-6"
                                 style={{
@@ -664,7 +666,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                     className="font-extrabold tracking-tighter leading-tight animate-in slide-in-from-bottom duration-500"
                                     style={{
                                         fontSize: rVal('headingSize', settings.headingSize),
-                                        color: settings.headingColor,
+                                        color: rVal('headingColor', settings.headingColor),
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
@@ -674,7 +676,7 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                     className="font-medium opacity-90"
                                     style={{
                                         fontSize: rVal('subheadingSize', settings.subheadingSize),
-                                        color: settings.subheadingColor,
+                                        color: rVal('subheadingColor', settings.subheadingColor),
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
@@ -688,8 +690,8 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                         <Button
                                             className="shadow-xl hover:scale-105 transition-all"
                                             style={{
-                                                backgroundColor: settings.btnBgColor,
-                                                color: settings.btnTextColor,
+                                                backgroundColor: rVal('btnBgColor', settings.btnBgColor),
+                                                color: rVal('btnTextColor', settings.btnTextColor),
                                                 paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
                                                 paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
                                                 paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
@@ -702,29 +704,12 @@ function BlockRenderer({ type, settings, viewMode, store }) {
                                             {settings.primaryBtnText}
                                         </Button>
                                     )}
-                                    {settings.secondaryBtnText && (
-                                        <Button
-                                            variant="secondary"
-                                            className="bg-white/10 border-white/20 hover:bg-white/20 transition-all"
-                                            style={{
-                                                color: settings.secondaryBtnTextColor || '#ffffff',
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            }}
-                                        >
-                                            {settings.secondaryBtnText}
-                                        </Button>
-                                    )}
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {!settings.showContentAboveImage && (
+                    {!showContentAboveImage && (
                         <div className="py-12 px-12 bg-white space-y-6">
                             <div
                                 className="mx-auto"
