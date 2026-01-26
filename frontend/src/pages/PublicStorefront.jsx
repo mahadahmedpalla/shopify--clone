@@ -225,6 +225,11 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
             const vAlign = rVal('vAlignment', settings.vAlignment);
             const bgImage = rVal('backgroundImage', settings.backgroundImage);
 
+            // Visibility & Responsive Text Overrides
+            const showPrimary = rVal('showPrimaryBtn', settings.showPrimaryBtn !== false);
+            const showSecondary = rVal('showSecondaryBtn', settings.showSecondaryBtn !== false);
+            const extraButtons = rVal('extraButtons', settings.extraButtons || []);
+
             return (
                 <div
                     className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
@@ -274,7 +279,7 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                         fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
-                                    {settings.title}
+                                    {rVal('title', settings.title)}
                                 </h2>
                                 <p
                                     className="font-medium opacity-90"
@@ -284,13 +289,13 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                         fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
                                     }}
                                 >
-                                    {settings.subtitle}
+                                    {rVal('subtitle', settings.subtitle)}
                                 </p>
                                 <div
-                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex flex-wrap items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
                                     style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
                                 >
-                                    {settings.primaryBtnText && (
+                                    {showPrimary && settings.primaryBtnText && (
                                         <Button
                                             className="shadow-xl"
                                             style={{
@@ -305,10 +310,10 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                                 border: 'none'
                                             }}
                                         >
-                                            {settings.primaryBtnText}
+                                            {rVal('primaryBtnText', settings.primaryBtnText)}
                                         </Button>
                                     )}
-                                    {settings.secondaryBtnText && (
+                                    {showSecondary && settings.secondaryBtnText && (
                                         <Button
                                             variant="secondary"
                                             className="bg-white/10 text-white border-white/20 hover:bg-white/20"
@@ -321,9 +326,28 @@ function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
                                                 fontSize: rVal('btnFontSize', settings.btnFontSize),
                                             }}
                                         >
-                                            {settings.secondaryBtnText}
+                                            {rVal('secondaryBtnText', settings.secondaryBtnText)}
                                         </Button>
                                     )}
+                                    {extraButtons.map((btn, idx) => (
+                                        <Button
+                                            key={idx}
+                                            variant={btn.type === 'primary' ? 'default' : 'secondary'}
+                                            className={btn.type === 'primary' ? '' : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}
+                                            style={{
+                                                backgroundColor: btn.type === 'primary' ? rVal('btnBgColor', settings.btnBgColor) : undefined,
+                                                color: btn.type === 'primary' ? rVal('btnTextColor', settings.btnTextColor) : undefined,
+                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
+                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
+                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
+                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
+                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
+                                            }}
+                                        >
+                                            {btn.text}
+                                        </Button>
+                                    ))}
                                 </div>
                             </div>
                         )}
