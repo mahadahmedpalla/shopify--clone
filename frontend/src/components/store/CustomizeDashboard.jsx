@@ -79,7 +79,15 @@ const PAGE_TEMPLATES = {
     ],
     pdp: [
         DEFAULT_NAVBAR,
-        { id: 'p1', type: 'product_detail', settings: { showStock: true, showDescription: true, alignment: 'left' } }
+        {
+            id: 'p1', type: 'product_detail', settings: {
+                mediaLayout: 'grid', aspectRatio: 'square', thumbPosition: 'bottom', enableZoom: true,
+                titleTag: 'h1', titleSize: '3xl', titleWeight: 'bold', titleColor: '#0f172a', alignment: 'left',
+                showPrice: true, showDiscount: true, priceColor: '#4f46e5', compareColor: '#94a3b8',
+                showDescription: true, descWidth: 'full',
+                showStock: true, lowStockThreshold: 5, inStockColor: '#15803d', lowStockColor: '#b45309', outOfStockColor: '#b91c1c'
+            }
+        }
     ],
     cart: [
         DEFAULT_NAVBAR,
