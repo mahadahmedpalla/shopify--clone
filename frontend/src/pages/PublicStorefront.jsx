@@ -75,7 +75,7 @@ export function PublicStorefront() {
 
             // 4. Fetch Categories (for shared renderer)
             const { data: catData } = await supabase
-                .from('categories')
+                .from('product_categories')
                 .select('*')
                 .eq('store_id', storeData.id);
             setCategories(catData || []);

@@ -103,7 +103,7 @@ export function StoreBuilder() {
 
         // Fetch categories for this store
         // Simplified fetch - normally would be separate calls
-        const { data: cats } = await supabase.from('categories').select('*').eq('store_id', storeId);
+        const { data: cats } = await supabase.from('product_categories').select('*').eq('store_id', storeId);
         setCategories(cats || []);
 
         const { data: prods } = await supabase.from('products').select('*').eq('store_id', storeId);
