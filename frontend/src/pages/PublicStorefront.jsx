@@ -5,11 +5,15 @@ import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { ShoppingCart, ChevronRight, Box, Layout, Menu, X } from 'lucide-react';
 
+import { BlockRenderer } from '../components/store/widgets/BlockRenderer';
+
 export function PublicStorefront() {
     const { storeSubUrl, pageSlug } = useParams();
     const activeSlug = pageSlug || 'home';
     const [store, setStore] = useState(null);
     const [page, setPage] = useState(null);
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -29,426 +33,79 @@ export function PublicStorefront() {
     }, []);
 
     useEffect(() => {
-        fetchStoreAndPage();
+        fetchStoreData();
     }, [storeSubUrl, activeSlug]);
 
-    const fetchStoreAndPage = async () => {
+    const fetchStoreData = async () => {
         setLoading(true);
         setError(null);
 
-        // 1. Fetch Store by Sub-URL
-        const { data: storeData, error: storeError } = await supabase
-            .from('stores')
-            .select('*')
-            .eq('sub_url', storeSubUrl)
-            .single();
+        try {
+            // 1. Fetch Store by Sub-URL
+            const { data: storeData, error: storeError } = await supabase
+                .from('stores')
+                .select('*')
+                .eq('sub_url', storeSubUrl)
+                .single();
 
-        if (storeError || !storeData) {
-            setError(`Store "${storeSubUrl}" not found or inactive.`);
+            if (storeError || !storeData) throw new Error(`Store "${storeSubUrl}" not found.`);
+            setStore(storeData);
+
+            // 2. Fetch Page
+            const { data: pageData, error: pageError } = await supabase
+                .from('store_pages')
+                .select('*')
+                .eq('store_id', storeData.id)
+                .eq('slug', activeSlug)
+                .single();
+
+            if (pageError) {
+                // Determine if it's a legal page requested that doesn't exist yet, or just a 404
+                console.warn("Page fetch error:", pageError);
+            }
+            setPage(pageData); // Might be null if not found
+
+            // 3. Fetch Products (for shared renderer)
+            const { data: prodData } = await supabase
+                .from('products')
+                .select('*')
+                .eq('store_id', storeData.id)
+                .eq('is_active', true);
+            setProducts(prodData || []);
+
+            // 4. Fetch Categories (for shared renderer)
+            const { data: catData } = await supabase
+                .from('categories')
+                .select('*')
+                .eq('store_id', storeData.id);
+            setCategories(catData || []);
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
             setLoading(false);
-            return;
         }
-        setStore(storeData);
-
-        // 2. Fetch Page by Store ID and Slug
-        const { data: pageData, error: pageError } = await supabase
-            .from('store_pages')
-            .select('*')
-            .eq('store_id', storeData.id)
-            .eq('slug', activeSlug)
-            .single();
-
-        if (pageError || !pageData) {
-            setError(`Page "${activeSlug}" not found in ${storeData.name}.`);
-        } else {
-            setPage(pageData);
-        }
-        setLoading(false);
     };
 
     if (loading) return <PublicLoader />;
     if (error) return <PublicError message={error} />;
+    // If page is null but no error (e.g. invalid slug), show error
+    if (!page) return <PublicError message="Page not found" />;
 
     return (
         <div className="min-h-screen bg-white">
-            {(page?.content || []).map((block) => (
+            {(page.content || []).map((block) => (
                 <BlockRenderer
                     key={block.id}
                     type={block.type}
                     settings={block.settings}
                     viewMode={viewMode}
-                    storeSubUrl={storeSubUrl}
-                    storeName={store?.name}
+                    store={store}
+                    products={products}
+                    categories={categories}
                 />
             ))}
         </div>
-    );
-}
-
-function BlockRenderer({ type, settings, viewMode, storeSubUrl, storeName }) {
-    const [scrolled, setScrolled] = useState(false);
-    const [visible, setVisible] = useState(true);
-    const [lastScroll, setLastScroll] = useState(0);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-    // Responsive Helper
-    const rVal = (key, defaultVal) => {
-        if (!settings.responsive || !settings.responsive[viewMode]) return settings[key] || defaultVal;
-        return settings.responsive[viewMode][key] !== undefined ? settings.responsive[viewMode][key] : (settings[key] || defaultVal);
-    };
-
-    useEffect(() => {
-        if (type !== 'navbar') return;
-        const handleScroll = () => {
-            const currentScroll = window.scrollY || document.documentElement.scrollTop;
-            setScrolled(currentScroll > 50);
-            if (settings.stickyMode === 'hide') {
-                setVisible(currentScroll < lastScroll || currentScroll < 100);
-            } else {
-                setVisible(true);
-            }
-            setLastScroll(currentScroll);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [type, lastScroll, settings.stickyMode]);
-
-    switch (type) {
-        case 'navbar':
-            const isSticky = settings.stickyMode === 'always' || (settings.stickyMode === 'scroll' && scrolled) || (settings.stickyMode === 'hide' && scrolled);
-            const isHidden = settings.stickyMode === 'hide' && scrolled && !visible;
-
-            return (
-                <>
-                    <nav
-                        className={`fixed top-0 left-0 w-full transition-all duration-500 z-[100] flex justify-center
-                            ${isHidden ? '-translate-y-full' : 'translate-y-0'}
-                            ${isSticky ? 'shadow-md border-b' : ''}
-                        `}
-                        style={{
-                            backgroundColor: settings.bgColor,
-                            color: settings.textColor,
-                            height: rVal('height', settings.height),
-                            borderRadius: rVal('borderRadius', settings.borderRadius),
-                            borderBottom: `${rVal('borderWidth', settings.borderWidth)} solid ${settings.borderColor}`,
-                            boxShadow: settings.shadow === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : settings.shadow === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
-                            opacity: settings.opacity,
-                            position: isSticky ? 'sticky' : 'relative',
-                            top: 0
-                        }}
-                    >
-                        <div className="flex items-center w-full px-6" style={{ maxWidth: settings.maxWidth, justifyContent: rVal('alignment', settings.alignment), gap: rVal('gap', settings.gap) }}>
-                            <Link to={`/s/${storeSubUrl}`} className="flex items-center" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }}>
-                                <div className="flex items-center">
-                                    {settings.logoUrl ? (
-                                        <img src={settings.logoUrl} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
-                                    ) : (
-                                        <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
-                                    )}
-                                </div>
-                                {settings.showStoreName && (
-                                    <span
-                                        className="font-bold text-sm tracking-tight"
-                                        style={{
-                                            fontSize: rVal('fontSize', settings.fontSize),
-                                            fontFamily: settings.fontFamily || 'Inter, sans-serif'
-                                        }}
-                                    >
-                                        {storeName}
-                                    </span>
-                                )}
-                            </Link>
-
-                            <div className="hidden md:flex items-center" style={{ gap: settings.gap }}>
-                                {(settings.menuItems || []).map(item => (
-                                    <Link
-                                        key={item.id}
-                                        to={item.type === 'page' ? `/s/${storeSubUrl}/${item.value}` : '#'}
-                                        className="hover:opacity-75 transition-opacity uppercase tracking-tight"
-                                        style={{
-                                            fontFamily: settings.fontFamily || 'Inter, sans-serif',
-                                            fontSize: settings.fontSize || '14px',
-                                            fontWeight: settings.fontWeight || '600'
-                                        }}
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </div>
-
-                            <div className="flex items-center space-x-4">
-                                <ShoppingCart className="h-6 w-6 cursor-pointer" />
-                                <button className="md:hidden" onClick={() => setMobileMenuOpen(true)}>
-                                    <Menu className="h-6 w-6" />
-                                </button>
-                            </div>
-                        </div>
-                    </nav>
-                    <div style={{ height: isSticky ? settings.height : 0 }} />
-
-                    {/* Mobile Menu Overlay */}
-                    {mobileMenuOpen && (
-                        <div className="fixed inset-0 bg-white z-[200] p-6 flex flex-col transition-all animate-in slide-in-from-right overflow-y-auto">
-                            <div className="flex justify-end mb-8">
-                                <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-slate-100 rounded-full"><X className="h-6 w-6" /></button>
-                            </div>
-                            <div className="flex flex-col space-y-6">
-                                {(settings.menuItems || []).map(item => (
-                                    <Link
-                                        key={item.id}
-                                        to={item.type === 'page' ? `/s/${storeSubUrl}/${item.value}` : '#'}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="text-2xl border-b border-slate-100 pb-4"
-                                        style={{
-                                            fontFamily: settings.fontFamily || 'Inter, sans-serif',
-                                            fontWeight: settings.fontWeight || '700'
-                                        }}
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </>
-            );
-        case 'hero':
-            const showContentAboveImage = rVal('showContentAboveImage', settings.showContentAboveImage);
-            const isBanner = !showContentAboveImage;
-            const heightMode = rVal('heightMode', settings.heightMode);
-            const heroHeight = heightMode === 'full' ? '100vh' :
-                heightMode === 'large' ? '80vh' :
-                    heightMode === 'medium' ? '60vh' :
-                        heightMode === 'small' ? '40vh' : rVal('customHeight', settings.customHeight);
-
-            const hAlign = rVal('hAlignment', settings.hAlignment);
-            const vAlign = rVal('vAlignment', settings.vAlignment);
-            const bgImage = rVal('backgroundImage', settings.backgroundImage);
-
-            const bgPosition = rVal('backgroundPosition', settings.backgroundPosition || 'center');
-
-            return (
-                <div
-                    className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
-                    style={{
-                        height: heroHeight,
-                        borderRadius: rVal('borderRadius', settings.borderRadius)
-                    }}
-                >
-                    <div
-                        className="relative w-full h-full overflow-hidden flex"
-                        style={{
-                            backgroundColor: rVal('overlayColor', settings.overlayColor || '#f1f5f9'),
-                            justifyContent: hAlign,
-                            alignItems: vAlign
-                        }}
-                    >
-                        {bgImage && (
-                            <img
-                                src={bgImage}
-                                className={`absolute inset-0 w-full h-full object-cover object-${bgPosition}`}
-                                alt="Hero Background"
-                            />
-                        )}
-
-                        {!isBanner && (
-                            <div
-                                className="absolute inset-0 z-10"
-                                style={{
-                                    backgroundColor: rVal('overlayColor', settings.overlayColor),
-                                    opacity: rVal('overlayOpacity', settings.overlayOpacity),
-                                    background: rVal('useGradient', settings.useGradient) ? `linear-gradient(to bottom, transparent, ${rVal('overlayColor', settings.overlayColor)})` : 'none'
-                                }}
-                            />
-                        )}
-
-                        {showContentAboveImage && (
-                            <div
-                                className="relative z-20 px-12 text-center space-y-6"
-                                style={{
-                                    maxWidth: settings.maxContentWidth,
-                                    textAlign: hAlign === 'center' ? 'center' : hAlign === 'flex-end' ? 'right' : 'left'
-                                }}
-                            >
-                                <h2
-                                    className="font-extrabold tracking-tighter leading-tight"
-                                    style={{
-                                        fontSize: rVal('headingSize', settings.headingSize),
-                                        color: rVal('headingColor', settings.headingColor),
-                                        fontFamily: settings.headingFontFamily || settings.fontFamily || 'Inter, sans-serif'
-                                    }}
-                                >
-                                    {settings.title}
-                                </h2>
-                                <p
-                                    className="font-medium opacity-90"
-                                    style={{
-                                        fontSize: rVal('subheadingSize', settings.subheadingSize),
-                                        color: rVal('subheadingColor', settings.subheadingColor),
-                                        fontFamily: settings.subheadingFontFamily || settings.fontFamily || 'Inter, sans-serif'
-                                    }}
-                                >
-                                    {settings.subtitle}
-                                </p>
-                                <div
-                                    className={`flex items-center gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}
-                                    style={{ marginTop: rVal('btnMarginTop', settings.btnMarginTop || '24px') }}
-                                >
-                                    {settings.primaryBtnText && (
-                                        <Button
-                                            className="shadow-xl"
-                                            style={{
-                                                backgroundColor: rVal('btnBgColor', settings.btnBgColor),
-                                                color: rVal('btnTextColor', settings.btnTextColor),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                border: 'none'
-                                            }}
-                                        >
-                                            {settings.primaryBtnText}
-                                        </Button>
-                                    )}
-                                    {settings.secondaryBtnText && (
-                                        <Button
-                                            variant="secondary"
-                                            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-                                            style={{
-                                                borderRadius: rVal('btnBorderRadius', settings.btnBorderRadius),
-                                                paddingLeft: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingRight: rVal('btnPaddingX', settings.btnPaddingX),
-                                                paddingTop: rVal('btnPaddingY', settings.btnPaddingY),
-                                                paddingBottom: rVal('btnPaddingY', settings.btnPaddingY),
-                                                fontSize: rVal('btnFontSize', settings.btnFontSize),
-                                            }}
-                                        >
-                                            {settings.secondaryBtnText}
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                </div>
-            );
-
-        case 'product_grid':
-            return (
-                <ProductGridSection
-                    settings={settings}
-                    storeSubUrl={storeSubUrl}
-                />
-            );
-        case 'heading':
-            return (
-                <div className="py-16 px-6 text-center" style={{ maxWidth: settings.maxWidth || '1200px', margin: '0 auto' }}>
-                    <h2 className="text-5xl font-black tracking-tight uppercase">{settings.text || 'Section Heading'}</h2>
-                </div>
-            );
-        default:
-            return null;
-    }
-}
-
-function ProductGridSection({ settings, storeSubUrl }) {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchProducts();
-    }, [settings.categoryId, settings.limit]);
-
-    const fetchProducts = async () => {
-        setLoading(true);
-        // 1. Get Store ID first (could optimize by passing storeId down, but sub_url is safer for public)
-        const { data: storeData } = await supabase.from('stores').select('id').eq('sub_url', storeSubUrl).single();
-        if (!storeData) return;
-
-        let query = supabase
-            .from('products')
-            .select('*')
-            .eq('store_id', storeData.id)
-            .order('name'); // Default sort
-
-        if (settings.categoryId && settings.categoryId !== 'all') {
-            query = query.eq('category_id', settings.categoryId);
-        }
-
-        if (settings.limit) {
-            query = query.limit(parseInt(settings.limit));
-        }
-
-        const { data } = await query;
-        setProducts(data || []);
-        setLoading(false);
-    };
-
-    // Layout (Columns) - Simplified for public view responsive logic
-    // We rely on standard Tailwind breakpoints for now, but respect builder settings if we want to add dynamic classes
-    const colsDesktop = settings.columns?.desktop || 4;
-    const colsTablet = settings.columns?.tablet || 3;
-    const colsMobile = settings.columns?.mobile || 2;
-
-    const getGridClass = () => {
-        // Using arbitrary values or map to standard tailwind classes
-        // Dynamic construction: grid-cols-[mobile] md:grid-cols-[tablet] lg:grid-cols-[desktop]
-        return `grid-cols-${colsMobile} md:grid-cols-${colsTablet} lg:grid-cols-${colsDesktop}`;
-    };
-
-    if (loading) {
-        return (
-            <section className="py-24 px-6" style={{ maxWidth: '1280px', margin: '0 auto' }}>
-                <div className="flex items-center justify-between mb-12">
-                    <div className="h-10 w-48 bg-slate-100 rounded-lg animate-pulse" />
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="space-y-4">
-                            <div className="aspect-[3/4] bg-slate-100 rounded-3xl animate-pulse" />
-                            <div className="h-6 w-3/4 bg-slate-100 rounded-full" />
-                        </div>
-                    ))}
-                </div>
-            </section>
-        );
-    }
-
-    if (products.length === 0) return null; // Or empty state
-
-    return (
-        <section className="py-24 px-6" style={{ maxWidth: '1280px', margin: '0 auto' }}>
-            <div className="flex items-center justify-between mb-12">
-                <h2 className="text-4xl font-black tracking-tight uppercase">{settings.title || 'Featured'}</h2>
-                <Link to={`/s/${storeSubUrl}/shop`} className="font-bold flex items-center group text-sm tracking-widest hover:text-indigo-600 transition-colors">
-                    VIEW ALL <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-            </div>
-
-            <div className={`grid gap-8 ${getGridClass()}`}>
-                {products.map(product => (
-                    <div key={product.id} className="group cursor-pointer">
-                        <div className="aspect-[3/4] bg-slate-100 rounded-3xl mb-4 overflow-hidden relative">
-                            {product.images?.[0] ? (
-                                <img src={product.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={product.name} />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
-                                    <Box className="h-10 w-10" />
-                                </div>
-                            )}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
-                            {/* Badge Placeholder */}
-                            {/* <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">New</div> */}
-                        </div>
-                        <h4 className="font-bold text-lg mb-1 group-hover:text-indigo-600 transition-colors">{product.name}</h4>
-                        <p className="text-slate-500 font-bold">${parseFloat(product.price).toFixed(2)}</p>
-                    </div>
-                ))}
-            </div>
-        </section>
     );
 }
 
