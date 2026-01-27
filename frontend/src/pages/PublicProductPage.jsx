@@ -58,7 +58,7 @@ export function PublicProductPage() {
                 .from('store_pages')
                 .select('content')
                 .eq('store_id', storeData.id)
-                .eq('slug', 'product_detail') // or check type='product_detail'
+                .eq('slug', 'pdp') // Using standard system slug
                 .single();
 
             if (pdpPage?.content) {

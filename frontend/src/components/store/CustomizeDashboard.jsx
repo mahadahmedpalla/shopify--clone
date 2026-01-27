@@ -79,7 +79,7 @@ const PAGE_TEMPLATES = {
     ],
     pdp: [
         DEFAULT_NAVBAR,
-        { id: 'p1', type: 'product_detail', settings: { showReviews: true, showSimilar: true } }
+        { id: 'p1', type: 'product_detail', settings: { showStock: true, showDescription: true, alignment: 'left' } }
     ],
     cart: [
         DEFAULT_NAVBAR,
