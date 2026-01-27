@@ -32,6 +32,9 @@ import {
 import { NavbarProperties } from './widgets/navbar/NavbarProperties';
 import { HeroProperties } from './widgets/hero/HeroProperties';
 import { ProductGridProperties } from './widgets/product_grid/ProductGridProperties';
+
+import { CartProvider } from '../../context/CartContext';
+import { CartDrawer } from './widgets/cart/CartDrawer';
 import { BlockRenderer } from './widgets/BlockRenderer';
 import { Loader, ViewModeBtn, genId } from './widgets/Shared';
 
@@ -383,37 +386,45 @@ export function StoreBuilder() {
                 </aside>
 
                 <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <div
-                            className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
-                                ${viewMode === 'desktop' ? (fitToWidth ? 'w-full' : 'w-[1280px]') : ''}
-                                ${viewMode === 'tablet' ? 'w-[768px]' : ''}
-                                ${viewMode === 'mobile' ? 'w-[375px]' : ''}
-                            `}
-                        >
-                            <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
-                                {canvasContent.length === 0 ? (
-                                    <EmptyState name={page?.name} />
-                                ) : (
-                                    <div className="min-h-[80vh]">
-                                        {canvasContent.map((block) => (
-                                            <SortableBlock
-                                                key={block.id}
-                                                block={block}
-                                                viewMode={viewMode}
-                                                store={store}
-                                                products={products}
-                                                categories={categories}
-                                                onDelete={() => deleteWidget(block.id)}
-                                                isSelected={selectedElement?.id === block.id}
-                                                onClick={() => setSelectedElement(block)}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </SortableContext>
-                        </div>
-                    </DndContext>
+                    <CartProvider storeKey={storeId}>
+                        <CartDrawer />
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
+                            <div
+                                className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
+                                    ${viewMode === 'desktop' ? (fitToWidth ? 'w-full' : 'w-[1280px]') : ''}
+                                    ${viewMode === 'tablet' ? 'w-[768px]' : ''}
+                                    ${viewMode === 'mobile' ? 'w-[375px]' : ''}
+                                `}
+                                onClick={(e) => {
+                                    // Deselect if clicking on the canvas background (not on a block)
+                                    if (e.target === e.currentTarget) setSelectedElement(null);
+                                }}
+                            >
+                                <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
+                                    {canvasContent.length === 0 ? (
+                                        <EmptyState name={page?.name} />
+                                    ) : (
+                                        <div className="min-h-[80vh]">
+                                            {canvasContent.map((block) => (
+                                                <SortableBlock
+                                                    key={block.id}
+                                                    block={block}
+                                                    viewMode={viewMode}
+                                                    store={store}
+                                                    products={products}
+                                                    categories={categories}
+                                                    onDelete={() => deleteWidget(block.id)}
+                                                    isSelected={selectedElement?.id === block.id}
+                                                    onClick={() => setSelectedElement(block)}
+                                                    isEditor={true}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </SortableContext>
+                            </div>
+                        </DndContext>
+                    </CartProvider>
                 </main>
 
                 <aside
@@ -504,7 +515,7 @@ export function StoreBuilder() {
     );
 }
 
-function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, products, categories }) {
+function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, products, categories, isEditor }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
     const style = {
@@ -532,7 +543,15 @@ function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, 
                 </button>
             </div>
 
-            <BlockRenderer type={block.type} settings={block.settings} viewMode={viewMode} store={store} products={products} categories={categories} />
+            <BlockRenderer
+                type={block.type}
+                settings={block.settings}
+                viewMode={viewMode}
+                store={store}
+                products={products}
+                categories={categories}
+                isEditor={isEditor}
+            />
         </div>
     );
 }

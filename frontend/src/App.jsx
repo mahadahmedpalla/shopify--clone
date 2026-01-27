@@ -12,6 +12,7 @@ import { ProductsPage } from './components/store/ProductsPage';
 import { CustomizeDashboard } from './components/store/CustomizeDashboard';
 import { StoreBuilder } from './components/store/StoreBuilder';
 import { PublicStorefront } from './pages/PublicStorefront';
+import { PublicProductPage } from './pages/PublicProductPage';
 
 // Simple Layout Wrapper
 function Layout({ children }) {
@@ -56,6 +57,7 @@ function App() {
         {/* Public Storefront Route */}
         <Route path="/s/:storeSubUrl" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/:pageSlug" element={<PublicStorefront />} />
+        <Route path="/s/:storeSubUrl/p/:productId" element={<PublicProductPage />} />
 
         <Route path="/login" element={
           <AuthLayout>

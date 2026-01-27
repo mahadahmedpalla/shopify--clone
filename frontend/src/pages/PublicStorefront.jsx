@@ -6,6 +6,8 @@ import { Button } from '../components/ui/Button';
 import { ShoppingCart, ChevronRight, Box, Layout, Menu, X } from 'lucide-react';
 
 import { BlockRenderer } from '../components/store/widgets/BlockRenderer';
+import { CartProvider } from '../context/CartContext';
+import { CartDrawer } from '../components/store/widgets/cart/CartDrawer';
 
 export function PublicStorefront() {
     const { storeSubUrl, pageSlug } = useParams();
@@ -94,17 +96,20 @@ export function PublicStorefront() {
 
     return (
         <div className="min-h-screen bg-white">
-            {(page.content || []).map((block) => (
-                <BlockRenderer
-                    key={block.id}
-                    type={block.type}
-                    settings={block.settings}
-                    viewMode={viewMode}
-                    store={store}
-                    products={products}
-                    categories={categories}
-                />
-            ))}
+            <CartProvider storeKey={store?.id}>
+                <CartDrawer />
+                {(page.content || []).map((block) => (
+                    <BlockRenderer
+                        key={block.id}
+                        type={block.type}
+                        settings={block.settings}
+                        viewMode={viewMode}
+                        store={store}
+                        products={products}
+                        categories={categories}
+                    />
+                ))}
+            </CartProvider>
         </div>
     );
 }

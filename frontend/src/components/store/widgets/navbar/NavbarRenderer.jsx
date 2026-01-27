@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Menu, X, ChevronRight } from 'lucide-react';
 import { getResponsiveValue } from '../Shared';
+import { useCart } from '../../../../context/CartContext';
 
 export function NavbarRenderer({ settings, viewMode, store }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Cart Context - Safe fallback if not used within provider (though we wrapped it everywhere now)
+    const context = useCart();
+    // But since we can't condition hooks, we assume it's valid or use optional chaining if we modify useCart?
+    // My useCart throws error if missing.
+    // StoreBuilder and PublicStorefront are wrapped.
+    const { setIsOpen: openCart, cartCount } = context;
 
     const rVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
 
@@ -119,7 +127,14 @@ export function NavbarRenderer({ settings, viewMode, store }) {
 
                     {/* Actions */}
                     <div className="flex items-center space-x-4">
-                        <ShoppingCart className="h-5 w-5 cursor-pointer hover:opacity-75" />
+                        <div className="relative cursor-pointer hover:opacity-75 transition-opacity" onClick={() => openCart(true)}>
+                            <ShoppingCart className="h-5 w-5" />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </div>
 
                         {/* Hamburger Logic - Conditional based on viewMode & settings */}
                         <div style={{

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-export function ProductGridRenderer({ settings, products, viewMode }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Filter products logic
@@ -91,25 +92,35 @@ export function ProductGridRenderer({ settings, products, viewMode }) {
             ) : (
                 <>
                     <div className={`grid gap-6 ${getColsClass()}`}>
-                        {finalProducts.map(product => (
-                            <div key={product.id} className="space-y-3 p-4 border border-transparent hover:border-slate-100 rounded-2xl hover:shadow-lg transition-all group cursor-pointer bg-white">
-                                <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden relative">
-                                    {product.images?.[0] ? (
-                                        <img src={product.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={product.name} />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                            <Box className="h-8 w-8" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-slate-900 leading-tight mb-1 line-clamp-2">{product.name}</h4>
-                                    <div className="flex items-center space-x-2">
-                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
+                        {finalProducts.map(product => {
+                            const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
+                            const Wrapper = isEditor ? 'div' : Link;
+                            const wrapperProps = isEditor ? {} : { to: linkPath };
+
+                            return (
+                                <Wrapper
+                                    key={product.id}
+                                    className="space-y-3 p-4 border border-transparent hover:border-slate-100 rounded-2xl hover:shadow-lg transition-all group cursor-pointer bg-white block"
+                                    {...wrapperProps}
+                                >
+                                    <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden relative">
+                                        {product.images?.[0] ? (
+                                            <img src={product.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={product.name} />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                <Box className="h-8 w-8" />
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            </div>
-                        ))}
+                                    <div>
+                                        <h4 className="font-bold text-sm text-slate-900 leading-tight mb-1 line-clamp-2">{product.name}</h4>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </Wrapper>
+                            );
+                        })}
                     </div>
 
                     {/* Pagination Controls */}

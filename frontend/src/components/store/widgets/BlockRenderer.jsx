@@ -3,14 +3,14 @@ import { NavbarRenderer } from './navbar/NavbarRenderer';
 import { HeroRenderer } from './hero/HeroRenderer';
 import { ProductGridRenderer } from './product_grid/ProductGridRenderer';
 
-export function BlockRenderer({ type, settings, viewMode, store, products, categories }) {
+export function BlockRenderer({ type, settings, viewMode, store, products, categories, isEditor }) {
     switch (type) {
         case 'navbar':
             return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} />;
         case 'hero':
             return <HeroRenderer settings={settings} viewMode={viewMode} />;
         case 'product_grid':
-            return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} />;
+            return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} />;
         case 'heading':
             return (
                 <div className="px-12 py-8 bg-white">
