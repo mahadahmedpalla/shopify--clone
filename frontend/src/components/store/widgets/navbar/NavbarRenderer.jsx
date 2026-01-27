@@ -26,22 +26,26 @@ export function NavbarRenderer({ settings, viewMode, store }) {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [lastScroll, settings.stickyMode]);
 
-    const isSticky = settings.stickyMode === 'always' || (settings.stickyMode === 'scroll' && scrolled) || (settings.stickyMode === 'hide' && scrolled);
-    const isHidden = settings.stickyMode === 'hide' && scrolled && !visible;
+    const stickyMode = rVal('stickyMode', settings.stickyMode);
+    const isSticky = stickyMode === 'always' || (stickyMode === 'scroll' && scrolled) || (stickyMode === 'hide' && scrolled);
+    const isHidden = stickyMode === 'hide' && scrolled && !visible;
+
+    // Helper to get array of menu items safely
+    const menuItems = rVal('menuItems', settings.menuItems || []);
 
     return (
         <>
             <div
                 className={`flex items-center justify-center transition-all duration-500 w-full z-40 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
                 style={{
-                    backgroundColor: settings.bgColor,
-                    color: settings.textColor,
+                    backgroundColor: rVal('bgColor', settings.bgColor),
+                    color: rVal('textColor', settings.textColor),
                     height: rVal('height', settings.height),
                     borderRadius: rVal('borderRadius', settings.borderRadius),
-                    borderBottom: `${rVal('borderWidth', settings.borderWidth)} solid ${settings.borderColor}`,
-                    boxShadow: settings.shadow === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : settings.shadow === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
-                    opacity: settings.opacity,
-                    backdropFilter: settings.blur ? `blur(${settings.blur})` : 'none',
+                    borderBottom: `${rVal('borderWidth', settings.borderWidth)} solid ${rVal('borderColor', settings.borderColor)}`,
+                    boxShadow: rVal('shadow', settings.shadow) === 'soft' ? '0 4px 6px -1px rgb(0 0 0 / 0.1)' : rVal('shadow', settings.shadow) === 'strong' ? '0 10px 15px -3px rgb(0 0 0 / 0.1)' : 'none',
+                    opacity: rVal('opacity', settings.opacity),
+                    backdropFilter: rVal('blur', settings.blur) ? `blur(${rVal('blur', settings.blur)})` : 'none',
                     position: isSticky ? 'sticky' : 'relative',
                     top: 0
                 }}
@@ -49,7 +53,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                 <div
                     className="flex items-center w-full px-6"
                     style={{
-                        maxWidth: settings.maxWidth,
+                        maxWidth: rVal('maxWidth', settings.maxWidth),
                         justifyContent: rVal('alignment', settings.alignment),
                         gap: rVal('gap', settings.gap)
                     }}
@@ -57,13 +61,13 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                     {/* Logo & Store Name */}
                     <div className="flex items-center" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }}>
                         <div className="flex items-center">
-                            {settings.logoUrl ? (
-                                <img src={settings.logoUrl} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
+                            {rVal('logoUrl', settings.logoUrl) ? (
+                                <img src={rVal('logoUrl', settings.logoUrl)} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
                             ) : (
                                 <div className="h-8 w-12 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[10px]">LOGO</div>
                             )}
                         </div>
-                        {settings.showStoreName && (
+                        {rVal('showStoreName', settings.showStoreName) && (
                             <span
                                 className="font-bold text-sm tracking-tight truncate max-w-[150px]"
                                 style={{ fontSize: rVal('fontSize', settings.fontSize) }}
@@ -80,17 +84,17 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                             (viewMode === 'tablet' && !settings.hamburgerTablet) ||
                             (viewMode === 'mobile' && !settings.hamburgerMobile)
                         ) ? 'flex' : 'none',
-                        gap: settings.gap
+                        gap: rVal('gap', settings.gap)
                     }}>
-                        {(settings.menuItems || []).map(item => (
+                        {menuItems.map(item => (
                             <span
                                 key={item.id}
                                 className="cursor-pointer hover:opacity-75 transition-opacity flex items-center uppercase tracking-tight"
                                 style={{
-                                    color: settings.textColor,
-                                    fontFamily: settings.fontFamily || 'Inter, sans-serif',
-                                    fontSize: settings.fontSize || '14px',
-                                    fontWeight: settings.fontWeight || '600'
+                                    color: rVal('textColor', settings.textColor),
+                                    fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
+                                    fontSize: rVal('fontSize', settings.fontSize) || '14px',
+                                    fontWeight: rVal('fontWeight', settings.fontWeight) || '600'
                                 }}
                             >
                                 {item.label}
@@ -126,12 +130,12 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                         </button>
                     </div>
                     <div className="flex flex-col space-y-6">
-                        {(settings.menuItems || []).map(item => (
+                        {menuItems.map(item => (
                             <div key={item.id} className="text-2xl border-b border-slate-100 pb-4 flex items-center justify-between group">
                                 <span style={{
-                                    fontFamily: settings.fontFamily || 'Inter, sans-serif',
-                                    fontWeight: settings.fontWeight || '700',
-                                    color: settings.textColor
+                                    fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
+                                    fontWeight: rVal('fontWeight', settings.fontWeight) || '700',
+                                    color: rVal('textColor', settings.textColor)
                                 }}>
                                     {item.label}
                                 </span>

@@ -39,6 +39,47 @@ export function ProductGridProperties({ settings, onUpdate, categories, viewMode
             </section>
 
             <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filtering & Sorting</h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sort By</label>
+                    <select
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        value={settings.sortBy || 'newest'}
+                        onChange={e => update('sortBy', e.target.value)}
+                    >
+                        <option value="newest">Newest First</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="name_asc">Name: A-Z</option>
+                    </select>
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pagination</h3>
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Enable Pagination</label>
+                    <input
+                        type="checkbox"
+                        checked={settings.enablePagination || false}
+                        onChange={e => update('enablePagination', e.target.checked)}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                </div>
+                {settings.enablePagination && (
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Items Per Page</label>
+                        <input
+                            type="number"
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                            value={settings.itemsPerPage || 12}
+                            onChange={e => update('itemsPerPage', parseInt(e.target.value))}
+                        />
+                    </div>
+                )}
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Layout</h3>
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">

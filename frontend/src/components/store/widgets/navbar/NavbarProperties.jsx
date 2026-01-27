@@ -48,6 +48,12 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
         </span>
     ) : null;
 
+    const forceGlobalUpdate = (key, val) => {
+        onUpdate({ ...settings, [key]: val });
+    };
+
+    const menuItems = getV('menuItems', []) || [];
+
     return (
         <div className="space-y-6">
             <section className="space-y-4">
@@ -69,8 +75,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                     </div>
                 </div>
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Shadow</label>
-                    <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={settings.shadow} onChange={e => update('shadow', e.target.value)}>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Shadow <ResponsiveIndicator k="shadow" /></label>
+                    <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={getV('shadow', 'none')} onChange={e => update('shadow', e.target.value)}>
                         <option value="none">None</option>
                         <option value="soft">Soft</option>
                         <option value="strong">Strong</option>
@@ -150,22 +156,22 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Behavior</h3>
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sticky Mode</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Sticky Mode <ResponsiveIndicator k="stickyMode" /></label>
                     <div className="grid grid-cols-1 gap-2">
                         <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
-                            <input type="radio" name="sticky" checked={settings.stickyMode === 'none'} onChange={() => update('stickyMode', 'none')} />
+                            <input type="radio" name="sticky" checked={getV('stickyMode', 'none') === 'none'} onChange={() => update('stickyMode', 'none')} />
                             <span>Static (No Sticky)</span>
                         </label>
                         <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
-                            <input type="radio" name="sticky" checked={settings.stickyMode === 'always'} onChange={() => update('stickyMode', 'always')} />
+                            <input type="radio" name="sticky" checked={getV('stickyMode') === 'always'} onChange={() => update('stickyMode', 'always')} />
                             <span>Always Sticky</span>
                         </label>
                         <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
-                            <input type="radio" name="sticky" checked={settings.stickyMode === 'scroll'} onChange={() => update('stickyMode', 'scroll')} />
+                            <input type="radio" name="sticky" checked={getV('stickyMode') === 'scroll'} onChange={() => update('stickyMode', 'scroll')} />
                             <span>Sticky on Scroll</span>
                         </label>
                         <label className="flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
-                            <input type="radio" name="sticky" checked={settings.stickyMode === 'hide'} onChange={() => update('stickyMode', 'hide')} />
+                            <input type="radio" name="sticky" checked={getV('stickyMode') === 'hide'} onChange={() => update('stickyMode', 'hide')} />
                             <span>Hide on Scroll</span>
                         </label>
                     </div>
@@ -176,15 +182,15 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                     <div className="flex flex-col space-y-2">
                         <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
                             <span className="flex items-center"><Monitor className="h-3 w-3 mr-2 text-slate-400" /> PC</span>
-                            <input type="checkbox" checked={settings.hamburgerPC} onChange={e => update('hamburgerPC', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                            <input type="checkbox" checked={settings.hamburgerPC} onChange={e => forceGlobalUpdate('hamburgerPC', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                         </label>
                         <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
                             <span className="flex items-center"><Tablet className="h-3 w-3 mr-2 text-slate-400" /> Tablet</span>
-                            <input type="checkbox" checked={settings.hamburgerTablet} onChange={e => update('hamburgerTablet', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                            <input type="checkbox" checked={settings.hamburgerTablet} onChange={e => forceGlobalUpdate('hamburgerTablet', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                         </label>
                         <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
                             <span className="flex items-center"><Smartphone className="h-3 w-3 mr-2 text-slate-400" /> Mobile</span>
-                            <input type="checkbox" checked={settings.hamburgerMobile} onChange={e => update('hamburgerMobile', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                            <input type="checkbox" checked={settings.hamburgerMobile} onChange={e => forceGlobalUpdate('hamburgerMobile', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                         </label>
                     </div>
                 </div>
@@ -263,10 +269,10 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
             {/* Menu Items - Using SortableContext if we want reordering */}
             <section className="space-y-4 pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu Items</h3>
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center">Menu Items <ResponsiveIndicator k="menuItems" /></h3>
                     <button
                         onClick={() => {
-                            const newItems = [...(settings.menuItems || []), { id: Math.random().toString(36), label: 'New Link', type: 'page', value: 'home' }];
+                            const newItems = [...menuItems, { id: Math.random().toString(36), label: 'New Link', type: 'page', value: 'home' }];
                             update('menuItems', newItems);
                         }}
                         className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
@@ -276,13 +282,13 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                 </div>
 
                 <div className="space-y-2">
-                    {(settings.menuItems || []).map((item, idx) => (
+                    {menuItems.map((item, idx) => (
                         <div key={item.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2 group">
                             <div className="flex items-center justify-between">
                                 <span className="text-[9px] font-bold text-slate-400 uppercase">Item {idx + 1}</span>
                                 <button
                                     onClick={() => {
-                                        const newItems = settings.menuItems.filter((_, i) => i !== idx);
+                                        const newItems = menuItems.filter((_, i) => i !== idx);
                                         update('menuItems', newItems);
                                     }}
                                     className="text-slate-300 hover:text-red-500"
@@ -297,8 +303,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                     className="flex-1 bg-white border border-slate-200 rounded p-1 text-[9px] font-bold"
                                     value={item.label}
                                     onChange={e => {
-                                        const newItems = [...settings.menuItems];
-                                        newItems[idx].label = e.target.value;
+                                        const newItems = [...menuItems];
+                                        newItems[idx] = { ...newItems[idx], label: e.target.value };
                                         update('menuItems', newItems);
                                     }}
                                 />
@@ -307,9 +313,12 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                 className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
                                 value={item.type}
                                 onChange={e => {
-                                    const newItems = [...settings.menuItems];
-                                    newItems[idx].type = e.target.value;
-                                    newItems[idx].value = ''; // Reset value on type change
+                                    const newItems = [...menuItems];
+                                    newItems[idx] = {
+                                        ...newItems[idx],
+                                        type: e.target.value,
+                                        value: '' // Reset value
+                                    };
                                     update('menuItems', newItems);
                                 }}
                             >
@@ -325,8 +334,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                     className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
                                     value={item.value}
                                     onChange={e => {
-                                        const newItems = [...settings.menuItems];
-                                        newItems[idx].value = e.target.value;
+                                        const newItems = [...menuItems];
+                                        newItems[idx] = { ...newItems[idx], value: e.target.value };
                                         // Auto-update label if blank
                                         if (!newItems[idx].label || newItems[idx].label === 'New Link') {
                                             const cat = categories.find(c => c.id === e.target.value);
@@ -352,8 +361,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                         value={products.some(p => p.id === item.value) ? item.value : 'manual'}
                                         onChange={e => {
                                             if (e.target.value === 'manual') return;
-                                            const newItems = [...settings.menuItems];
-                                            newItems[idx].value = e.target.value;
+                                            const newItems = [...menuItems];
+                                            newItems[idx] = { ...newItems[idx], value: e.target.value };
                                             const prod = products.find(p => p.id === e.target.value);
                                             if (prod && (!newItems[idx].label || newItems[idx].label === 'New Link')) {
                                                 newItems[idx].label = prod.name;
@@ -373,8 +382,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                             placeholder="Paste Product ID here..."
                                             value={item.value}
                                             onChange={e => {
-                                                const newItems = [...settings.menuItems];
-                                                newItems[idx].value = e.target.value;
+                                                const newItems = [...menuItems];
+                                                newItems[idx] = { ...newItems[idx], value: e.target.value };
                                                 update('menuItems', newItems);
                                             }}
                                         />
@@ -385,8 +394,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                     className="w-full bg-white border border-slate-200 rounded p-1 text-[9px] font-medium"
                                     value={item.value}
                                     onChange={e => {
-                                        const newItems = [...settings.menuItems];
-                                        newItems[idx].value = e.target.value;
+                                        const newItems = [...menuItems];
+                                        newItems[idx] = { ...newItems[idx], value: e.target.value };
                                         // Auto-update label if blank
                                         if (!newItems[idx].label || newItems[idx].label === 'New Link') {
                                             const p = storePages.find(p => p.slug === e.target.value);
@@ -406,8 +415,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                     placeholder="e.g. https://..."
                                     value={item.value}
                                     onChange={e => {
-                                        const newItems = [...settings.menuItems];
-                                        newItems[idx].value = e.target.value;
+                                        const newItems = [...menuItems];
+                                        newItems[idx] = { ...newItems[idx], value: e.target.value };
                                         update('menuItems', newItems);
                                     }}
                                 />
