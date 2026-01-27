@@ -365,8 +365,13 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                     }}
                                 >
                                     <option value="">Select Category...</option>
-                                    {categories.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    {categories.filter(c => !c.parent_id).map(parent => (
+                                        <React.Fragment key={parent.id}>
+                                            <option value={parent.id} className="font-bold">{parent.name}</option>
+                                            {categories.filter(c => c.parent_id === parent.id).map(child => (
+                                                <option key={child.id} value={child.id}>&nbsp;&nbsp;↳ {child.name}</option>
+                                            ))}
+                                        </React.Fragment>
                                     ))}
                                 </select>
                             ) : item.type === 'product' ? (
