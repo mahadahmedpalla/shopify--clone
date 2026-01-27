@@ -91,12 +91,22 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
         ? foundVariant.image_urls
         : (displayProduct.image_urls || []);
 
-    // Effect: Reset selection on product change
+    // Effect: Reset selection on product change OR Init selection
     useEffect(() => {
-        setSelectedAttrs({});
-        setSelectedImage(0);
         setQty(1);
-    }, [displayProduct.id]);
+        setSelectedImage(0);
+
+        // Auto-select first variant if available and nothing selected (or product changed)
+        if (displayProduct.product_variants?.length > 0) {
+            const firstVariant = displayProduct.product_variants[0];
+            if (firstVariant && firstVariant.combination) {
+                setSelectedAttrs(firstVariant.combination);
+            }
+        } else {
+            setSelectedAttrs({});
+        }
+
+    }, [displayProduct.id]); // Only runs when product ID changes (initial load or nav)
 
     // Effect: Fetch Related
     useEffect(() => {
@@ -106,8 +116,6 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
     }, [displayProduct.id, showRelated]);
 
     const fetchRelated = async () => {
-        // Simple related: same store, exclude current
-        // In future: same category
         const { data } = await supabase
             .from('products')
             .select('*')
@@ -141,16 +149,52 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
     const discountPct = hasDiscount ? Math.round(((displayProduct.comparePrice - currentPrice) / displayProduct.comparePrice) * 100) : 0;
 
     // -- HANDLERS --
-    const handleAttributeSelect = (key, value) => {
-        const newAttrs = { ...selectedAttrs, [key]: value };
-        setSelectedAttrs(newAttrs);
 
-        // Auto-switch image if we find a variant with this exact partial match that has an image? 
-        // For complexity, let's keep it simple: we wait for full match or just rely on 'foundVariant'.
-        // BUT, user asked for "jump to that specific media gallery". 
-        // If the NEW variant (foundVariant) changes, we reset image index.
+    // SMART ATTRIBUTE SELECTION
+    const handleAttributeSelect = (key, value) => {
+        // 1. Proposed new state
+        const proposedAttrs = { ...selectedAttrs, [key]: value };
+
+        // 2. Check strict validity (does a variant exist with EXACT proposed set?)
+        const exactMatch = displayProduct.product_variants.find(v => {
+            return Object.entries(proposedAttrs).every(([k, val]) => v.combination[k] === val);
+        });
+
+        if (exactMatch) {
+            // Valid move, apply it
+            setSelectedAttrs(proposedAttrs);
+        } else {
+            // INVALID move. "Ghost State" would occur.
+            // AUTO-CORRECTION: Find the first best variant that has the NEW attribute value.
+            // e.g. If User clicks "Size: Large", find ANY variant with Size: Large.
+            // This implicitly switches other attributes (like Color) to make it valid.
+
+            // We prioritize matching AS MANY of current attributes as possible? 
+            // Or just jump to the first one?
+            // "first the user can directly jump to that specific media galley"
+            // Simple approach: Find first variant with this specific new Key/Value.
+
+            const bestMatch = displayProduct.product_variants.find(v => v.combination[key] === value);
+
+            if (bestMatch) {
+                // Adopt the entire valid combination from the match
+                setSelectedAttrs(bestMatch.combination);
+            }
+        }
+
+        // Reset image slide
         setSelectedImage(0);
     };
+
+    // Helper to check if an option is available with CURRENT other selections
+    // Used for visual feedback (e.g. opacity)
+    const isOptionAvailableStrict = (key, value) => {
+        const proposedAttrs = { ...selectedAttrs, [key]: value };
+        return displayProduct.product_variants.some(v => {
+            return Object.entries(proposedAttrs).every(([k, val]) => v.combination[k] === val);
+        });
+    };
+
 
     return (
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${isMobile ? 'py-6' : ''}`}>
@@ -177,8 +221,6 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                 <Box className="h-16 w-16 opacity-50" />
                             </div>
                         )}
-
-                        {/* Mobile slider dots could go here */}
                     </div>
 
                     {/* Thumbnails */}
@@ -207,10 +249,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                 <div className={`flex flex-col ${alignment === 'center' ? 'items-center text-center' : alignment === 'right' ? 'items-end text-right' : 'items-start text-left'}`}>
                     <div className="mb-6 w-full">
 
-                        {/* Tag & Title */}
-                        <div className="mb-2">
-                            {/* Optional Category or Eyebrow text could go here */}
-                        </div>
+                        {/* Title */}
                         <TitleTag
                             className={`leading-tight mb-4 font-${titleWeight} text-${titleSize}`}
                             style={{
@@ -275,7 +314,6 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                             <div className={`space-y-6 mb-8 w-full ${alignment === 'center' ? 'max-w-md mx-auto' : ''}`}>
                                 {attributeKeys.map(key => {
                                     // Get all possible values for this key
-                                    // Simplification: showing all values that exist in any variant
                                     const values = new Set();
                                     displayProduct.product_variants.forEach(v => {
                                         if (v.combination?.[key]) values.add(v.combination[key]);
@@ -287,19 +325,30 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                             <div className={`flex flex-wrap gap-2 ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : ''}`}>
                                                 {Array.from(values).map(val => {
                                                     const isSelected = selectedAttrs[key] === val;
+                                                    // Check if available with CURRENT selections (for styling)
+                                                    const isAvailable = isOptionAvailableStrict(key, val);
+
                                                     return (
                                                         <button
                                                             key={val}
                                                             onClick={() => handleAttributeSelect(key, val)}
                                                             className={`
-                                                                px-4 py-2 rounded-lg text-sm font-medium transition-all border
+                                                                px-4 py-2 rounded-lg text-sm font-medium transition-all border relative
                                                                 ${isSelected
-                                                                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg transform scale-105'
-                                                                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                                                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg transform scale-105 z-10'
+                                                                    : isAvailable
+                                                                        ? 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                                                        : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'
                                                                 }
                                                             `}
+                                                            title={!isAvailable ? 'This option overlaps with other attributes' : ''}
                                                         >
                                                             {val}
+                                                            {!isAvailable && !isSelected && (
+                                                                <span className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                                                                    <div className="w-full h-px bg-slate-900 rotate-45 transform scale-125"></div>
+                                                                </span>
+                                                            )}
                                                         </button>
                                                     );
                                                 })}
