@@ -333,7 +333,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                                             key={val}
                                                             onClick={() => handleAttributeSelect(key, val)}
                                                             className={`
-                                                                px-4 py-2 rounded-lg text-sm font-medium transition-all border relative
+                                                                px-4 py-2 rounded-lg text-sm font-medium transition-all border relative overflow-hidden
                                                                 ${isSelected
                                                                     ? 'bg-slate-900 text-white border-slate-900 shadow-lg transform scale-105 z-10'
                                                                     : isAvailable
@@ -345,8 +345,8 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                                         >
                                                             {val}
                                                             {!isAvailable && !isSelected && (
-                                                                <span className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                                                                    <div className="w-full h-px bg-slate-900 rotate-45 transform scale-125"></div>
+                                                                <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                    <div className="w-[120%] h-px bg-red-400 rotate-[-45deg] transform origin-center"></div>
                                                                 </span>
                                                             )}
                                                         </button>
