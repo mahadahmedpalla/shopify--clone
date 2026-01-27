@@ -46,7 +46,10 @@ export function PublicProductPage() {
             // 2. Fetch Product
             const { data: prodData, error: prodError } = await supabase
                 .from('products')
-                .select('*')
+                .select(`
+                    *,
+                    product_variants (*)
+                `)
                 .eq('id', productId)
                 .single();
 
