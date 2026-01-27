@@ -109,12 +109,9 @@ export function StoreBuilder() {
         const { data: prods } = await supabase.from('products').select('*').eq('store_id', storeId);
         setProducts(prods || []);
 
-        // Fetch pages (mock)
-        setStorePages([
-            { id: '1', name: 'Home', slug: 'home' },
-            { id: '2', name: 'Shop', slug: 'shop' },
-            { id: '3', name: 'About', slug: 'about' }
-        ]);
+        // Fetch pages
+        const { data: pagesData } = await supabase.from('store_pages').select('*').eq('store_id', storeId);
+        setStorePages(pagesData || []);
     };
 
     const fetchPage = async () => {

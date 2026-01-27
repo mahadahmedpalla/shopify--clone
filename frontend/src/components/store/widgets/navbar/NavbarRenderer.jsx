@@ -29,6 +29,17 @@ export function NavbarRenderer({ settings, viewMode, store }) {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [lastScroll, settings.stickyMode, settings.responsive, viewMode]);
 
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [mobileMenuOpen]);
+
     const stickyMode = rVal('stickyMode', settings.stickyMode);
     const isSticky = stickyMode === 'always' || (stickyMode === 'scroll' && scrolled) || (stickyMode === 'hide' && scrolled);
     const isHidden = stickyMode === 'hide' && scrolled && !visible;
@@ -124,17 +135,29 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                 </div>
             </div>
 
-            {/* Mobile Menu Preview Overlay */}
-            {mobileMenuOpen && (
-                <div className="absolute inset-0 bg-white z-[100] p-6 flex flex-col animate-in slide-in-from-right overflow-y-auto cursor-default" onClick={(e) => e.stopPropagation()}>
+            {/* Mobile Menu Overlay */}
+            <div
+                className={`fixed inset-0 z-[200] transition-opacity duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            >
+                {/* Backdrop */}
+                <div
+                    className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+
+                {/* Menu Panel */}
+                <div
+                    className={`absolute top-0 right-0 h-full w-[300px] bg-white shadow-2xl p-6 flex flex-col transition-transform duration-300 ease-out transform ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <div className="flex justify-end mb-8">
                         <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
                             <X className="h-6 w-6" />
                         </button>
                     </div>
-                    <div className="flex flex-col space-y-6">
+                    <div className="flex flex-col space-y-6 overflow-y-auto">
                         {menuItems.map(item => (
-                            <div key={item.id} className="text-2xl border-b border-slate-100 pb-4 flex items-center justify-between group">
+                            <div key={item.id} className="text-xl border-b border-slate-100 pb-4 flex items-center justify-between group cursor-pointer hover:pl-2 transition-all">
                                 <span style={{
                                     fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
                                     fontWeight: rVal('fontWeight', settings.fontWeight) || '700',
@@ -147,7 +170,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                         ))}
                     </div>
                 </div>
-            )}
+            </div>
         </>
     );
 }
