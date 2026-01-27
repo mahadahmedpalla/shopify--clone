@@ -527,6 +527,17 @@ export function StoreBuilder() {
                                             setSelectedElement({ ...selectedElement, settings: newSettings });
                                         }}
                                     />
+                                ) : selectedElement.type === 'product_detail' ? (
+                                    <ProductDetailProperties
+                                        settings={selectedElement.settings}
+                                        onUpdate={newSettings => {
+                                            const newContent = canvasContent.map(c =>
+                                                c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                            );
+                                            setCanvasContent(newContent);
+                                            setSelectedElement({ ...selectedElement, settings: newSettings });
+                                        }}
+                                    />
                                 ) : (
                                     <div className="space-y-4">
                                         <div>
