@@ -151,38 +151,11 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
     // -- HANDLERS --
 
     // SMART ATTRIBUTE SELECTION
+    // SMART ATTRIBUTE SELECTION
     const handleAttributeSelect = (key, value) => {
-        // 1. Proposed new state
+        // Simple update - allow invalid combinations (User Request)
         const proposedAttrs = { ...selectedAttrs, [key]: value };
-
-        // 2. Check strict validity (does a variant exist with EXACT proposed set?)
-        const exactMatch = displayProduct.product_variants.find(v => {
-            return Object.entries(proposedAttrs).every(([k, val]) => v.combination[k] === val);
-        });
-
-        if (exactMatch) {
-            // Valid move, apply it
-            setSelectedAttrs(proposedAttrs);
-        } else {
-            // INVALID move. "Ghost State" would occur.
-            // AUTO-CORRECTION: Find the first best variant that has the NEW attribute value.
-            // e.g. If User clicks "Size: Large", find ANY variant with Size: Large.
-            // This implicitly switches other attributes (like Color) to make it valid.
-
-            // We prioritize matching AS MANY of current attributes as possible? 
-            // Or just jump to the first one?
-            // "first the user can directly jump to that specific media galley"
-            // Simple approach: Find first variant with this specific new Key/Value.
-
-            const bestMatch = displayProduct.product_variants.find(v => v.combination[key] === value);
-
-            if (bestMatch) {
-                // Adopt the entire valid combination from the match
-                setSelectedAttrs(bestMatch.combination);
-            }
-        }
-
-        // Reset image slide
+        setSelectedAttrs(proposedAttrs);
         setSelectedImage(0);
     };
 
@@ -194,6 +167,17 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
             return Object.entries(proposedAttrs).every(([k, val]) => v.combination[k] === val);
         });
     };
+
+    // Determine button state
+    const isSelectionComplete = attributeKeys.every(k => selectedAttrs[k]);
+    const isVariantValid = !!foundVariant;
+    const buttonLabel = !isSelectionComplete
+        ? 'Select Options'
+        : !isVariantValid
+            ? 'Unavailable'
+            : currentQty === 0
+                ? 'Out of Stock'
+                : 'Add to Cart';
 
 
     return (
@@ -383,12 +367,18 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
 
                             <div className="flex space-x-4">
                                 <button
-                                    onClick={() => !isEditor && addToCart(foundVariant || displayProduct, qty)}
-                                    disabled={currentQty === 0 || isEditor}
-                                    className="flex-1 bg-slate-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center group"
+                                    onClick={() => !isEditor && isVariantValid && addToCart(foundVariant || displayProduct, qty)}
+                                    disabled={!isVariantValid || currentQty === 0 || isEditor}
+                                    className={`
+                                        flex-1 py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl flex items-center justify-center group
+                                        ${(!isVariantValid || currentQty === 0 || isEditor)
+                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                            : 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
+                                        }
+                                    `}
                                 >
-                                    <ShoppingCart className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
-                                    {currentQty === 0 ? 'Out of Stock' : 'Add to Cart'}
+                                    <ShoppingCart className={`h-5 w-5 mr-3 ${(!isVariantValid || currentQty === 0) ? '' : 'group-hover:scale-110'} transition-transform`} />
+                                    {buttonLabel}
                                 </button>
                                 <button
                                     className="p-4 border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-colors"
