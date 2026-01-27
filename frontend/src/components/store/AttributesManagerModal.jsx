@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { X, Settings2, Plus, Trash2, Wand2, Package, Check, ChevronRight, ChevronLeft, Image as ImageIcon } from 'lucide-react';
+import { X, Settings2, Plus, Trash2, Wand2, Package, Check, ChevronRight, ChevronLeft, Image as ImageIcon, Copy } from 'lucide-react';
 
 const COMMON_ATTRIBUTES = ['Size', 'Color', 'Material', 'Style', 'Fit', 'Fabric'];
 
@@ -119,11 +119,36 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
         setVariants(newV);
     };
 
+    const duplicateVariant = (index) => {
+        const vToClone = variants[index];
+        const newV = {
+            ...vToClone,
+            combination: { ...vToClone.combination },
+            image_urls: [...(vToClone.image_urls || [])],
+            // Reset quantity to 0 on copy or keep? User didn't specify, but safer to maybe keep or reset. 
+            // "duplicate the variant with the same values" -> Implies everything same.
+        };
+
+        const updatedVariants = [...variants];
+        updatedVariants.splice(index + 1, 0, newV);
+        setVariants(updatedVariants);
+    };
+
     const handleSave = async () => {
         setLoading(true);
         setError(null);
 
         try {
+            // Validation: Check if all attributes are filled
+            for (let i = 0; i < variants.length; i++) {
+                const combo = variants[i].combination;
+                for (const attr of selectedAttributes) {
+                    if (!combo[attr.name] || combo[attr.name].trim() === '') {
+                        throw new Error(`Variant #${i + 1}: Please fill in value for ${attr.name}`);
+                    }
+                }
+            }
+
             // 1. Delete old variants for this product to avoid duplicates/conflicts
             await supabase.from('product_variants').delete().eq('product_id', product.id);
 
@@ -326,6 +351,13 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                 </div>
                                                 <div className="flex items-center space-x-3">
                                                     <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">Variant #{vIdx + 1}</span>
+                                                    <button
+                                                        onClick={() => duplicateVariant(vIdx)}
+                                                        title="Duplicate this variation"
+                                                        className="text-slate-300 hover:text-indigo-500 transition-colors"
+                                                    >
+                                                        <Copy className="h-3.5 w-3.5" />
+                                                    </button>
                                                     <button
                                                         onClick={() => removeVariant(vIdx)}
                                                         title="Delete this variation"
