@@ -360,8 +360,9 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                     </button>
                                                     <button
                                                         onClick={() => removeVariant(vIdx)}
-                                                        title="Delete this variation"
-                                                        className="text-red-300 hover:text-red-500 transition-colors"
+                                                        title={variants.length === 1 ? "Cannot delete the last variant" : "Delete this variation"}
+                                                        disabled={variants.length === 1}
+                                                        className={`transition-colors ${variants.length === 1 ? 'text-slate-200 cursor-not-allowed' : 'text-red-300 hover:text-red-500'}`}
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />
                                                     </button>
