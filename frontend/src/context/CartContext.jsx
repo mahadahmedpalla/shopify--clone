@@ -4,7 +4,20 @@ const CartContext = createContext();
 
 export const useCart = () => {
     const context = useContext(CartContext);
-    if (!context) throw new Error('useCart must be used within a CartProvider');
+    if (!context) {
+        console.warn('useCart used outside of CartProvider');
+        return {
+            cart: [],
+            addToCart: () => { },
+            removeFromCart: () => { },
+            updateQuantity: () => { },
+            clearCart: () => { },
+            isOpen: false,
+            setIsOpen: () => { },
+            cartTotal: 0,
+            cartCount: 0
+        };
+    }
     return context;
 };
 
