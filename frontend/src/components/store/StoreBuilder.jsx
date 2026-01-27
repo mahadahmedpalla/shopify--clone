@@ -31,7 +31,7 @@ import {
 // New Modular Imports
 import { NavbarProperties } from './widgets/navbar/NavbarProperties';
 import { HeroProperties } from './widgets/hero/HeroProperties';
-import { HeroProperties } from './widgets/hero/HeroProperties';
+
 import { ProductGridProperties } from './widgets/product_grid/ProductGridProperties';
 import { ProductDetailProperties } from './widgets/product_detail/ProductDetailProperties';
 

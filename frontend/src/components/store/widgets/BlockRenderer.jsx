@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavbarRenderer } from './navbar/NavbarRenderer';
 import { HeroRenderer } from './hero/HeroRenderer';
-import { HeroRenderer } from './hero/HeroRenderer';
+
 import { ProductGridRenderer } from './product_grid/ProductGridRenderer';
 import { ProductDetailRenderer } from './product_detail/ProductDetailRenderer';
 
