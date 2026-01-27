@@ -15,7 +15,10 @@ export function NavbarRenderer({ settings, viewMode, store }) {
             const currentScroll = window.scrollY || document.documentElement.scrollTop;
             setScrolled(currentScroll > 50);
 
-            if (settings.stickyMode === 'hide') {
+            // Use responsive stickyMode
+            const mode = rVal('stickyMode', settings.stickyMode);
+
+            if (mode === 'hide') {
                 setVisible(currentScroll < lastScroll || currentScroll < 100);
             } else {
                 setVisible(true);
@@ -24,7 +27,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScroll, settings.stickyMode]);
+    }, [lastScroll, settings.stickyMode, settings.responsive, viewMode]);
 
     const stickyMode = rVal('stickyMode', settings.stickyMode);
     const isSticky = stickyMode === 'always' || (stickyMode === 'scroll' && scrolled) || (stickyMode === 'hide' && scrolled);
