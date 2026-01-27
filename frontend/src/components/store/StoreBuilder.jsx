@@ -202,6 +202,13 @@ export function StoreBuilder() {
         }
     };
 
+    const handleDragStart = (event) => {
+        const { active } = event;
+        // Find the full block object to set as dragged
+        const block = canvasContent.find(c => c.id === active.id);
+        if (block) setDraggedWidget(block);
+    };
+
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (!over) return;
