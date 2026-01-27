@@ -147,7 +147,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
 
                 {/* Menu Panel */}
                 <div
-                    className={`absolute top-0 right-0 h-full w-[300px] bg-white shadow-2xl p-6 flex flex-col transition-transform duration-300 ease-out transform ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+                    className={`absolute top-0 ${settings.mobileMenuDirection === 'left' ? 'left-0' : 'right-0'} h-full w-[300px] bg-white shadow-2xl p-6 flex flex-col transition-transform duration-300 ease-out transform ${mobileMenuOpen ? 'translate-x-0' : (settings.mobileMenuDirection === 'left' ? '-translate-x-full' : 'translate-x-full')}`}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="flex justify-end mb-8">
