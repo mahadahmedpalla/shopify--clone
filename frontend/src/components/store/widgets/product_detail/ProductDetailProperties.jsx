@@ -2,7 +2,7 @@ import React from 'react';
 import {
     AlignLeft, AlignCenter, AlignRight, Eye, EyeOff, Layout,
     Smartphone, Monitor, Type, Image as ImageIcon, Box, Tag,
-    Percent, DollarSign, MessageSquare
+    Percent, DollarSign
 } from 'lucide-react';
 
 /* Simple components for the properties panel */

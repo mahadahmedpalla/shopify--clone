@@ -2,13 +2,11 @@ import React from 'react';
 import { Settings, Info } from 'lucide-react';
 
 export const ProductReviewsProperties = ({ settings, onUpdate }) => {
-    // Current Styles
-    const style = settings.style || {};
 
     const handleChange = (key, value) => {
         onUpdate({
             ...settings,
-            style: { ...style, [key]: value }
+            [key]: value
         });
     };
 
@@ -24,7 +22,7 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                 <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Layout Style</label>
                     <select
-                        value={style.layoutMode || 'simple'}
+                        value={settings.layoutMode || 'simple'}
                         onChange={(e) => handleChange('layoutMode', e.target.value)}
                         className="w-full text-sm border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                     >
@@ -37,7 +35,7 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                     <label className="flex items-start space-x-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            checked={style.allowVerifiedOnly || false}
+                            checked={settings.allowVerifiedOnly || false}
                             onChange={(e) => handleChange('allowVerifiedOnly', e.target.checked)}
                             className="mt-0.5 h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                         />
@@ -52,7 +50,7 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                     <label className="flex items-center space-x-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            checked={style.allowMedia || false}
+                            checked={settings.allowMedia || false}
                             onChange={(e) => handleChange('allowMedia', e.target.checked)}
                             className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                         />
@@ -62,7 +60,7 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                     <label className="flex items-center space-x-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            checked={style.hideIfEmpty || false}
+                            checked={settings.hideIfEmpty || false}
                             onChange={(e) => handleChange('hideIfEmpty', e.target.checked)}
                             className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                         />
@@ -73,7 +71,7 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                 <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Sorting</label>
                     <select
-                        value={style.sortOrder || 'newest'}
+                        value={settings.sortOrder || 'newest'}
                         onChange={(e) => handleChange('sortOrder', e.target.value)}
                         className="w-full text-sm border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                     >
@@ -98,11 +96,11 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                         <div className="flex items-center space-x-2">
                             <input
                                 type="color"
-                                value={style.starColor || '#FACC15'}
+                                value={settings.starColor || '#FACC15'}
                                 onChange={(e) => handleChange('starColor', e.target.value)}
                                 className="h-8 w-8 rounded cursor-pointer border-0 p-0"
                             />
-                            <span className="text-xs text-slate-400 font-mono">{style.starColor || '#FACC15'}</span>
+                            <span className="text-xs text-slate-400 font-mono">{settings.starColor || '#FACC15'}</span>
                         </div>
                     </div>
 
@@ -111,11 +109,11 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                         <div className="flex items-center space-x-2">
                             <input
                                 type="color"
-                                value={style.buttonColor || '#4F46E5'}
+                                value={settings.buttonColor || '#4F46E5'}
                                 onChange={(e) => handleChange('buttonColor', e.target.value)}
                                 className="h-8 w-8 rounded cursor-pointer border-0 p-0"
                             />
-                            <span className="text-xs text-slate-400 font-mono">{style.buttonColor || '#4F46E5'}</span>
+                            <span className="text-xs text-slate-400 font-mono">{settings.buttonColor || '#4F46E5'}</span>
                         </div>
                     </div>
 
@@ -124,11 +122,11 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                         <div className="flex items-center space-x-2">
                             <input
                                 type="color"
-                                value={style.textColor || '#1F2937'}
+                                value={settings.textColor || '#1F2937'}
                                 onChange={(e) => handleChange('textColor', e.target.value)}
                                 className="h-8 w-8 rounded cursor-pointer border-0 p-0"
                             />
-                            <span className="text-xs text-slate-400 font-mono">{style.textColor || '#1F2937'}</span>
+                            <span className="text-xs text-slate-400 font-mono">{settings.textColor || '#1F2937'}</span>
                         </div>
                     </div>
                 </div>

@@ -228,101 +228,116 @@ export function StoreBuilder() {
         setDraggedWidget(null);
     };
 
+    const getWidgetDefaults = (type) => {
+        return type === 'navbar' ? {
+            bgColor: '#ffffff',
+            textColor: '#1e293b',
+            hoverColor: '#4f46e5',
+            activeColor: '#4f46e5',
+            borderColor: '#e2e8f0',
+            borderRadius: '0px',
+            borderWidth: '0px',
+            shadow: 'soft',
+            opacity: 1,
+            height: '70px',
+            paddingX: '20px',
+            gap: '24px',
+            maxWidth: '1200px',
+            alignment: 'space-between',
+            logoWidth: '120px',
+            showStoreName: false,
+            logoGap: '12px',
+            sticky: 'always',
+            stickyMode: 'always',
+            hamburgerPC: false,
+            hamburgerTablet: true,
+            hamburgerMobile: true,
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            fontWeight: '600',
+            menuItems: [
+                { id: 'm1', label: 'Home', type: 'page', value: 'home' },
+                { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
+            ]
+        } : type === 'hero' ? {
+            title: 'Elevate Your Style',
+            subtitle: 'Discover our premium winter collection.',
+            showContentAboveImage: true,
+            backgroundImage: '',
+            primaryBtnText: 'Shop Now',
+            primaryBtnLink: '',
+            secondaryBtnText: '',
+            secondaryBtnLink: '',
+            heightMode: 'medium',
+            customHeight: '500px',
+            hAlignment: 'center',
+            vAlignment: 'center',
+            maxContentWidth: '800px',
+            overlayColor: '#000000',
+            overlayOpacity: 0.4,
+            useGradient: false,
+            borderRadius: '0px',
+            headingFontFamily: 'Inter, sans-serif',
+            subheadingFontFamily: 'Inter, sans-serif',
+            headingSize: '48px',
+            headingColor: '#ffffff',
+            subheadingSize: '18px',
+            subheadingColor: '#e2e8f0',
+            btnBgColor: '#ffffff',
+            btnTextColor: '#000000',
+            btnPaddingX: '32px',
+            btnPaddingY: '16px',
+            btnFontSize: '16px',
+            btnBorderRadius: '9999px',
+            btnMarginTop: '24px',
+            secondaryBtnBgColor: 'transparent',
+            secondaryBtnTextColor: '#ffffff',
+            mobileHeight: '400px',
+            mobileAlignment: 'center'
+        } : type === 'product_grid' ? {
+            title: 'Featured Collection',
+            categoryId: 'all',
+            limit: 8,
+            columns: {
+                desktop: 4,
+                tablet: 3,
+                mobile: 2
+            }
+        } : type === 'product_reviews' ? {
+            layoutMode: 'simple',
+            allowVerifiedOnly: false,
+            allowMedia: false,
+            hideIfEmpty: false,
+            sortOrder: 'newest',
+            starColor: '#FACC15',
+            buttonColor: '#4F46E5',
+            textColor: '#1F2937'
+        } : {
+            title: type === 'hero' ? 'New Hero Banner' : 'New Title',
+            content: 'Sample content for your ' + type
+        };
+    };
+
     const addWidget = (type) => {
-        const newWidget = {
+        const newWidgets = [];
+
+        // 1. Create Main Widget
+        newWidgets.push({
             id: `${type}-${genId()}`,
             type,
-            settings: type === 'navbar' ? {
-                bgColor: '#ffffff',
-                textColor: '#1e293b',
-                hoverColor: '#4f46e5',
-                activeColor: '#4f46e5',
-                borderColor: '#e2e8f0',
-                borderRadius: '0px',
-                borderWidth: '0px',
-                shadow: 'soft',
-                opacity: 1,
-                height: '70px',
-                paddingX: '20px',
-                gap: '24px',
-                maxWidth: '1200px',
-                alignment: 'space-between',
-                logoWidth: '120px',
-                showStoreName: false,
-                logoGap: '12px',
-                sticky: 'always',
-                stickyMode: 'always', // none, always, scroll, hide
-                hamburgerPC: false,
-                hamburgerTablet: true,
-                hamburgerMobile: true,
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: '600',
-                menuItems: [
-                    { id: 'm1', label: 'Home', type: 'page', value: 'home' },
-                    { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
-                ]
-            } : type === 'hero' ? {
-                title: 'Elevate Your Style',
-                subtitle: 'Discover our premium winter collection.',
-                showContentAboveImage: true,
-                backgroundImage: '',
-                primaryBtnText: 'Shop Now',
-                primaryBtnLink: '',
-                secondaryBtnText: '',
-                secondaryBtnLink: '',
-                // Layout
-                heightMode: 'medium', // small, medium, large, full, custom
-                customHeight: '500px',
-                hAlignment: 'center', // flex-start, center, flex-end
-                vAlignment: 'center', // flex-start, center, flex-end
-                maxContentWidth: '800px',
-                // Style
-                overlayColor: '#000000',
-                overlayOpacity: 0.4,
-                useGradient: false,
-                borderRadius: '0px',
-                headingFontFamily: 'Inter, sans-serif',
-                subheadingFontFamily: 'Inter, sans-serif',
-                headingSize: '48px',
-                headingColor: '#ffffff',
-                subheadingSize: '18px',
-                subheadingColor: '#e2e8f0',
-                // Buttons
-                btnBgColor: '#ffffff',
-                btnTextColor: '#000000',
-                btnPaddingX: '32px',
-                btnPaddingY: '16px',
-                btnFontSize: '16px',
-                btnBorderRadius: '9999px',
-                btnMarginTop: '24px',
-                secondaryBtnBgColor: 'transparent',
-                secondaryBtnTextColor: '#ffffff',
-                // Responsive
-                mobileHeight: '400px',
-                mobileAlignment: 'center'
-            } : type === 'product_grid' ? {
-                title: 'Featured Collection',
-                categoryId: 'all', // all, or specific UUID
-                limit: 8,
-                columns: {
-                    desktop: 4,
-                    tablet: 3,
-                    mobile: 2
-                }
-            } : type === 'product_reviews' ? {
-                allowVerifiedOnly: false,
-                hideIfEmpty: false,
-                sortOrder: 'newest',
-                starColor: '#FACC15',
-                buttonColor: '#4F46E5',
-                textColor: '#1F2937'
-            } : {
-                title: type === 'hero' ? 'New Hero Banner' : 'New Title',
-                content: 'Sample content for your ' + type
-            }
-        };
-        setCanvasContent([...canvasContent, newWidget]);
+            settings: getWidgetDefaults(type)
+        });
+
+        // 2. Twin Drop Logic: If Detail, add Reviews
+        if (type === 'product_detail') {
+            newWidgets.push({
+                id: `product_reviews-${genId()}`,
+                type: 'product_reviews',
+                settings: getWidgetDefaults('product_reviews')
+            });
+        }
+
+        setCanvasContent([...canvasContent, ...newWidgets]);
     };
 
     const deleteWidget = (id) => {
