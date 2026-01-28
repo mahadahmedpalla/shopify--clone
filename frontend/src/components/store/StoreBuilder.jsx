@@ -296,7 +296,6 @@ export function StoreBuilder() {
                 btnFontSize: '16px',
                 btnBorderRadius: '9999px',
                 btnMarginTop: '24px',
-                btnMarginTop: '24px',
                 secondaryBtnBgColor: 'transparent',
                 secondaryBtnTextColor: '#ffffff',
                 // Responsive

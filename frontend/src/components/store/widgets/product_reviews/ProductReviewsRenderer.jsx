@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, CheckCircle, ThumbsUp, MessageSquare } from 'lucide-react';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../../lib/supabase';
 
 // Helper to render stars
 const StarRating = ({ rating, max = 5, size = "w-4 h-4", color = "text-yellow-400", fill = true }) => {
