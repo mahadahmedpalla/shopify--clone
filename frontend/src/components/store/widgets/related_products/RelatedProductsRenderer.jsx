@@ -36,10 +36,26 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
             } else if (source === 'specific_category' && targetCategoryId) {
                 query = query.eq('category_id', targetCategoryId);
             }
-            // 'all_products' just uses the base query (random/latest)
+            // 'all_products' just uses the base query
+
+            // If random (all_products), fetch more to shuffle
+            if (source === 'all_products') {
+                query = query.limit(20); // Fetch pool of 20
+            } else {
+                query = query.limit(limit);
+            }
 
             const { data } = await query;
-            if (data) setRelatedProducts(data);
+
+            if (data) {
+                if (source === 'all_products') {
+                    // Client-side shuffle for "Random" feel
+                    const shuffled = [...data].sort(() => 0.5 - Math.random());
+                    setRelatedProducts(shuffled.slice(0, limit));
+                } else {
+                    setRelatedProducts(data);
+                }
+            }
         } catch (err) {
             console.error("Error fetching related products:", err);
         }
