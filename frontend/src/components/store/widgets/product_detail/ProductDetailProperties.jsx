@@ -205,24 +205,7 @@ export function ProductDetailProperties({ settings, onUpdate }) {
 
 
 
-            {/* 8. RELATED PRODUCTS */}
-            <Section title="Related Products" icon={Box}>
-                <Toggle label="Show Related" checked={settings.showRelated !== false} onChange={(v) => update('showRelated', v)} />
-                {settings.showRelated !== false && (
-                    <>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium text-slate-600">Section Title</label>
-                            <input
-                                type="text"
-                                value={settings.relatedTitle || 'You might also like'}
-                                onChange={(e) => update('relatedTitle', e.target.value)}
-                                className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
-                            />
-                        </div>
-                        <NumberInput label="Limit Items" value={settings.relatedLimit || 4} onChange={(v) => update('relatedLimit', v)} />
-                    </>
-                )}
-            </Section>
+
 
         </div >
     );

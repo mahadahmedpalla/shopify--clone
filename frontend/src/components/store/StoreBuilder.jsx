@@ -33,8 +33,14 @@ import { NavbarProperties } from './widgets/navbar/NavbarProperties';
 import { HeroProperties } from './widgets/hero/HeroProperties';
 
 import { ProductGridProperties } from './widgets/product_grid/ProductGridProperties';
+import { ProductDetailRenderer } from './widgets/product_detail/ProductDetailRenderer';
 import { ProductDetailProperties } from './widgets/product_detail/ProductDetailProperties';
+import { CartListRenderer } from './widgets/cart_list/CartListRenderer';
+import { CartListProperties } from './widgets/cart_list/CartListProperties';
+import { ProductReviewsRenderer } from './widgets/product_reviews/ProductReviewsRenderer';
 import { ProductReviewsProperties } from './widgets/product_reviews/ProductReviewsProperties';
+import { RelatedProductsRenderer } from './widgets/related_products/RelatedProductsRenderer';
+import { RelatedProductsProperties } from './widgets/related_products/RelatedProductsProperties';
 
 import { CartProvider } from '../../context/CartContext';
 import { CartDrawer } from './widgets/cart/CartDrawer';
@@ -312,6 +318,11 @@ export function StoreBuilder() {
             starColor: '#FACC15',
             buttonColor: '#4F46E5',
             textColor: '#1F2937'
+        } : type === 'related_products' ? {
+            relatedTitle: 'You might also like',
+            relatedLimit: 4,
+            showPrice: true,
+            itemGap: 'normal'
         } : {
             title: type === 'hero' ? 'New Hero Banner' : 'New Title',
             content: 'Sample content for your ' + type
@@ -328,12 +339,19 @@ export function StoreBuilder() {
             settings: getWidgetDefaults(type)
         });
 
-        // 2. Twin Drop Logic: If Detail, add Reviews
+        // 2. Triple Drop Logic: If Detail -> Add Reviews -> Add Related
         if (type === 'product_detail') {
+            // Add Reviews
             newWidgets.push({
                 id: `product_reviews-${genId()}`,
                 type: 'product_reviews',
                 settings: getWidgetDefaults('product_reviews')
+            });
+            // Add Related
+            newWidgets.push({
+                id: `related_products-${genId()}`,
+                type: 'related_products',
+                settings: getWidgetDefaults('related_products')
             });
         }
 

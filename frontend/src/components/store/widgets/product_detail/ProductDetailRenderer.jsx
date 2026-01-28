@@ -44,10 +44,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
     const lowStockColor = settings?.lowStockColor || '#b45309';
     const outOfStockColor = settings?.outOfStockColor || '#b91c1c';
 
-    // Related
-    const showRelated = settings?.showRelated !== false;
-    const relatedLimit = settings?.relatedLimit || 4;
-    const relatedTitle = settings?.relatedTitle || 'You might also like';
+
 
 
     // -- MOCK --
@@ -108,22 +105,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
 
     }, [displayProduct.id]); // Only runs when product ID changes (initial load or nav)
 
-    // Effect: Fetch Related
-    useEffect(() => {
-        if (showRelated && displayProduct.id !== 'sample' && !isEditor) {
-            fetchRelated();
-        }
-    }, [displayProduct.id, showRelated]);
 
-    const fetchRelated = async () => {
-        const { data } = await supabase
-            .from('products')
-            .select('*')
-            .eq('store_id', displayProduct.store_id)
-            .neq('id', displayProduct.id)
-            .limit(relatedLimit);
-        if (data) setRelatedProducts(data);
-    };
 
 
     // -- HELPER STYLES --
@@ -395,32 +377,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
 
 
 
-            {/* RELATED PRODUCTS */}
-            {showRelated && (relatedProducts.length > 0 || isEditor) && (
-                <div className="border-t border-slate-100 pt-16">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-bold text-slate-900">{relatedTitle}</h2>
-                    </div>
-                    {/* Reuse Grid Renderer Logic or separate Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
-                        {(isEditor && relatedProducts.length === 0 ? [1, 2, 3, 4] : relatedProducts).map((p, i) => (
-                            <div key={p.id || i} className="group cursor-pointer">
-                                <div className="aspect-[4/5] bg-slate-100 rounded-2xl overflow-hidden mb-4 relative">
-                                    {p.id ? (
-                                        <img src={p.image_urls?.[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                            <Box className="h-8 w-8" />
-                                        </div>
-                                    )}
-                                </div>
-                                <h3 className="font-bold text-slate-900 text-sm mb-1">{p.name || 'Related Product'}</h3>
-                                <p className="text-slate-500 text-sm">${p.price || '99.99'}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+
 
         </div>
     );
