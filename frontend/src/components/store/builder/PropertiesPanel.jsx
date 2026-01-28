@@ -1,0 +1,97 @@
+import React from 'react';
+import { X, Settings2 } from 'lucide-react';
+import { NavbarProperties } from '../widgets/navbar/NavbarProperties';
+import { HeroProperties } from '../widgets/hero/HeroProperties';
+import { ProductGridProperties } from '../widgets/product_grid/ProductGridProperties';
+import { ProductDetailProperties } from '../widgets/product_detail/ProductDetailProperties';
+import { ProductReviewsProperties } from '../widgets/product_reviews/ProductReviewsProperties';
+import { RelatedProductsProperties } from '../widgets/related_products/RelatedProductsProperties';
+
+export function PropertiesPanel({
+    previewMode,
+    selectedElement,
+    onClose,
+    onUpdate,
+    products,
+    categories,
+    viewMode,
+    storePages
+}) {
+    return (
+        <aside
+            className={`bg-white border-l border-slate-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden
+            ${previewMode ? 'w-0 border-l-0 opacity-0' : 'w-72 opacity-100'}
+        `}
+        >
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+                <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
+                {selectedElement && <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
+            </div>
+            {selectedElement ? (
+                <div className="p-4 space-y-6 overflow-y-auto flex-1">
+                    <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Editing</p>
+                        <p className="text-xs font-bold text-slate-800">{selectedElement.type.replace('_', ' ')}</p>
+                    </div>
+
+                    {selectedElement.type === 'navbar' ? (
+                        <NavbarProperties
+                            settings={selectedElement.settings}
+                            viewMode={viewMode}
+                            categories={categories}
+                            products={products}
+                            storePages={storePages}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'hero' ? (
+                        <HeroProperties
+                            settings={selectedElement.settings}
+                            viewMode={viewMode}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'product_grid' ? (
+                        <ProductGridProperties
+                            settings={selectedElement.settings}
+                            categories={categories}
+                            viewMode={viewMode}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'product_detail' ? (
+                        <ProductDetailProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'product_reviews' ? (
+                        <ProductReviewsProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'related_products' ? (
+                        <RelatedProductsProperties
+                            settings={selectedElement.settings}
+                            categories={categories}
+                            onUpdate={onUpdate}
+                        />
+                    ) : (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Title Text</label>
+                                <input
+                                    type="text"
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
+                                    value={selectedElement.settings.title || ''}
+                                    onChange={(e) => onUpdate({ ...selectedElement.settings, title: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4 opacity-50">
+                    <Settings2 className="h-8 w-8 text-slate-200" />
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Select an element to edit</p>
+                </div>
+            )}
+        </aside>
+    );
+}
