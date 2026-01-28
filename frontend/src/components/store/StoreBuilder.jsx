@@ -73,6 +73,7 @@ const WIDGET_CATEGORIES = [
             { type: 'cart_list', icon: <ShoppingCart className="h-4 w-4" />, label: 'Cart Items' },
             { type: 'product_detail', icon: <Search className="h-4 w-4" />, label: 'Product Info' },
             { type: 'product_reviews', icon: <MessageSquare className="h-4 w-4" />, label: 'Reviews' },
+            { type: 'related_products', icon: <Box className="h-4 w-4" />, label: 'Related Products' },
         ]
     }
 ];
@@ -581,6 +582,17 @@ export function StoreBuilder() {
                                     />
                                 ) : selectedElement.type === 'product_reviews' ? (
                                     <ProductReviewsProperties
+                                        settings={selectedElement.settings}
+                                        onUpdate={newSettings => {
+                                            const newContent = canvasContent.map(c =>
+                                                c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                            );
+                                            setCanvasContent(newContent);
+                                            setSelectedElement({ ...selectedElement, settings: newSettings });
+                                        }}
+                                    />
+                                ) : selectedElement.type === 'related_products' ? (
+                                    <RelatedProductsProperties
                                         settings={selectedElement.settings}
                                         onUpdate={newSettings => {
                                             const newContent = canvasContent.map(c =>

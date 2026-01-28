@@ -5,6 +5,8 @@ import { HeroRenderer } from './hero/HeroRenderer';
 import { ProductGridRenderer } from './product_grid/ProductGridRenderer';
 import { ProductDetailRenderer } from './product_detail/ProductDetailRenderer';
 import { ProductReviewsRenderer } from './product_reviews/ProductReviewsRenderer';
+import { RelatedProductsRenderer } from './related_products/RelatedProductsRenderer';
+import { CartListRenderer } from './cart_list/CartListRenderer';
 
 export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor }) {
     switch (type) {
@@ -16,6 +18,8 @@ export function BlockRenderer({ type, settings, viewMode, store, products, produ
             return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} />;
         case 'product_reviews':
             return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
+        case 'related_products':
+            return <RelatedProductsRenderer style={settings} productId={product?.id} storeId={store?.id} isEditor={isEditor} />;
         case 'heading':
             return (
                 <div className="px-12 py-8 bg-white">
@@ -23,23 +27,7 @@ export function BlockRenderer({ type, settings, viewMode, store, products, produ
                 </div>
             );
         case 'cart_list':
-            return (
-                <div className="p-12 max-w-4xl mx-auto bg-white border-y border-slate-100">
-                    <h3 className="text-xl font-bold text-slate-900 mb-8 pb-4 border-b border-slate-100">Review Items</h3>
-                    <div className="space-y-6">
-                        {[1, 2].map(i => (
-                            <div key={i} className="flex items-center space-x-6 pb-6 border-b border-slate-100 last:border-0 opacity-60">
-                                <div className="h-24 w-24 bg-slate-100 rounded-2xl" />
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-4 w-1/2 bg-slate-100 rounded-full" />
-                                    <div className="h-3 w-1/4 bg-slate-100 rounded-full" />
-                                </div>
-                                <div className="text-right font-bold text-slate-900">$299.00</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
+            return <CartListRenderer style={settings} isEditor={isEditor} />;
         case 'product_detail':
             return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} />;
         default:
