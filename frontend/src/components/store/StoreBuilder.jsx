@@ -11,8 +11,7 @@ import {
     useSensor,
     useSensors,
     DragOverlay,
-    defaultDropAnimationSideEffects,
-    useDraggable
+    defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
 import {
     arrayMove,
@@ -128,9 +127,6 @@ export function StoreBuilder() {
     const [products, setProducts] = useState([]);
     const [storePages, setStorePages] = useState([]);
     const [manualProdId, setManualProdId] = useState('');
-    const [savedWidgets, setSavedWidgets] = useState([]);
-    const [showSaveWidgetModal, setShowSaveWidgetModal] = useState(false);
-    const [newWidgetName, setNewWidgetName] = useState('');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -152,15 +148,6 @@ export function StoreBuilder() {
             .eq('id', storeId)
             .single();
         if (storeData) setStore(storeData);
-
-        // Fetch Saved Widgets
-        const { data: savedData } = await supabase
-            .from('saved_widgets')
-            .select('*')
-            .eq('store_id', storeId)
-            .order('created_at', { ascending: false });
-        if (savedData) setSavedWidgets(savedData);
-
 
         // Fetch categories for this store
         // Simplified fetch - normally would be separate calls
@@ -228,97 +215,24 @@ export function StoreBuilder() {
 
     const handleDragStart = (event) => {
         const { active } = event;
-        // Check if it's a new widget from sidebar
-        if (typeof active.id === 'string' && active.id.startsWith('new-')) {
-            const type = active.id.replace('new-', '');
-            // Check if it is a saved widget
-            if (active.data?.current?.isSavedWidget) {
-                setDraggedWidget({
-                    id: active.id,
-                    type: active.data.current.type,
-                    label: active.data.current.name,
-                    settings: active.data.current.settings,
-                    isSaved: true
-                });
-            } else {
-                const widget = WIDGET_CATEGORIES.flatMap(c => c.widgets).find(w => w.type === type);
-                if (widget) {
-                    setDraggedWidget(widget);
-                }
-            }
-        } else {
-            // Reordering existing
-            const widget = canvasContent.find(w => w.id === active.id);
-            if (widget) setDraggedWidget(widget);
-        }
+        // Find the full block object to set as dragged
+        const block = canvasContent.find(c => c.id === active.id);
+        if (block) setDraggedWidget(block);
     };
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
-        setDraggedWidget(null); // Clear immediately
-
         if (!over) return;
 
-        // 1. Adding NEW widget
-        if (typeof active.id === 'string' && active.id.startsWith('new-')) {
-            let type = active.id.replace('new-', '');
-            let settings = {};
-
-            // Check for SAVED widget by ID pattern first for reliability
-            const savedMatch = active.id.match(/^new-saved-(.+)$/);
-
-            if (savedMatch) {
-                const savedId = savedMatch[1];
-                // Lookup from state to be safe
-                // (UUIDs are strings, but supabase ID might be int, checking loose equality or string just in case)
-                const savedWidget = savedWidgets.find(w => String(w.id) === savedId);
-
-                if (savedWidget) {
-                    type = savedWidget.type;
-                    settings = savedWidget.settings;
-                } else if (active.data?.current?.isSavedWidget) {
-                    // Fallback to DnD data if lookup fails
-                    type = active.data.current.type;
-                    settings = active.data.current.settings;
-                }
-            } else {
-                // Standard new widget
-                settings = getWidgetDefaults(type);
-            }
-
-            const newId = genId();
-            const newBlock = {
-                id: newId,
-                type,
-                settings: settings
-            };
-
-            // Insert logic
-            setCanvasContent((items) => {
-                const newItems = [...items];
-                if (over.id === 'canvas-droppable') {
-                    // Dropped on container -> append
-                    newItems.push(newBlock);
-                } else {
-                    // Dropped on item -> insert after
-                    const overIndex = newItems.findIndex(i => i.id === over.id);
-                    if (overIndex !== -1) {
-                        newItems.splice(overIndex + 1, 0, newBlock);
-                    } else {
-                        newItems.push(newBlock);
-                    }
-                }
-                return newItems;
-            });
-
-        } else if (active.id !== over.id) {
-            // 2. Reordering
+        // If it's a reorder
+        if (active.id !== over.id && canvasContent.find(c => c.id === active.id)) {
             setCanvasContent((items) => {
                 const oldIndex = items.findIndex(i => i.id === active.id);
                 const newIndex = items.findIndex(i => i.id === over.id);
                 return arrayMove(items, oldIndex, newIndex);
             });
         }
+        setDraggedWidget(null);
     };
 
     const getWidgetDefaults = (type) => {
@@ -532,35 +446,9 @@ export function StoreBuilder() {
                                 <Search className="absolute left-3 top-2.5 h-3 w-3 text-slate-400" />
                                 <input type="text" placeholder="Search elements..." className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm" />
                             </div>
-
-
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
-                            {/* SAVED WIDGETS CATEGORY - MOVED HERE */}
-                            {savedWidgets.length > 0 && (
-                                <div className="mb-6 border-b border-slate-100 pb-6">
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-2 mb-3">Saved Custom Widgets</h3>
-                                    <div className="grid grid-cols-2 gap-3 px-2">
-                                        {savedWidgets.map(w => (
-                                            <SidebarDraggable
-                                                key={w.id}
-                                                id={`new-saved-${w.id}`}
-                                                type={w.type}
-                                                icon={<Box className="w-4 h-4" />}
-                                                label={w.name}
-                                                data={{
-                                                    isSavedWidget: true,
-                                                    type: w.type,
-                                                    settings: w.settings,
-                                                    name: w.name
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                             {WIDGET_CATEGORIES.map(cat => (
                                 <div key={cat.name} className="space-y-3">
                                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h3>
@@ -621,25 +509,6 @@ export function StoreBuilder() {
                                         )}
                                     </SortableContext>
                                 </div>
-                                <DragOverlay>
-                                    {draggedWidget ? (
-                                        <div className="p-4 bg-white border-2 border-indigo-500 shadow-2xl rounded-xl w-64 cursor-grabbing scale-105 rotate-2">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                                                    <Box className="h-5 w-5" />
-                                                </div>
-                                                <div>
-                                                    <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                                        {draggedWidget.label || draggedWidget.name || 'Widget'}
-                                                    </span>
-                                                    {draggedWidget.isSaved && (
-                                                        <span className="text-[10px] text-indigo-500 font-medium">Saved Template</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : null}
-                                </DragOverlay>
                             </DndContext>
                         </CartProvider>
                     </main>
@@ -651,25 +520,7 @@ export function StoreBuilder() {
                     >
                         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                             <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
-                            <div className="flex items-center space-x-2">
-                                {selectedElement && (
-                                    <>
-                                        <button
-                                            onClick={() => {
-                                                setNewWidgetName(`${selectedElement.type} Custom`);
-                                                setShowSaveWidgetModal(true);
-                                            }}
-                                            className="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50"
-                                            title="Save as Custom Widget"
-                                        >
-                                            <Save className="h-4 w-4" />
-                                        </button>
-                                        <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600">
-                                            <X className="h-4 w-4" />
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                            {selectedElement && <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
                         </div>
                         {selectedElement ? (
                             <div className="p-4 space-y-6 overflow-y-auto flex-1">
@@ -779,88 +630,9 @@ export function StoreBuilder() {
                             </div>
                         )}
                     </aside>
-                </div >
-            </div >
-
-            {/* SAVE WIDGET MODAL */}
-            {
-                showSaveWidgetModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
-                            <h3 className="text-lg font-bold text-slate-900">Save Custom Widget</h3>
-                            <p className="text-sm text-slate-500">
-                                Save this <strong>{selectedElement?.type}</strong> configuration to your library for reuse.
-                            </p>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1">Widget Name</label>
-                                <input
-                                    type="text"
-                                    value={newWidgetName}
-                                    onChange={(e) => setNewWidgetName(e.target.value)}
-                                    className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="flex justify-end space-x-2 pt-2">
-                                <Button variant="secondary" onClick={() => setShowSaveWidgetModal(false)}>Cancel</Button>
-                                <Button onClick={async () => {
-                                    if (!newWidgetName.trim()) return;
-
-                                    // Save to DB
-                                    const { error } = await supabase.from('saved_widgets').insert({
-                                        store_id: storeId,
-                                        name: newWidgetName,
-                                        type: selectedElement.type,
-                                        settings: selectedElement.settings
-                                    });
-
-                                    if (!error) {
-                                        // Refresh list
-                                        const { data } = await supabase.from('saved_widgets').select('*').eq('store_id', storeId).order('created_at', { ascending: false });
-                                        if (data) setSavedWidgets(data);
-                                        setShowSaveWidgetModal(false);
-                                        alert('Widget Saved! 🎉');
-                                    } else {
-                                        alert('Error saving widget');
-                                    }
-                                }}>Save Widget</Button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-        </ErrorBoundary >
-    );
-}
-
-// DRAGGABLE SIDEBAR ITEM WRAPPER
-function SidebarDraggable({ id, type, icon, label, data }) {
-    const { attributes, listeners, setNodeRef, transform } = useDraggable({
-        id: id,
-        data: data || { type, title: label }
-    });
-
-    const style = transform ? {
-        transform: CSS.Translate.toString(transform),
-        opacity: 0.5,
-        zIndex: 50
-    } : undefined;
-
-    return (
-        <div
-            ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            style={style}
-            className="flex flex-col items-center justify-center p-4 bg-white border border-slate-100 rounded-xl hover:border-indigo-500 hover:shadow-md cursor-grab active:cursor-grabbing group transition-all"
-        >
-            <div className="text-slate-400 group-hover:text-indigo-600 mb-2 transition-colors">
-                {icon}
+                </div>
             </div>
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide text-center leading-tight">
-                {label}
-            </span>
-        </div>
+        </ErrorBoundary>
     );
 }
 
