@@ -228,24 +228,83 @@ export function StoreBuilder() {
 
     const handleDragStart = (event) => {
         const { active } = event;
-        // Find the full block object to set as dragged
-        const block = canvasContent.find(c => c.id === active.id);
-        if (block) setDraggedWidget(block);
+        // Check if it's a new widget from sidebar
+        if (typeof active.id === 'string' && active.id.startsWith('new-')) {
+            const type = active.id.replace('new-', '');
+            // Check if it is a saved widget
+            if (active.data?.current?.isSavedWidget) {
+                setDraggedWidget({
+                    id: active.id,
+                    type: active.data.current.type,
+                    label: active.data.current.name,
+                    settings: active.data.current.settings,
+                    isSaved: true
+                });
+            } else {
+                const widget = WIDGET_CATEGORIES.flatMap(c => c.widgets).find(w => w.type === type);
+                if (widget) {
+                    setDraggedWidget(widget);
+                }
+            }
+        } else {
+            // Reordering existing
+            const widget = canvasContent.find(w => w.id === active.id);
+            if (widget) setDraggedWidget(widget);
+        }
     };
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
+        setDraggedWidget(null);
+
         if (!over) return;
 
-        // If it's a reorder
-        if (active.id !== over.id && canvasContent.find(c => c.id === active.id)) {
+        // 1. Adding NEW widget
+        if (typeof active.id === 'string' && active.id.startsWith('new-')) {
+            let type = active.id.replace('new-', '');
+            let settings = {};
+
+            // If SAVED widget
+            if (active.data?.current?.isSavedWidget) {
+                type = active.data.current.type;
+                settings = active.data.current.settings;
+            } else {
+                settings = getWidgetDefaults(type);
+            }
+
+            const newId = genId();
+            const newBlock = {
+                id: newId,
+                type,
+                settings: settings
+            };
+
+            // Insert logic
+            setCanvasContent((items) => {
+                const newItems = [...items];
+                if (over.id === 'canvas-droppable') {
+                    // Dropped on container -> append
+                    newItems.push(newBlock);
+                } else {
+                    // Dropped on item -> insert after
+                    const overIndex = newItems.findIndex(i => i.id === over.id);
+                    if (overIndex !== -1) {
+                        newItems.splice(overIndex + 1, 0, newBlock);
+                    } else {
+                        newItems.push(newBlock);
+                    }
+                }
+                return newItems;
+            });
+
+        } else if (active.id !== over.id) {
+            // 2. Reordering
             setCanvasContent((items) => {
                 const oldIndex = items.findIndex(i => i.id === active.id);
                 const newIndex = items.findIndex(i => i.id === over.id);
                 return arrayMove(items, oldIndex, newIndex);
             });
         }
-        setDraggedWidget(null);
     };
 
     const getWidgetDefaults = (type) => {
