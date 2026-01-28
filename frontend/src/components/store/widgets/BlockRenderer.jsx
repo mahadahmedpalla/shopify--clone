@@ -19,7 +19,7 @@ export function BlockRenderer({ type, settings, viewMode, store, products, produ
         case 'product_reviews':
             return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
         case 'related_products':
-            return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} store={store} isEditor={isEditor} />;
+            return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} isEditor={isEditor} />;
         case 'heading':
             return (
                 <div className="px-12 py-8 bg-white">
