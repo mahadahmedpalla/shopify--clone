@@ -81,6 +81,7 @@ export function StoreBuilder() {
     const [products, setProducts] = useState([]);
     const [storePages, setStorePages] = useState([]);
     const [store, setStore] = useState(null);
+    const [customWidgets, setCustomWidgets] = useState([]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -104,6 +105,10 @@ export function StoreBuilder() {
 
         const { data: pagesData } = await supabase.from('store_pages').select('*').eq('store_id', storeId);
         setStorePages(pagesData || []);
+
+        // Fetch Custom Widgets
+        const { data: customs } = await supabase.from('custom_widgets').select('*').eq('store_id', storeId);
+        if (customs) setCustomWidgets(customs);
     };
 
     const fetchPage = async () => {
@@ -153,6 +158,24 @@ export function StoreBuilder() {
         }
     };
 
+    const handleSaveCustomWidget = async (name, type, settings) => {
+        try {
+            const { data, error } = await supabase.from('custom_widgets').insert({
+                store_id: storeId,
+                name,
+                type,
+                settings
+            }).select().single();
+
+            if (error) throw error;
+            setCustomWidgets([...customWidgets, data]);
+            alert('Widget Saved as Preset!');
+        } catch (e) {
+            console.error(e);
+            alert('Failed to save preset: ' + e.message);
+        }
+    };
+
     const handleDragStart = (event) => {
         const { active } = event;
         const block = canvasContent.find(c => c.id === active.id);
@@ -173,12 +196,12 @@ export function StoreBuilder() {
         setDraggedWidget(null);
     };
 
-    const addWidget = (type) => {
+    const addWidget = (type, customSettings = null) => {
         const newWidgets = [];
         newWidgets.push({
             id: `${type}-${genId()}`,
             type,
-            settings: getWidgetDefaults(type)
+            settings: customSettings || getWidgetDefaults(type)
         });
 
         // Triple Drop Magic
@@ -284,6 +307,7 @@ export function StoreBuilder() {
                     <WidgetSidebar
                         previewMode={previewMode}
                         onAddWidget={addWidget}
+                        customWidgets={customWidgets}
                     />
 
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
@@ -336,6 +360,7 @@ export function StoreBuilder() {
                         categories={categories}
                         viewMode={viewMode}
                         storePages={storePages}
+                        onSaveCustom={handleSaveCustomWidget}
                     />
                 </div>
             </div>

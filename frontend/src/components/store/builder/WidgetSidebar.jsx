@@ -1,8 +1,8 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { WIDGET_CATEGORIES } from './widgetConstants';
 
-export function WidgetSidebar({ previewMode, onAddWidget }) {
+export function WidgetSidebar({ previewMode, onAddWidget, customWidgets = [] }) {
     return (
         <aside
             className={`bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden
@@ -18,6 +18,30 @@ export function WidgetSidebar({ previewMode, onAddWidget }) {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
+                {/* Custom Widgets Section */}
+                {customWidgets && customWidgets.length > 0 && (
+                    <div className="space-y-3">
+                        <h3 className="text-[10px] font-bold text-amber-500 uppercase tracking-widest px-1 flex items-center">
+                            <Star className="w-3 h-3 mr-1 fill-amber-500" />
+                            Your Custom Widgets
+                        </h3>
+                        <div className="grid grid-cols-2 gap-2">
+                            {customWidgets.map(w => (
+                                <button
+                                    key={w.id}
+                                    onClick={() => onAddWidget(w.type, w.settings)}
+                                    className="group p-3 bg-amber-50/50 border border-amber-200 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:border-amber-400 hover:shadow-md hover:shadow-amber-500/10 transition-all active:scale-95"
+                                >
+                                    <div className="p-3 bg-white rounded-xl text-amber-500 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors">
+                                        <Star className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center">{w.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {WIDGET_CATEGORIES.map(cat => (
                     <div key={cat.name} className="space-y-3">
                         <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h3>

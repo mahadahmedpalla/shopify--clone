@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Settings2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Settings2, Save } from 'lucide-react';
 import { NavbarProperties } from '../widgets/navbar/NavbarProperties';
 import { HeroProperties } from '../widgets/hero/HeroProperties';
 import { ProductGridProperties } from '../widgets/product_grid/ProductGridProperties';
@@ -15,17 +15,37 @@ export function PropertiesPanel({
     products,
     categories,
     viewMode,
-    storePages
+    storePages,
+    onSaveCustom
 }) {
+    const handleSavePreset = () => {
+        if (!selectedElement) return;
+        const name = window.prompt("Enter a name for this custom widget:");
+        if (name && name.trim()) {
+            onSaveCustom(name.trim(), selectedElement.type, selectedElement.settings);
+        }
+    };
+
     return (
         <aside
             className={`bg-white border-l border-slate-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden
             ${previewMode ? 'w-0 border-l-0 opacity-0' : 'w-72 opacity-100'}
         `}
         >
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30 gap-2">
                 <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
-                {selectedElement && <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
+                <div className="flex items-center gap-1">
+                    {selectedElement && onSaveCustom && (
+                        <button
+                            onClick={handleSavePreset}
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="Save as Preset"
+                        >
+                            <Save className="h-4 w-4" />
+                        </button>
+                    )}
+                    {selectedElement && <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"><X className="h-4 w-4" /></button>}
+                </div>
             </div>
             {selectedElement ? (
                 <div className="p-4 space-y-6 overflow-y-auto flex-1">
