@@ -304,9 +304,9 @@ export function StoreBuilder() {
                 mobile: 2
             }
         } : type === 'product_reviews' ? {
-            layoutMode: 'simple',
+            layoutMode: 'chart',
             allowVerifiedOnly: false,
-            allowMedia: false,
+            allowMedia: true,
             hideIfEmpty: false,
             sortOrder: 'newest',
             starColor: '#FACC15',
