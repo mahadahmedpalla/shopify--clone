@@ -16,6 +16,8 @@ export function PropertiesPanel({
     categories,
     viewMode,
     storePages,
+    onSaveCustom
+}) {
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [presetName, setPresetName] = useState('');
 
