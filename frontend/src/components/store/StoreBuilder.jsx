@@ -127,6 +127,9 @@ export function StoreBuilder() {
     const [products, setProducts] = useState([]);
     const [storePages, setStorePages] = useState([]);
     const [manualProdId, setManualProdId] = useState('');
+    const [savedWidgets, setSavedWidgets] = useState([]);
+    const [showSaveWidgetModal, setShowSaveWidgetModal] = useState(false);
+    const [newWidgetName, setNewWidgetName] = useState('');
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -148,6 +151,15 @@ export function StoreBuilder() {
             .eq('id', storeId)
             .single();
         if (storeData) setStore(storeData);
+
+        // Fetch Saved Widgets
+        const { data: savedData } = await supabase
+            .from('saved_widgets')
+            .select('*')
+            .eq('store_id', storeId)
+            .order('created_at', { ascending: false });
+        if (savedData) setSavedWidgets(savedData);
+
 
         // Fetch categories for this store
         // Simplified fetch - normally would be separate calls
@@ -520,7 +532,25 @@ export function StoreBuilder() {
                     >
                         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                             <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Properties</h2>
-                            {selectedElement && <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
+                            <div className="flex items-center space-x-2">
+                                {selectedElement && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                setNewWidgetName(`${selectedElement.type} Custom`);
+                                                setShowSaveWidgetModal(true);
+                                            }}
+                                            className="text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50"
+                                            title="Save as Custom Widget"
+                                        >
+                                            <Save className="h-4 w-4" />
+                                        </button>
+                                        <button onClick={() => setSelectedElement(null)} className="text-slate-400 hover:text-slate-600">
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                         {selectedElement ? (
                             <div className="p-4 space-y-6 overflow-y-auto flex-1">
