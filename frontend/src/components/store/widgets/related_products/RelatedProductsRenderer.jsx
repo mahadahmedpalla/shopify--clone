@@ -108,7 +108,6 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
                 {layoutMode === 'slider' ? (
                     // SLIDER LAYOUT
                     <div
-                    <div
                         ref={scrollContainerRef}
                         className={`flex overflow-x-auto pb-8 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 ${getGapClass()}`}
                         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
