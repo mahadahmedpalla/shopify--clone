@@ -203,36 +203,7 @@ export function ProductDetailProperties({ settings, onUpdate }) {
 
 
 
-            {/* 7. REVIEWS */}
-            <Section title="Reviews Integration" icon={MessageSquare}>
-                <Toggle label="Show Reviews Section" checked={settings.showReviews !== false} onChange={(v) => update('showReviews', v)} />
-                {settings.showReviews !== false && (
-                    <>
-                        <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-100 mb-2">
-                            <p className="text-[10px] text-indigo-700 leading-tight">
-                                The reviews widget is now embedded. Configuring it here updates the attached section.
-                            </p>
-                        </div>
-                        <Select
-                            label="Layout Mode"
-                            value={settings.layoutMode || 'simple'}
-                            onChange={(val) => update('layoutMode', val)}
-                            options={[
-                                { value: 'simple', label: 'Simple List' },
-                                { value: 'chart', label: 'Summary Chart (Pro)' }
-                            ]}
-                        />
-                        <Toggle label="Verified Only" checked={settings.allowVerifiedOnly || false} onChange={(v) => update('allowVerifiedOnly', v)} />
-                        <Toggle label="Allow Media" checked={settings.allowMedia || false} onChange={(v) => update('allowMedia', v)} />
 
-                        <div className="pt-2 border-t border-slate-100 mt-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Colors</label>
-                            <ColorInput label="Star Color" value={settings.starColor || '#FACC15'} onChange={(v) => update('starColor', v)} />
-                            <ColorInput label="Button Color" value={settings.buttonColor || '#4F46E5'} onChange={(v) => update('buttonColor', v)} />
-                        </div>
-                    </>
-                )}
-            </Section>
 
             {/* 8. RELATED PRODUCTS */}
             <Section title="Related Products" icon={Box}>
