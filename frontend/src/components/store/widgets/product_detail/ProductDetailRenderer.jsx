@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, Share2, Minus, Plus, Box, ZoomIn, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useCart } from '../../../../context/CartContext';
 import { supabase } from '../../../../lib/supabase';
+import { ProductReviewsRenderer } from '../product_reviews/ProductReviewsRenderer';
 
 
 export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store }) {
@@ -392,6 +393,17 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                     </div>
                 </div>
             </div>
+
+            {/* REVIEWS SECTION */}
+            {settings?.showReviews !== false && (
+                <div className="border-t border-slate-100">
+                    <ProductReviewsRenderer
+                        style={settings}
+                        productId={displayProduct.id}
+                        storeId={displayProduct.store_id}
+                    />
+                </div>
+            )}
 
             {/* RELATED PRODUCTS */}
             {showRelated && (relatedProducts.length > 0 || isEditor) && (

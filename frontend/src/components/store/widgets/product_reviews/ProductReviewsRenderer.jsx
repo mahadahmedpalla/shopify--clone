@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, CheckCircle, ThumbsUp, MessageSquare } from 'lucide-react';
+import { Star, CheckCircle, ThumbsUp, MessageSquare, Filter, X, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
 
 // Helper to render stars
@@ -19,25 +19,30 @@ const StarRating = ({ rating, max = 5, size = "w-4 h-4", color = "text-yellow-40
 export const ProductReviewsRenderer = ({ style, content, productId, storeId }) => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [summary, setSummary] = useState({ avg: 0, count: 0 });
+    const [summary, setSummary] = useState({ avg: 0, count: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+    const [filterRating, setFilterRating] = useState(null); // null = all
 
     // Form State
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ name: '', rating: 5, text: '', orderId: '' });
+    const [formData, setFormData] = useState({ name: '', rating: 5, text: '', orderId: '', media: [] });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
     // Settings
     const allowVerifiedOnly = style?.allowVerifiedOnly || false;
-    const starColor = style?.starColor || '#FACC15'; // Yellow-400
-    const buttonColor = style?.buttonColor || '#4F46E5'; // Indigo-600
-    const textColor = style?.textColor || '#1F2937'; // Gray-800
+    const allowMedia = style?.allowMedia || false;
+    const layoutMode = style?.layoutMode || 'simple'; // 'simple' | 'chart'
+
+    // Design Settings
+    const starColor = style?.starColor || '#FACC15';
+    const buttonColor = style?.buttonColor || '#4F46E5';
+    const textColor = style?.textColor || '#1F2937';
     const hideIfEmpty = style?.hideIfEmpty || false;
     const sortOrder = style?.sortOrder || 'newest';
 
     useEffect(() => {
         if (productId) fetchReviews();
-    }, [productId, sortOrder]);
+    }, [productId, sortOrder, filterRating]);
 
     const fetchReviews = async () => {
         setLoading(true);
@@ -46,6 +51,10 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                 .from('product_reviews')
                 .select('*')
                 .eq('product_id', productId);
+
+            if (filterRating) {
+                query = query.eq('rating', filterRating);
+            }
 
             if (sortOrder === 'highest') query = query.order('rating', { ascending: false });
             else if (sortOrder === 'lowest') query = query.order('rating', { ascending: true });
@@ -56,12 +65,21 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
 
             setReviews(data || []);
 
-            // Calc summary
+            // Recalculate summary 
+            // NOTE: Distribution should logically reflect ALL reviews, not just filtered ones.
+            // For MVP simplicty we calculate from current data set, or we'd need a separate query.
             if (data && data.length > 0) {
                 const total = data.reduce((acc, r) => acc + r.rating, 0);
-                setSummary({ avg: total / data.length, count: data.length });
+                const distinct = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+                data.forEach(r => { if (distinct[r.rating] !== undefined) distinct[r.rating]++ });
+
+                setSummary({
+                    avg: (data.length > 0 ? (total / data.length) : 0),
+                    count: data.length,
+                    distribution: distinct
+                });
             } else {
-                setSummary({ avg: 0, count: 0 });
+                setSummary({ avg: 0, count: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
             }
 
         } catch (err) {
@@ -75,7 +93,8 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
         e.preventDefault();
         setError(null);
 
-        if (allowVerifiedOnly && !formData.orderId.trim()) {
+        // LOGIC FIX: Enforce Order ID
+        if (allowVerifiedOnly && (!formData.orderId || !formData.orderId.trim())) {
             setError("Order ID is required for verification.");
             return;
         }
@@ -88,14 +107,14 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                 customer_name: formData.name,
                 rating: formData.rating,
                 review_text: formData.text,
-                order_id: allowVerifiedOnly ? formData.orderId : null,
-                is_verified: !!formData.orderId // Simple logic for now
+                order_id: (allowVerifiedOnly || formData.orderId) ? formData.orderId : null,
+                is_verified: !!formData.orderId,
+                media_urls: [] // Placeholder for real upload logic
             });
 
             if (error) throw error;
 
-            // Reset and refresh
-            setFormData({ name: '', rating: 5, text: '', orderId: '' });
+            setFormData({ name: '', rating: 5, text: '', orderId: '', media: [] });
             setShowForm(false);
             fetchReviews();
         } catch (err) {
@@ -111,31 +130,102 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
         <div className="w-full py-12" style={{ color: textColor }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h2 className="text-2xl font-bold mb-2">Customer Reviews</h2>
-                        <div className="flex items-center space-x-2">
-                            <StarRating rating={Math.round(summary.avg)} color={`text-[${starColor}]`} />
-                            <span className="text-sm opacity-80">Based on {summary.count} reviews</span>
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-10 gap-8">
+
+                    {/* Left: Score */}
+                    <div className="flex-1">
+                        <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
+
+                        <div className="flex items-center space-x-4 mb-6">
+                            <span className="text-5xl font-bold">{summary.avg.toFixed(1)}</span>
+                            <div>
+                                <StarRating rating={Math.round(summary.avg)} size="w-5 h-5" color={`text-[${starColor}]`} />
+                                <p className="text-sm opacity-60 mt-1">{summary.count} Reviews</p>
+                            </div>
                         </div>
+
+                        {/* Chart Mode */}
+                        {layoutMode === 'chart' && (
+                            <div className="space-y-2 max-w-sm">
+                                {[5, 4, 3, 2, 1].map(stars => {
+                                    const count = summary.distribution[stars] || 0;
+                                    const pct = summary.count > 0 ? (count / summary.count) * 100 : 0;
+                                    return (
+                                        <button
+                                            key={stars}
+                                            onClick={() => setFilterRating(filterRating === stars ? null : stars)}
+                                            className="group flex items-center w-full text-xs hover:bg-slate-50 p-1 rounded transition-colors"
+                                        >
+                                            <div className="w-12 font-medium flex items-center space-x-1">
+                                                <span>{stars}</span> <Star className="w-3 h-3 text-slate-300" />
+                                            </div>
+                                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden mx-3">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500"
+                                                    style={{ width: `${pct}%`, backgroundColor: starColor }}
+                                                />
+                                            </div>
+                                            <div className={`w-8 text-right opacity-60 ${filterRating === stars ? 'text-indigo-600 font-bold' : ''}`}>
+                                                {count}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                                {filterRating && (
+                                    <button onClick={() => setFilterRating(null)} className="text-xs text-indigo-600 hover:underline mt-2 flex items-center">
+                                        <X className="w-3 h-3 mr-1" /> Clear Filter
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
-                    <button
-                        onClick={() => setShowForm(!showForm)}
-                        className="px-6 py-2 rounded-full font-bold text-white transition-all transform hover:scale-105"
-                        style={{ backgroundColor: buttonColor }}
-                    >
-                        Write a Review
-                    </button>
+
+                    {/* Right: Actions */}
+                    <div className="flex flex-col items-end space-y-4">
+                        <button
+                            onClick={() => setShowForm(!showForm)}
+                            className="px-8 py-3 rounded-full font-bold text-white shadow-lg shadow-indigo-200 transition-all transform hover:scale-105 active:scale-95"
+                            style={{ backgroundColor: buttonColor }}
+                        >
+                            Write a Review
+                        </button>
+
+                        {/* Filter Dropdown if simple mode */}
+                        {layoutMode === 'simple' && (
+                            <div className="flex items-center space-x-2 bg-slate-50 rounded-lg p-1 border border-slate-200">
+                                <Filter className="w-4 h-4 text-slate-400 ml-2" />
+                                <select
+                                    value={filterRating || ''}
+                                    onChange={(e) => setFilterRating(e.target.value ? parseInt(e.target.value) : null)}
+                                    className="bg-transparent border-0 text-sm focus:ring-0 text-slate-600"
+                                >
+                                    <option value="">All Ratings</option>
+                                    <option value="5">5 Stars</option>
+                                    <option value="4">4 Stars</option>
+                                    <option value="3">3 Stars</option>
+                                    <option value="2">2 Stars</option>
+                                    <option value="1">1 Star</option>
+                                </select>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Form */}
                 {showForm && (
-                    <div className="mb-10 bg-slate-50 p-6 rounded-2xl border border-slate-100 animate-in slide-in-from-top-4">
-                        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
+                    <div className="mb-12 bg-slate-50 p-8 rounded-3xl border border-slate-100 animate-in slide-in-from-top-4 shadow-inner">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-bold text-lg">Write your review</h3>
+                            <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
                             <div>
-                                <label className="block text-sm font-bold mb-1">Rating</label>
-                                <div className="flex space-x-2">
+                                <label className="block text-sm font-bold mb-2">Rating</label>
+                                <div className="flex space-x-3">
                                     {[1, 2, 3, 4, 5].map(star => (
                                         <button
                                             key={star}
@@ -144,7 +234,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                                             className="focus:outline-none transition-transform hover:scale-110"
                                         >
                                             <Star
-                                                className={`w-8 h-8 ${formData.rating >= star ? 'fill-current' : 'text-gray-300'}`}
+                                                className={`w-8 h-8 ${formData.rating >= star ? 'fill-current' : 'text-slate-300'}`}
                                                 style={{ color: formData.rating >= star ? starColor : undefined }}
                                             />
                                         </button>
@@ -152,49 +242,68 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold mb-1">Name</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                />
-                            </div>
-
-                            {allowVerifiedOnly && (
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-bold mb-1">Order ID <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-bold mb-2">Name</label>
                                     <input
                                         type="text"
                                         required
-                                        placeholder="Enter your Order ID to verify purchase"
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
-                                        value={formData.orderId}
-                                        onChange={e => setFormData({ ...formData, orderId: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        placeholder="John Doe"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
-                                    <p className="text-xs text-slate-500 mt-1">Required for verification.</p>
                                 </div>
-                            )}
+
+                                {allowVerifiedOnly && (
+                                    <div>
+                                        <label className="block text-sm font-bold mb-2">Order ID <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                            placeholder="#1001"
+                                            value={formData.orderId}
+                                            onChange={e => setFormData({ ...formData, orderId: e.target.value })}
+                                        />
+                                        <p className="text-xs text-slate-500 mt-1">Required for verification.</p>
+                                    </div>
+                                )}
+                            </div>
 
                             <div>
-                                <label className="block text-sm font-bold mb-1">Review</label>
+                                <label className="block text-sm font-bold mb-2">Review</label>
                                 <textarea
                                     required
                                     rows={4}
-                                    className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                                    placeholder="Share your experience..."
                                     value={formData.text}
                                     onChange={e => setFormData({ ...formData, text: e.target.value })}
                                 />
                             </div>
 
-                            {error && <p className="text-red-500 text-sm font-bold">{error}</p>}
+                            {allowMedia && (
+                                <div>
+                                    <label className="block text-sm font-bold mb-2">Add Photos/Video</label>
+                                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-slate-100 transition-colors cursor-pointer group">
+                                        <ImageIcon className="w-8 h-8 mx-auto text-slate-300 group-hover:text-indigo-500 mb-2" />
+                                        <p className="text-sm text-slate-500 group-hover:text-indigo-600 font-medium">Click to upload images</p>
+                                        <p className="text-[10px] text-slate-400 mt-1">(Upload functionality simulated - storage pending)</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="p-3 bg-red-50 text-red-600 text-sm font-bold rounded-lg flex items-center">
+                                    <span className="mr-2">⚠️</span> {error}
+                                </div>
+                            )}
 
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="w-full py-3 rounded-xl font-bold text-white opacity-90 hover:opacity-100 disabled:opacity-50"
+                                className="w-full py-4 rounded-xl font-bold text-white shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{ backgroundColor: buttonColor }}
                             >
                                 {submitting ? 'Submitting...' : 'Post Review'}
@@ -203,41 +312,59 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                     </div>
                 )}
 
-                {/* List */}
-                <div className="space-y-6">
+                {/* Reviews List */}
+                <div className="space-y-8">
                     {reviews.map(review => (
-                        <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0">
-                            <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center space-x-3">
-                                    <div className="bg-slate-200 rounded-full w-10 h-10 flex items-center justify-center font-bold text-slate-500 uppercase">
+                        <div key={review.id} className="group border-b border-slate-100 pb-8 last:border-0 last:pb-0">
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center space-x-4">
+                                    <div
+                                        className="rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg text-white shadow-md uppercase"
+                                        style={{ backgroundColor: buttonColor }} // Use brand color for avatar bg
+                                    >
                                         {review.customer_name.charAt(0)}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-sm">{review.customer_name}</p>
-                                        <div className="flex items-center space-x-2">
-                                            <StarRating rating={review.rating} size="w-3 h-3" color={`text-[${starColor}]`} />
+                                        <p className="font-bold text-slate-900">{review.customer_name}</p>
+                                        <div className="flex items-center space-x-3 mt-0.5">
+                                            <StarRating rating={review.rating} size="w-3.5 h-3.5" color={`text-[${starColor}]`} />
                                             {review.is_verified && (
-                                                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center">
-                                                    <CheckCircle className="w-3 h-3 mr-1" /> Verified
+                                                <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full font-bold flex items-center uppercase tracking-wide">
+                                                    <CheckCircle className="w-3 h-3 mr-1" /> Verified Purchase
                                                 </span>
                                             )}
                                         </div>
                                     </div>
                                 </div>
-                                <span className="text-xs text-slate-400">
+                                <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
                                     {new Date(review.created_at).toLocaleDateString()}
                                 </span>
                             </div>
-                            <p className="text-slate-600 leading-relaxed text-sm pl-13 ml-13">
-                                {review.review_text}
-                            </p>
+
+                            <div className="pl-16">
+                                <p className="text-slate-600 leading-relaxed text-sm">
+                                    {review.review_text}
+                                </p>
+
+                                {/* Placeholder for Media rendering if we had any */}
+                                {review.media_urls && review.media_urls.length > 0 && (
+                                    <div className="flex gap-2 mt-4">
+                                        {review.media_urls.map((url, idx) => (
+                                            <div key={idx} className="h-16 w-16 bg-slate-100 rounded-lg" />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
 
                     {reviews.length === 0 && !loading && (
-                        <div className="text-center py-12 text-slate-400 bg-slate-50 rounded-2xl">
-                            <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                            <p>No reviews yet.</p>
+                        <div className="text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                                <MessageSquare className="w-8 h-8 text-slate-300" />
+                            </div>
+                            <h3 className="font-bold text-slate-900">No reviews yet</h3>
+                            <p className="text-sm text-slate-500 mt-1">Be the first to share your thoughts!</p>
                         </div>
                     )}
                 </div>

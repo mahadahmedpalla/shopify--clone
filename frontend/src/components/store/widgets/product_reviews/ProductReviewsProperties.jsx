@@ -21,6 +21,18 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                     Functionality
                 </h4>
 
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Layout Style</label>
+                    <select
+                        value={style.layoutMode || 'simple'}
+                        onChange={(e) => handleChange('layoutMode', e.target.value)}
+                        className="w-full text-sm border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="simple">Simple List</option>
+                        <option value="chart">Summary Chart (Pro)</option>
+                    </select>
+                </div>
+
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-3">
                     <label className="flex items-start space-x-3 cursor-pointer">
                         <input
@@ -35,6 +47,16 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                                 User must enter their generated Order ID to leave a review.
                             </span>
                         </div>
+                    </label>
+
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={style.allowMedia || false}
+                            onChange={(e) => handleChange('allowMedia', e.target.checked)}
+                            className="h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">Allow Media Uploads</span>
                     </label>
 
                     <label className="flex items-center space-x-3 cursor-pointer">
