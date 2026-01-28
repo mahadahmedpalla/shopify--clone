@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, Grid, Box, DollarSign } from 'lucide-react';
+import { Type, Grid, Box, DollarSign, ListFilter, Layers } from 'lucide-react';
 
 /* Simple components for the properties panel */
 const Section = ({ title, children, icon: Icon }) => (
@@ -41,7 +41,7 @@ const Select = ({ label, value, onChange, options }) => (
     </div>
 );
 
-export const RelatedProductsProperties = ({ settings, onUpdate }) => {
+export const RelatedProductsProperties = ({ settings, onUpdate, categories = [] }) => {
     const handleChange = (key, value) => {
         onUpdate({ ...settings, [key]: value });
     };
@@ -63,13 +63,49 @@ export const RelatedProductsProperties = ({ settings, onUpdate }) => {
                 </div>
             </Section>
 
+            {/* DATA SOURCE */}
+            <Section title="Data Source" icon={ListFilter}>
+                <Select
+                    label="Products Source"
+                    value={settings.source || 'same_category'}
+                    onChange={(v) => handleChange('source', v)}
+                    options={[
+                        { value: 'same_category', label: 'Same as Current Product' },
+                        { value: 'all_products', label: 'All Products (Random)' },
+                        { value: 'specific_category', label: 'Specific Category' }
+                    ]}
+                />
+
+                {settings.source === 'specific_category' && (
+                    <Select
+                        label="Select Category"
+                        value={settings.targetCategoryId || ''}
+                        onChange={(v) => handleChange('targetCategoryId', v)}
+                        options={[
+                            { value: '', label: 'Select a category...' },
+                            ...categories.map(c => ({ value: c.id, label: c.name }))
+                        ]}
+                    />
+                )}
+            </Section>
+
             {/* LAYOUT */}
             <Section title="Layout" icon={Grid}>
+                <Select
+                    label="Display Mode"
+                    value={settings.layoutMode || 'grid'}
+                    onChange={(v) => handleChange('layoutMode', v)}
+                    options={[
+                        { value: 'grid', label: 'Grid (Multi-row)' },
+                        { value: 'slider', label: 'Slider (Horizontal Scroll)' }
+                    ]}
+                />
+
                 <NumberInput
                     label="Product Limit"
                     value={settings.relatedLimit || 4}
                     onChange={(v) => handleChange('relatedLimit', v)}
-                    max={12}
+                    max={20}
                 />
 
                 <Select

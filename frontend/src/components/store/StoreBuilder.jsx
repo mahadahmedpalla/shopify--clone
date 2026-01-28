@@ -594,6 +594,7 @@ export function StoreBuilder() {
                                 ) : selectedElement.type === 'related_products' ? (
                                     <RelatedProductsProperties
                                         settings={selectedElement.settings}
+                                        categories={categories}
                                         onUpdate={newSettings => {
                                             const newContent = canvasContent.map(c =>
                                                 c.id === selectedElement.id ? { ...c, settings: newSettings } : c
