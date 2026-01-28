@@ -4,6 +4,7 @@ import { HeroRenderer } from './hero/HeroRenderer';
 
 import { ProductGridRenderer } from './product_grid/ProductGridRenderer';
 import { ProductDetailRenderer } from './product_detail/ProductDetailRenderer';
+import { ProductReviewsRenderer } from './product_reviews/ProductReviewsRenderer';
 
 export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor }) {
     switch (type) {
@@ -13,6 +14,8 @@ export function BlockRenderer({ type, settings, viewMode, store, products, produ
             return <HeroRenderer settings={settings} viewMode={viewMode} />;
         case 'product_grid':
             return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} />;
+        case 'product_reviews':
+            return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
         case 'heading':
             return (
                 <div className="px-12 py-8 bg-white">

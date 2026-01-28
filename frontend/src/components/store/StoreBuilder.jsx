@@ -25,7 +25,7 @@ import {
     X, Save, Eye, Smartphone, Monitor, Tablet, Plus, Settings2, Layers,
     ChevronLeft, Type, Image as ImageIcon, Layout, Box, Play, Undo2,
     Redo2, ChevronRight, Search, ShoppingBag, ShoppingCart, Trash2, Move, GripVertical, Menu, Upload,
-    AlignCenter, AlignLeft, AlignRight, ArrowUp, ArrowDown, Maximize, Minimize, Palette as PaletteIcon
+    AlignCenter, AlignLeft, AlignRight, ArrowUp, ArrowDown, Maximize, Minimize, Palette as PaletteIcon, MessageSquare
 } from 'lucide-react';
 
 // New Modular Imports
@@ -34,6 +34,7 @@ import { HeroProperties } from './widgets/hero/HeroProperties';
 
 import { ProductGridProperties } from './widgets/product_grid/ProductGridProperties';
 import { ProductDetailProperties } from './widgets/product_detail/ProductDetailProperties';
+import { ProductReviewsProperties } from './widgets/product_reviews/ProductReviewsProperties';
 
 import { CartProvider } from '../../context/CartContext';
 import { CartDrawer } from './widgets/cart/CartDrawer';
@@ -65,6 +66,7 @@ const WIDGET_CATEGORIES = [
             { type: 'product_grid', icon: <ShoppingBag className="h-4 w-4" />, label: 'Product Grid' },
             { type: 'cart_list', icon: <ShoppingCart className="h-4 w-4" />, label: 'Cart Items' },
             { type: 'product_detail', icon: <Search className="h-4 w-4" />, label: 'Product Info' },
+            { type: 'product_reviews', icon: <MessageSquare className="h-4 w-4" />, label: 'Reviews' },
         ]
     }
 ];
@@ -309,6 +311,13 @@ export function StoreBuilder() {
                     tablet: 3,
                     mobile: 2
                 }
+            } : type === 'product_reviews' ? {
+                allowVerifiedOnly: false,
+                hideIfEmpty: false,
+                sortOrder: 'newest',
+                starColor: '#FACC15',
+                buttonColor: '#4F46E5',
+                textColor: '#1F2937'
             } : {
                 title: type === 'hero' ? 'New Hero Banner' : 'New Title',
                 content: 'Sample content for your ' + type
@@ -529,6 +538,17 @@ export function StoreBuilder() {
                                     />
                                 ) : selectedElement.type === 'product_detail' ? (
                                     <ProductDetailProperties
+                                        settings={selectedElement.settings}
+                                        onUpdate={newSettings => {
+                                            const newContent = canvasContent.map(c =>
+                                                c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+                                            );
+                                            setCanvasContent(newContent);
+                                            setSelectedElement({ ...selectedElement, settings: newSettings });
+                                        }}
+                                    />
+                                ) : selectedElement.type === 'product_reviews' ? (
+                                    <ProductReviewsProperties
                                         settings={selectedElement.settings}
                                         onUpdate={newSettings => {
                                             const newContent = canvasContent.map(c =>
