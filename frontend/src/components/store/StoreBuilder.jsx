@@ -255,7 +255,7 @@ export function StoreBuilder() {
 
     const handleDragEnd = (event) => {
         const { active, over } = event;
-        setDraggedWidget(null);
+        setDraggedWidget(null); // Clear immediately
 
         if (!over) return;
 
@@ -264,11 +264,25 @@ export function StoreBuilder() {
             let type = active.id.replace('new-', '');
             let settings = {};
 
-            // If SAVED widget
-            if (active.data?.current?.isSavedWidget) {
-                type = active.data.current.type;
-                settings = active.data.current.settings;
+            // Check for SAVED widget by ID pattern first for reliability
+            const savedMatch = active.id.match(/^new-saved-(.+)$/);
+
+            if (savedMatch) {
+                const savedId = savedMatch[1];
+                // Lookup from state to be safe
+                // (UUIDs are strings, but supabase ID might be int, checking loose equality or string just in case)
+                const savedWidget = savedWidgets.find(w => String(w.id) === savedId);
+
+                if (savedWidget) {
+                    type = savedWidget.type;
+                    settings = savedWidget.settings;
+                } else if (active.data?.current?.isSavedWidget) {
+                    // Fallback to DnD data if lookup fails
+                    type = active.data.current.type;
+                    settings = active.data.current.settings;
+                }
             } else {
+                // Standard new widget
                 settings = getWidgetDefaults(type);
             }
 
@@ -519,17 +533,21 @@ export function StoreBuilder() {
                                 <input type="text" placeholder="Search elements..." className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm" />
                             </div>
 
-                            {/* SAVED WIDGETS CATEGORY */}
+
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
+                            {/* SAVED WIDGETS CATEGORY - MOVED HERE */}
                             {savedWidgets.length > 0 && (
-                                <div className="mb-8 mt-6">
+                                <div className="mb-6 border-b border-slate-100 pb-6">
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-2 mb-3">Saved Custom Widgets</h3>
                                     <div className="grid grid-cols-2 gap-3 px-2">
                                         {savedWidgets.map(w => (
                                             <SidebarDraggable
                                                 key={w.id}
-                                                id={`new-saved-${w.id}`} // Unique ID
+                                                id={`new-saved-${w.id}`}
                                                 type={w.type}
-                                                icon={<Box className="w-4 h-4" />} // Generic icon
+                                                icon={<Box className="w-4 h-4" />}
                                                 label={w.name}
                                                 data={{
                                                     isSavedWidget: true,
@@ -542,9 +560,7 @@ export function StoreBuilder() {
                                     </div>
                                 </div>
                             )}
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
                             {WIDGET_CATEGORIES.map(cat => (
                                 <div key={cat.name} className="space-y-3">
                                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{cat.name}</h3>
