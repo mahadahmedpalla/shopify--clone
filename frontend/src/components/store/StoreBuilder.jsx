@@ -11,7 +11,8 @@ import {
     useSensor,
     useSensors,
     DragOverlay,
-    defaultDropAnimationSideEffects
+    defaultDropAnimationSideEffects,
+    useDraggable
 } from '@dnd-kit/core';
 import {
     arrayMove,
