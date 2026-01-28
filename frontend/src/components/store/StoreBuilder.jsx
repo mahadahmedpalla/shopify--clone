@@ -605,6 +605,25 @@ export function StoreBuilder() {
                                         )}
                                     </SortableContext>
                                 </div>
+                                <DragOverlay>
+                                    {draggedWidget ? (
+                                        <div className="p-4 bg-white border-2 border-indigo-500 shadow-2xl rounded-xl w-64 cursor-grabbing scale-105 rotate-2">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                                                    <Box className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <span className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                                        {draggedWidget.label || draggedWidget.name || 'Widget'}
+                                                    </span>
+                                                    {draggedWidget.isSaved && (
+                                                        <span className="text-[10px] text-indigo-500 font-medium">Saved Template</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                </DragOverlay>
                             </DndContext>
                         </CartProvider>
                     </main>
@@ -744,55 +763,57 @@ export function StoreBuilder() {
                             </div>
                         )}
                     </aside>
-                </div>
-            </div>
+                </div >
+            </div >
 
             {/* SAVE WIDGET MODAL */}
-            {showSaveWidgetModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
-                        <h3 className="text-lg font-bold text-slate-900">Save Custom Widget</h3>
-                        <p className="text-sm text-slate-500">
-                            Save this <strong>{selectedElement?.type}</strong> configuration to your library for reuse.
-                        </p>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Widget Name</label>
-                            <input
-                                type="text"
-                                value={newWidgetName}
-                                onChange={(e) => setNewWidgetName(e.target.value)}
-                                className="w-full p-2 border border-slate-200 rounded-lg text-sm"
-                                autoFocus
-                            />
-                        </div>
-                        <div className="flex justify-end space-x-2 pt-2">
-                            <Button variant="secondary" onClick={() => setShowSaveWidgetModal(false)}>Cancel</Button>
-                            <Button onClick={async () => {
-                                if (!newWidgetName.trim()) return;
+            {
+                showSaveWidgetModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+                            <h3 className="text-lg font-bold text-slate-900">Save Custom Widget</h3>
+                            <p className="text-sm text-slate-500">
+                                Save this <strong>{selectedElement?.type}</strong> configuration to your library for reuse.
+                            </p>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-1">Widget Name</label>
+                                <input
+                                    type="text"
+                                    value={newWidgetName}
+                                    onChange={(e) => setNewWidgetName(e.target.value)}
+                                    className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2 pt-2">
+                                <Button variant="secondary" onClick={() => setShowSaveWidgetModal(false)}>Cancel</Button>
+                                <Button onClick={async () => {
+                                    if (!newWidgetName.trim()) return;
 
-                                // Save to DB
-                                const { error } = await supabase.from('saved_widgets').insert({
-                                    store_id: storeId,
-                                    name: newWidgetName,
-                                    type: selectedElement.type,
-                                    settings: selectedElement.settings
-                                });
+                                    // Save to DB
+                                    const { error } = await supabase.from('saved_widgets').insert({
+                                        store_id: storeId,
+                                        name: newWidgetName,
+                                        type: selectedElement.type,
+                                        settings: selectedElement.settings
+                                    });
 
-                                if (!error) {
-                                    // Refresh list
-                                    const { data } = await supabase.from('saved_widgets').select('*').eq('store_id', storeId).order('created_at', { ascending: false });
-                                    if (data) setSavedWidgets(data);
-                                    setShowSaveWidgetModal(false);
-                                    alert('Widget Saved! 🎉');
-                                } else {
-                                    alert('Error saving widget');
-                                }
-                            }}>Save Widget</Button>
+                                    if (!error) {
+                                        // Refresh list
+                                        const { data } = await supabase.from('saved_widgets').select('*').eq('store_id', storeId).order('created_at', { ascending: false });
+                                        if (data) setSavedWidgets(data);
+                                        setShowSaveWidgetModal(false);
+                                        alert('Widget Saved! 🎉');
+                                    } else {
+                                        alert('Error saving widget');
+                                    }
+                                }}>Save Widget</Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </ErrorBoundary>
+                )
+            }
+        </ErrorBoundary >
     );
 }
 
