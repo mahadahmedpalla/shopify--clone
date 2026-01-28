@@ -458,6 +458,30 @@ export function StoreBuilder() {
                                 <Search className="absolute left-3 top-2.5 h-3 w-3 text-slate-400" />
                                 <input type="text" placeholder="Search elements..." className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm" />
                             </div>
+
+                            {/* SAVED WIDGETS CATEGORY */}
+                            {savedWidgets.length > 0 && (
+                                <div className="mb-8 mt-6">
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-2 mb-3">Saved Custom Widgets</h3>
+                                    <div className="grid grid-cols-2 gap-3 px-2">
+                                        {savedWidgets.map(w => (
+                                            <SidebarDraggable
+                                                key={w.id}
+                                                id={`new-saved-${w.id}`} // Unique ID
+                                                type={w.type}
+                                                icon={<Box className="w-4 h-4" />} // Generic icon
+                                                label={w.name}
+                                                data={{
+                                                    isSavedWidget: true,
+                                                    type: w.type,
+                                                    settings: w.settings,
+                                                    name: w.name
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-8 scrollbar-hide">
@@ -662,7 +686,84 @@ export function StoreBuilder() {
                     </aside>
                 </div>
             </div>
+
+            {/* SAVE WIDGET MODAL */}
+            {showSaveWidgetModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+                        <h3 className="text-lg font-bold text-slate-900">Save Custom Widget</h3>
+                        <p className="text-sm text-slate-500">
+                            Save this <strong>{selectedElement?.type}</strong> configuration to your library for reuse.
+                        </p>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Widget Name</label>
+                            <input
+                                type="text"
+                                value={newWidgetName}
+                                onChange={(e) => setNewWidgetName(e.target.value)}
+                                className="w-full p-2 border border-slate-200 rounded-lg text-sm"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex justify-end space-x-2 pt-2">
+                            <Button variant="secondary" onClick={() => setShowSaveWidgetModal(false)}>Cancel</Button>
+                            <Button onClick={async () => {
+                                if (!newWidgetName.trim()) return;
+
+                                // Save to DB
+                                const { error } = await supabase.from('saved_widgets').insert({
+                                    store_id: storeId,
+                                    name: newWidgetName,
+                                    type: selectedElement.type,
+                                    settings: selectedElement.settings
+                                });
+
+                                if (!error) {
+                                    // Refresh list
+                                    const { data } = await supabase.from('saved_widgets').select('*').eq('store_id', storeId).order('created_at', { ascending: false });
+                                    if (data) setSavedWidgets(data);
+                                    setShowSaveWidgetModal(false);
+                                    alert('Widget Saved! 🎉');
+                                } else {
+                                    alert('Error saving widget');
+                                }
+                            }}>Save Widget</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </ErrorBoundary>
+    );
+}
+
+// DRAGGABLE SIDEBAR ITEM WRAPPER
+function SidebarDraggable({ id, type, icon, label, data }) {
+    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+        id: id,
+        data: data || { type, title: label }
+    });
+
+    const style = transform ? {
+        transform: CSS.Translate.toString(transform),
+        opacity: 0.5,
+        zIndex: 50
+    } : undefined;
+
+    return (
+        <div
+            ref={setNodeRef}
+            {...listeners}
+            {...attributes}
+            style={style}
+            className="flex flex-col items-center justify-center p-4 bg-white border border-slate-100 rounded-xl hover:border-indigo-500 hover:shadow-md cursor-grab active:cursor-grabbing group transition-all"
+        >
+            <div className="text-slate-400 group-hover:text-indigo-600 mb-2 transition-colors">
+                {icon}
+            </div>
+            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide text-center leading-tight">
+                {label}
+            </span>
+        </div>
     );
 }
 
