@@ -27,6 +27,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
     const [formData, setFormData] = useState({ name: '', rating: 5, text: '', orderId: '', media: [] });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     // Settings
     const allowVerifiedOnly = style?.allowVerifiedOnly || false;
@@ -66,8 +67,6 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
             setReviews(data || []);
 
             // Recalculate summary 
-            // NOTE: Distribution should logically reflect ALL reviews, not just filtered ones.
-            // For MVP simplicty we calculate from current data set, or we'd need a separate query.
             if (data && data.length > 0) {
                 const total = data.reduce((acc, r) => acc + r.rating, 0);
                 const distinct = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -87,6 +86,57 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleFileSelect = async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        setUploading(true);
+        setError(null);
+
+        try {
+            const newMediaUrls = [];
+
+            for (const file of files) {
+                // Validate size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    throw new Error(`File ${file.name} is too large (max 5MB)`);
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${productId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('review-media')
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('review-media')
+                    .getPublicUrl(filePath);
+
+                newMediaUrls.push(publicUrl);
+            }
+
+            setFormData(prev => ({ ...prev, media: [...prev.media, ...newMediaUrls] }));
+
+        } catch (err) {
+            console.error("Upload error:", err);
+            setError(err.message || "Failed to upload media");
+        } finally {
+            setUploading(false);
+            e.target.value = null; // Reset input
+        }
+    };
+
+    const removeMedia = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            media: prev.media.filter((_, i) => i !== index)
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -109,7 +159,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                 review_text: formData.text,
                 order_id: (allowVerifiedOnly || formData.orderId) ? formData.orderId : null,
                 is_verified: !!formData.orderId,
-                media_urls: [] // Placeholder for real upload logic
+                media_urls: formData.media
             });
 
             if (error) throw error;
@@ -286,11 +336,43 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                             {allowMedia && (
                                 <div>
                                     <label className="block text-sm font-bold mb-2">Add Photos/Video</label>
-                                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-slate-100 transition-colors cursor-pointer group">
-                                        <ImageIcon className="w-8 h-8 mx-auto text-slate-300 group-hover:text-indigo-500 mb-2" />
-                                        <p className="text-sm text-slate-500 group-hover:text-indigo-600 font-medium">Click to upload images</p>
-                                        <p className="text-[10px] text-slate-400 mt-1">(Upload functionality simulated - storage pending)</p>
-                                    </div>
+
+                                    {/* PREVIEW AREA */}
+                                    {formData.media.length > 0 && (
+                                        <div className="flex gap-4 mb-4 overflow-x-auto pb-2">
+                                            {formData.media.map((url, idx) => (
+                                                <div key={idx} className="relative group shrink-0 w-24 h-24 rounded-lg overflow-hidden border border-slate-200">
+                                                    <img src={url} alt="Review" className="w-full h-full object-cover" />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeMedia(idx)}
+                                                        className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <label className={`border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-slate-100 transition-colors cursor-pointer group flex flex-col items-center justify-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*,video/*"
+                                            className="hidden"
+                                            onChange={handleFileSelect}
+                                            disabled={uploading}
+                                        />
+                                        {uploading ? (
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
+                                        ) : (
+                                            <ImageIcon className="w-8 h-8 mx-auto text-slate-300 group-hover:text-indigo-500 mb-2" />
+                                        )}
+                                        <p className="text-sm text-slate-500 group-hover:text-indigo-600 font-medium">
+                                            {uploading ? 'Uploading...' : 'Click to upload images'}
+                                        </p>
+                                    </label>
                                 </div>
                             )}
 
@@ -302,7 +384,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
 
                             <button
                                 type="submit"
-                                disabled={submitting}
+                                disabled={submitting || uploading}
                                 className="w-full py-4 rounded-xl font-bold text-white shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                                 style={{ backgroundColor: buttonColor }}
                             >
@@ -346,11 +428,12 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                                     {review.review_text}
                                 </p>
 
-                                {/* Placeholder for Media rendering if we had any */}
                                 {review.media_urls && review.media_urls.length > 0 && (
-                                    <div className="flex gap-2 mt-4">
+                                    <div className="flex gap-2 mt-4 flex-wrap">
                                         {review.media_urls.map((url, idx) => (
-                                            <div key={idx} className="h-16 w-16 bg-slate-100 rounded-lg" />
+                                            <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="block h-20 w-20 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity">
+                                                <img src={url} alt="Review media" className="w-full h-full object-cover" />
+                                            </a>
                                         ))}
                                     </div>
                                 )}
