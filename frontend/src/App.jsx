@@ -13,6 +13,7 @@ import { CustomizeDashboard } from './components/store/CustomizeDashboard';
 import { StoreBuilder } from './components/store/StoreBuilder';
 import { PublicStorefront } from './pages/PublicStorefront';
 import { PublicProductPage } from './pages/PublicProductPage';
+import { DiscountsPage } from './components/store/discounts/DiscountsPage';
 
 // Simple Layout Wrapper
 function Layout({ children }) {
@@ -86,7 +87,7 @@ function App() {
             <Route path="orders" element={<div className="p-8 text-center text-slate-400 font-medium">Orders Feature Coming Soon</div>} />
             <Route path="analytics" element={<div className="p-8 text-center text-slate-400 font-medium">Analytics Feature Coming Soon</div>} />
             <Route path="coupons" element={<div className="p-8 text-center text-slate-400 font-medium">Coupons Feature Coming Soon</div>} />
-            <Route path="discounts" element={<div className="p-8 text-center text-slate-400 font-medium">Discounts Feature Coming Soon</div>} />
+            <Route path="discounts" element={<DiscountsPage />} />
             <Route path="customize" element={<CustomizeDashboard />} />
             <Route path="settings" element={<div className="p-8 text-center text-slate-400 font-medium">Store Settings Coming Soon</div>} />
           </Route>
