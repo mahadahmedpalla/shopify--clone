@@ -16,8 +16,7 @@ import { PublicProductPage } from './pages/PublicProductPage';
 import { DiscountsPage } from './components/store/discounts/DiscountsPage';
 import { CouponsPage } from './components/store/coupons/CouponsPage';
 // ... existing imports ...
-// inside Routes
-<Route path="coupons" element={<CouponsPage />} />
+
 
 // Simple Layout Wrapper
 function Layout({ children }) {
@@ -90,7 +89,7 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="orders" element={<div className="p-8 text-center text-slate-400 font-medium">Orders Feature Coming Soon</div>} />
             <Route path="analytics" element={<div className="p-8 text-center text-slate-400 font-medium">Analytics Feature Coming Soon</div>} />
-            <Route path="coupons" element={<div className="p-8 text-center text-slate-400 font-medium">Coupons Feature Coming Soon</div>} />
+            <Route path="coupons" element={<CouponsPage />} />
             <Route path="discounts" element={<DiscountsPage />} />
             <Route path="customize" element={<CustomizeDashboard />} />
             <Route path="settings" element={<div className="p-8 text-center text-slate-400 font-medium">Store Settings Coming Soon</div>} />
