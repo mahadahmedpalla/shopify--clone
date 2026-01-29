@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { Button } from '../../ui/Button';
+import { Card } from '../../ui/Card';
 import { DiscountForm } from './DiscountForm';
 import {
     Plus,
