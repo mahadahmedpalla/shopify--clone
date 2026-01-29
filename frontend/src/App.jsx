@@ -13,6 +13,7 @@ import { CustomizeDashboard } from './components/store/CustomizeDashboard';
 import { StoreBuilder } from './components/store/StoreBuilder';
 import { PublicStorefront } from './pages/PublicStorefront';
 import { PublicProductPage } from './pages/PublicProductPage';
+import { DiscountsPage } from './components/store/discounts/DiscountsPage';
 import { CouponsPage } from './components/store/coupons/CouponsPage';
 // ... existing imports ...
 // inside Routes
