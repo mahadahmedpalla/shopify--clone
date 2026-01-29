@@ -3,8 +3,9 @@ import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
 import { useCart } from '../../../../context/CartContext';
 import { Link } from 'react-router-dom';
 
-export const CartListRenderer = ({ settings, isEditor }) => {
+export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) => {
     const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
+    const isMobile = viewMode === 'mobile';
 
     // -- SETTINGS --
     const showDiscountSummary = settings?.showDiscountSummary !== false;
@@ -73,12 +74,12 @@ export const CartListRenderer = ({ settings, isEditor }) => {
     }
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <h1 className="text-3xl font-bold text-slate-900 mb-8">Shopping Cart</h1>
+        <div className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${isMobile ? 'py-6' : ''}`}>
+            <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-slate-900 mb-8`}>Shopping Cart</h1>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className={`grid grid-cols-1 ${viewMode === 'desktop' ? 'lg:grid-cols-3' : ''} gap-12`}>
                 {/* Cart Items List */}
-                <div className="lg:col-span-2 space-y-8">
+                <div className={`${viewMode === 'desktop' ? 'lg:col-span-2' : ''} space-y-8`}>
                     {displayCart.map((item, i) => (
                         <div key={i} className={`flex gap-6 ${isEditor ? 'pointer-events-none' : ''}`}>
                             {/* Image */}

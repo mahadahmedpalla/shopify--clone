@@ -27,7 +27,7 @@ export function BlockRenderer({ type, settings, viewMode, store, products, produ
                 </div>
             );
         case 'cart_list':
-            return <CartListRenderer style={settings} isEditor={isEditor} />;
+            return <CartListRenderer settings={settings} isEditor={isEditor} viewMode={viewMode} />;
         case 'product_detail':
             return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} storeDiscounts={storeDiscounts} />;
         default:
