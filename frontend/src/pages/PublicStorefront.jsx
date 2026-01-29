@@ -22,6 +22,9 @@ export function PublicStorefront() {
     // Responsive Detection
     const [viewMode, setViewMode] = useState('desktop');
 
+    // Global Cart Settings
+    const [cartSettings, setCartSettings] = useState(null);
+
     useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
@@ -36,7 +39,14 @@ export function PublicStorefront() {
 
     useEffect(() => {
         fetchStoreData();
+        fetchCartSettings();
     }, [storeSubUrl, activeSlug]);
+
+    const fetchCartSettings = async () => {
+        // Fetch cart page settings for global drawer
+        if (!store) return; // Need store ID first. Moved to dependent effect or separate call?
+        // Actually, fetching store data happens first.
+    };
 
     const fetchStoreData = async () => {
         setLoading(true);
@@ -52,6 +62,18 @@ export function PublicStorefront() {
 
             if (storeError || !storeData) throw new Error(`Store "${storeSubUrl}" not found.`);
             setStore(storeData);
+
+            // Fetch Global Cart Settings
+            const { data: cartPage } = await supabase.from('store_pages')
+                .select('content')
+                .eq('store_id', storeData.id)
+                .eq('slug', 'cart')
+                .single();
+
+            if (cartPage?.content) {
+                const widget = cartPage.content.find(w => w.type === 'cart_list');
+                if (widget) setCartSettings(widget.settings);
+            }
 
             // 2. Fetch Page
             const { data: pageData, error: pageError } = await supabase
@@ -97,7 +119,7 @@ export function PublicStorefront() {
     return (
         <div className="min-h-screen bg-white">
             <CartProvider storeKey={store?.id}>
-                <CartDrawer />
+                <CartDrawer settings={cartSettings} />
                 {(page.content || []).map((block) => (
                     <BlockRenderer
                         key={block.id}

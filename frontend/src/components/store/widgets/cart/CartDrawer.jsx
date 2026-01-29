@@ -2,8 +2,23 @@ import React, { useEffect } from 'react';
 import { useCart } from '../../../../context/CartContext';
 import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 
-export function CartDrawer() {
+export function CartDrawer({ settings }) {
     const { cart, removeFromCart, updateQuantity, isOpen, setIsOpen, cartTotal } = useCart();
+
+    // -- SETTINGS --
+    const imageShape = settings?.imageShape || 'rounded';
+    const showTaxSummary = settings?.showTaxSummary !== false;
+    const showDiscountSummary = settings?.showDiscountSummary !== false;
+    // Drawer specific tweaks: Ignore imageSize settings as drawer is fixed width.
+    // Maybe use textAlignment?
+    const textAlign = settings?.textAlignment || 'left';
+
+    const getImgRound = () => imageShape === 'rounded' ? 'rounded-xl' : 'rounded-none';
+    const getAlignClass = () => {
+        if (textAlign === 'center') return 'text-center items-center';
+        if (textAlign === 'right') return 'text-right items-end';
+        return 'text-left items-start';
+    }
 
     // Lock body scroll when open
     useEffect(() => {
@@ -62,7 +77,7 @@ export function CartDrawer() {
                         cart.map((item, idx) => (
                             <div key={`${item.id}-${item.variantId || idx}`} className="flex gap-4">
                                 {/* Image */}
-                                <div className="h-24 w-24 bg-slate-100 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 relative">
+                                <div className={`h-24 w-24 bg-slate-100 flex-shrink-0 border border-slate-100 relative overflow-hidden ${getImgRound()}`}>
                                     {item.image || item.images?.[0] ? (
                                         <img src={item.image || item.images[0]} alt={item.name} className="h-full w-full object-cover" />
                                     ) : (
@@ -74,9 +89,9 @@ export function CartDrawer() {
 
                                 {/* Details */}
                                 <div className="flex-1 flex flex-col justify-between">
-                                    <div>
-                                        <div className="flex justify-between items-start">
-                                            <div>
+                                    <div className={`flex flex-col ${getAlignClass()}`}>
+                                        <div className="flex justify-between items-start w-full">
+                                            <div className={`flex flex-col ${getAlignClass()} flex-1`}>
                                                 <h4 className="font-bold text-slate-900 line-clamp-2 text-sm">{item.name}</h4>
                                                 {item.variantTitle && (
                                                     <p className="text-xs text-slate-500 mt-0.5 font-medium">{item.variantTitle}</p>
@@ -84,7 +99,7 @@ export function CartDrawer() {
                                             </div>
                                             <button
                                                 onClick={() => removeFromCart(item.id, item.variantId)}
-                                                className="text-slate-300 hover:text-red-500 p-1 -mt-1 -mr-1"
+                                                className="text-slate-300 hover:text-red-500 p-1 -mt-1 -mr-1 ml-2"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
@@ -121,10 +136,34 @@ export function CartDrawer() {
                 {/* Footer */}
                 {cart.length > 0 && (
                     <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-4">
-                        <div className="flex items-center justify-between text-slate-600">
-                            <span>Subtotal</span>
-                            <span className="font-bold text-slate-900">${cartTotal.toFixed(2)}</span>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between text-slate-600 font-medium">
+                                <span>Subtotal</span>
+                                <span className="text-slate-900">${cartTotal.toFixed(2)}</span>
+                            </div>
+
+                            {showDiscountSummary && (
+                                <div className="flex items-center justify-between text-red-600 text-sm">
+                                    <span>Discount</span>
+                                    <span>-$0.00</span>
+                                </div>
+                            )}
+
+                            {showTaxSummary && (
+                                <div className="flex items-center justify-between text-slate-500 text-sm">
+                                    <span>Estimated Tax</span>
+                                    <span>${(cartTotal * 0.1).toFixed(2)}</span>
+                                </div>
+                            )}
+
+                            <div className="h-px bg-slate-200 my-2" />
+
+                            <div className="flex items-center justify-between text-lg font-bold text-slate-900">
+                                <span>Total</span>
+                                <span>${(cartTotal * (showTaxSummary ? 1.1 : 1.0)).toFixed(2)}</span>
+                            </div>
                         </div>
+
                         <div className="text-xs text-slate-400 text-center">
                             Tax included and shipping calculated at checkout
                         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -82,6 +81,7 @@ export function StoreBuilder() {
     const [storePages, setStorePages] = useState([]);
     const [store, setStore] = useState(null);
     const [customWidgets, setCustomWidgets] = useState([]);
+    const [cartSettings, setCartSettings] = useState(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -92,6 +92,30 @@ export function StoreBuilder() {
         fetchPage();
         fetchStoreData();
     }, [pageId]);
+
+    // Fetch Cart Global Settings (from 'cart' page widget)
+    useEffect(() => {
+        const fetchCartSettings = async () => {
+            // 1. If we are editing the cart page, use live canvas content for instant feedback
+            if (page?.slug === 'cart') {
+                const widget = canvasContent.find(w => w.type === 'cart_list');
+                if (widget) setCartSettings(widget.settings);
+            } else {
+                // 2. Else fetch from DB if the user has a published cart page
+                const { data } = await supabase.from('store_pages')
+                    .select('content')
+                    .eq('store_id', storeId)
+                    .eq('slug', 'cart')
+                    .single();
+
+                if (data?.content) {
+                    const widget = data.content.find(w => w.type === 'cart_list');
+                    if (widget) setCartSettings(widget.settings);
+                }
+            }
+        };
+        if (storeId) fetchCartSettings();
+    }, [storeId, page?.slug, canvasContent]);
 
     const fetchStoreData = async () => {
         const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
@@ -324,7 +348,7 @@ export function StoreBuilder() {
 
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                         <CartProvider storeKey={storeId}>
-                            <CartDrawer />
+                            <CartDrawer settings={cartSettings} />
                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
                                 <div
                                     className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
