@@ -133,7 +133,19 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
         }
     };
 
-    // ... toggleSelection ... No change
+    const toggleSelection = (id, type) => {
+        const field = type === 'product' ? 'included_product_ids' : 'included_category_ids';
+        const current = formData[field] || [];
+
+        let updated;
+        if (current.includes(id)) {
+            updated = current.filter(item => item !== id);
+        } else {
+            updated = [...current, id];
+        }
+
+        setFormData({ ...formData, [field]: updated });
+    };
 
 
     return (
