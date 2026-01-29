@@ -1,8 +1,15 @@
 import React from 'react';
-import { Search, Star } from 'lucide-react';
+import { Search, Star, Trash2 } from 'lucide-react';
 import { WIDGET_CATEGORIES } from './widgetConstants';
 
-export function WidgetSidebar({ previewMode, onAddWidget, customWidgets = [] }) {
+export function WidgetSidebar({ previewMode, onAddWidget, customWidgets = [], onDeleteCustom }) {
+    const handleDelete = (e, widget) => {
+        e.stopPropagation();
+        if (window.confirm(`Are you sure you want to delete "${widget.name}"?`)) {
+            onDeleteCustom(widget.id);
+        }
+    };
+
     return (
         <aside
             className={`bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 ease-in-out overflow-hidden
@@ -30,8 +37,15 @@ export function WidgetSidebar({ previewMode, onAddWidget, customWidgets = [] }) 
                                 <button
                                     key={w.id}
                                     onClick={() => onAddWidget(w.type, w.settings)}
-                                    className="group p-3 bg-amber-50/50 border border-amber-200 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:border-amber-400 hover:shadow-md hover:shadow-amber-500/10 transition-all active:scale-95"
+                                    className="group p-3 bg-amber-50/50 border border-amber-200 rounded-2xl flex flex-col items-center justify-center space-y-2 hover:border-amber-400 hover:shadow-md hover:shadow-amber-500/10 transition-all active:scale-95 relative"
                                 >
+                                    <div
+                                        onClick={(e) => handleDelete(e, w)}
+                                        className="absolute top-2 right-2 p-1.5 text-amber-300 hover:text-red-500 hover:bg-white rounded-lg transition-all opacity-0 group-hover:opacity-100 z-10"
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                    </div>
+
                                     <div className="p-3 bg-white rounded-xl text-amber-500 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors">
                                         <Star className="h-4 w-4" />
                                     </div>

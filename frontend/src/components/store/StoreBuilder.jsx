@@ -176,6 +176,17 @@ export function StoreBuilder() {
         }
     };
 
+    const handleDeleteCustomWidget = async (widgetId) => {
+        try {
+            const { error } = await supabase.from('custom_widgets').delete().eq('id', widgetId);
+            if (error) throw error;
+            setCustomWidgets(customWidgets.filter(w => w.id !== widgetId));
+        } catch (e) {
+            console.error(e);
+            alert('Failed to delete preset: ' + e.message);
+        }
+    };
+
     const handleDragStart = (event) => {
         const { active } = event;
         const block = canvasContent.find(c => c.id === active.id);
@@ -308,6 +319,7 @@ export function StoreBuilder() {
                         previewMode={previewMode}
                         onAddWidget={addWidget}
                         customWidgets={customWidgets}
+                        onDeleteCustom={handleDeleteCustomWidget}
                     />
 
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
