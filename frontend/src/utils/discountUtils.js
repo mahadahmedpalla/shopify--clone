@@ -52,6 +52,7 @@ export const calculateBestPrice = (product, discounts = []) => {
         }
 
         if (d.applies_to === 'specific_categories') {
+            if (d.excluded_product_ids?.includes(product.id)) return false;
             return d.included_category_ids?.includes(product.category_id);
         }
 
