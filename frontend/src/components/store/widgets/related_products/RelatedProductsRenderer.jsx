@@ -8,9 +8,14 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
     const scrollContainerRef = useRef(null);
 
     // Settings
+    // Settings
     const limit = style?.relatedLimit || 4;
     const title = style?.relatedTitle || 'You might also like';
     const showPrice = style?.showPrice !== false;
+    const showDiscount = style?.showDiscount === true; // Default false
+    const showRating = style?.showRating === true; // Default false
+    const showDescription = style?.showDescription === true; // Default false
+
     const itemGap = style?.itemGap || 'normal'; // 'tight', 'normal', 'loose'
     const source = style?.source || 'same_category'; // 'same_category', 'all_products', 'specific_category'
     const targetCategoryId = style?.targetCategoryId;
@@ -26,7 +31,9 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
         try {
             let query = supabase
                 .from('products')
-                .select('*')
+            let query = supabase
+                .from('products')
+                .select('*, product_reviews(rating)')
                 .eq('store_id', storeId)
                 .neq('id', productId || '') // Exclude current
                 .limit(limit);
@@ -123,7 +130,15 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
                                 key={p.id === 'mock' ? i : p.id}
                                 className="min-w-[45%] md:min-w-[22%] snap-start group cursor-pointer"
                             >
-                                <ProductCard p={p} showPrice={showPrice} isEditor={isEditor} storeId={storeId} />
+                                <ProductCard
+                                    p={p}
+                                    showPrice={showPrice}
+                                    showDiscount={showDiscount}
+                                    showRating={showRating}
+                                    showDescription={showDescription}
+                                    isEditor={isEditor}
+                                    storeId={storeId}
+                                />
                             </div>
                         ))}
                     </div>
@@ -132,7 +147,15 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
                     <div className={`grid grid-cols-2 md:grid-cols-4 ${getGapClass()} gap-y-10`}>
                         {displayProducts.map((p, i) => (
                             <div key={p.id === 'mock' ? i : p.id} className="group cursor-pointer">
-                                <ProductCard p={p} showPrice={showPrice} isEditor={isEditor} storeId={storeId} />
+                                <ProductCard
+                                    p={p}
+                                    showPrice={showPrice}
+                                    showDiscount={showDiscount}
+                                    showRating={showRating}
+                                    showDescription={showDescription}
+                                    isEditor={isEditor}
+                                    storeId={storeId}
+                                />
                             </div>
                         ))}
                     </div>
