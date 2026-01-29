@@ -56,7 +56,7 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
     const fetchStoreData = async () => {
         // Fetch products and categories (including parent_id for hierarchy)
         const { data: pData } = await supabase.from('products').select('id, name, image_urls').eq('store_id', storeId);
-        const { data: cData } = await supabase.from('categories').select('id, name, parent_id').eq('store_id', storeId);
+        const { data: cData } = await supabase.from('product_categories').select('id, name, parent_id').eq('store_id', storeId);
 
         if (pData) setProducts(pData);
         if (cData) setCategories(cData);
