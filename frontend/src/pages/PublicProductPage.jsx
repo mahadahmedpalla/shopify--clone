@@ -13,6 +13,8 @@ export function PublicProductPage() {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('desktop');
 
+    const [discounts, setDiscounts] = useState([]);
+
     // Responsive Detection
     useEffect(() => {
         const handleResize = () => {
@@ -55,6 +57,18 @@ export function PublicProductPage() {
 
             if (prodError || !prodData) throw new Error('Product not found');
             setProduct(prodData);
+
+            // 2.5 Fetch Active Discounts
+            const now = new Date().toISOString();
+            const { data: discountData } = await supabase
+                .from('discounts')
+                .select('*')
+                .eq('store_id', storeData.id)
+                .eq('is_active', true)
+                .lte('starts_at', now); // Started already
+            // We handle ends_at logic in JS to keep query simple or add .or(`ends_at.is.null,ends_at.gte.${now}`)
+
+            if (discountData) setDiscounts(discountData);
 
             // 3. Fetch "Product Detail" Page
             const { data: pdpPage } = await supabase
@@ -114,6 +128,7 @@ export function PublicProductPage() {
                         viewMode={viewMode}
                         store={store}
                         product={product}
+                        storeDiscounts={discounts}
                     />
                 ))}
             </div>

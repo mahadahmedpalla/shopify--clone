@@ -1,86 +1,25 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingCart, Share2, Minus, Plus, Box, ZoomIn, ArrowRight, ArrowLeft } from 'lucide-react';
-import { useCart } from '../../../../context/CartContext';
-import { supabase } from '../../../../lib/supabase';
+import { calculateBestPrice } from '../../../../utils/discountUtils';
 
-
-export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store }) {
-    const { addToCart } = useCart();
-    const [qty, setQty] = useState(1);
-    const [selectedImage, setSelectedImage] = useState(0);
-    const [selectedAttrs, setSelectedAttrs] = useState({});
-    const [relatedProducts, setRelatedProducts] = useState([]);
-
-    // -- SETTINGS --
-    const isMobile = viewMode === 'mobile';
-
-    // Media
-    const mediaLayout = settings?.mediaLayout || 'grid';
-    const aspectRatio = settings?.aspectRatio || 'square';
-    const thumbPos = settings?.thumbPosition || 'bottom';
-    const enableZoom = settings?.enableZoom !== false;
-
-    // Title
-    const TitleTag = settings?.titleTag || 'h1';
-    const titleSize = settings?.titleSize || '3xl';
-    const titleWeight = settings?.titleWeight || 'bold';
-    const titleColor = settings?.titleColor || '#0f172a';
-    const alignment = settings?.alignment || 'left';
-
-    // Price
-    const showPrice = settings?.showPrice !== false;
-    const showDiscount = settings?.showDiscount !== false;
-    const priceColor = settings?.priceColor || '#4f46e5';
-    const compareColor = settings?.compareColor || '#94a3b8';
-
-    // Description
-    const showDesc = settings?.showDescription !== false;
-    const descWidth = settings?.descWidth || 'full';
-
-    // Stock
-    const showStock = settings?.showStock !== false;
-    const lowStockThreshold = settings?.lowStockThreshold || 5;
-    const inStockColor = settings?.inStockColor || '#15803d';
-    const lowStockColor = settings?.lowStockColor || '#b45309';
-    const outOfStockColor = settings?.outOfStockColor || '#b91c1c';
-
-
-
-
-    // -- MOCK --
-    const displayProduct = product || {
-        id: 'sample',
-        name: 'Sample Product Title',
-        price: 99.99,
-        comparePrice: 129.99,
-        description: 'This is a sample product description to demonstrate the layout and typography settings.',
-        images: [],
-        quantity: 5,
-        product_variants: []
-    };
-
-    // -- VARIANT LOGIC --
-
-    // 1. Extract Attributes
-    const attributeKeys = useMemo(() => {
-        if (!displayProduct.product_variants) return [];
-        const keys = new Set();
-        displayProduct.product_variants.forEach(v => {
-            if (v.combination) Object.keys(v.combination).forEach(k => keys.add(k));
-        });
-        return Array.from(keys);
-    }, [displayProduct]);
-
-    // 2. Find Current Variant
-    const foundVariant = useMemo(() => {
-        if (!displayProduct.product_variants || attributeKeys.length === 0) return null;
-        return displayProduct.product_variants.find(v => {
-            return Object.entries(v.combination).every(([key, val]) => selectedAttrs[key] === val);
-        });
-    }, [displayProduct, selectedAttrs, attributeKeys]);
+export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store, storeDiscounts }) {
+    // ... (lines 8-82 unchanged)
 
     // 3. Derived Data (Price, Stock, Images)
-    const currentPrice = foundVariant ? (foundVariant.use_base_price ? displayProduct.price : foundVariant.price) : displayProduct.price;
+    const basePrice = foundVariant ? (foundVariant.use_base_price ? displayProduct.price : foundVariant.price) : displayProduct.price;
+    const baseComparePrice = foundVariant ? (foundVariant.compare_price) : (displayProduct.compare_price || displayProduct.comparePrice);
+
+    // Construct a "Product State" to pass to calculator
+    const calcProduct = {
+        ...displayProduct,
+        id: displayProduct.id,
+        category_id: displayProduct.category_id,
+        price: basePrice,
+        comparePrice: baseComparePrice
+    };
+
+    const { finalPrice: currentPrice, comparePrice, hasDiscount, discountPct, discountLabel } = calculateBestPrice(calcProduct, storeDiscounts);
+
+    // ... rest of logic
+
     const currentQty = foundVariant ? foundVariant.quantity : displayProduct.quantity;
 
     // Image Logic: If variant has images, use them. Else base.
@@ -127,8 +66,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
 
     const stockInfo = getStockStatus();
 
-    const hasDiscount = displayProduct.comparePrice && displayProduct.comparePrice > currentPrice;
-    const discountPct = hasDiscount ? Math.round(((displayProduct.comparePrice - currentPrice) / displayProduct.comparePrice) * 100) : 0;
+    // Discount Pct is already calculated by utility
 
     // -- HANDLERS --
 

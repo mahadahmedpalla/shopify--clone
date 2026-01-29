@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../../../lib/supabase';
+import { calculateBestPrice } from '../../../../utils/discountUtils';
 
-export const RelatedProductsRenderer = ({ style, content, productId, product, storeId, isEditor }) => {
+export const RelatedProductsRenderer = ({ style, content, productId, product, storeId, isEditor, storeDiscounts }) => {
     const [relatedProducts, setRelatedProducts] = useState([]);
     const scrollContainerRef = useRef(null);
 
@@ -135,6 +136,7 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
                                     showDescription={showDescription}
                                     isEditor={isEditor}
                                     storeId={storeId}
+                                    storeDiscounts={storeDiscounts}
                                 />
                             </div>
                         ))}
@@ -152,6 +154,7 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
                                     showDescription={showDescription}
                                     isEditor={isEditor}
                                     storeId={storeId}
+                                    storeDiscounts={storeDiscounts}
                                 />
                             </div>
                         ))}
@@ -162,7 +165,7 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
     );
 };
 
-const ProductCard = ({ p, showPrice, showDiscount, showRating, showDescription, isEditor, storeId }) => {
+const ProductCard = ({ p, showPrice, showDiscount, showRating, showDescription, isEditor, storeId, storeDiscounts }) => {
     // Determine wrapper
     const isMock = p.id === 'mock';
     const Wrapper = (isEditor || isMock) ? 'div' : Link;
@@ -175,10 +178,11 @@ const ProductCard = ({ p, showPrice, showDiscount, showRating, showDescription, 
         : 0;
 
     // Calculate Discount
-    const price = parseFloat(p.price || 0);
-    // Support both naming conventions
-    const comparePrice = parseFloat(p.compare_price || p.comparePrice || 0);
-    const hasDiscount = showDiscount && comparePrice > price;
+    const { finalPrice: price, comparePrice: calculatedComparePrice, hasDiscount: calculatedHasDiscount } = calculateBestPrice(p, storeDiscounts);
+
+    // Override with setting toggle
+    const hasDiscount = showDiscount && calculatedHasDiscount;
+    const comparePrice = calculatedComparePrice;
 
     return (
         <Wrapper
