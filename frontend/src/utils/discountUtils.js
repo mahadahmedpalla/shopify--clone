@@ -59,6 +59,9 @@ export const calculateBestPrice = (product, discounts = []) => {
     });
 
     // Priority Helper
+    // We utilize the basePrice for calculations
+    const basePrice = result.finalPrice;
+
     const getPriority = (d) => {
         if (d.applies_to === 'specific_products') return 1;
         if (d.applies_to === 'specific_categories') return 2;
