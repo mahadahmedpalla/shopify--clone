@@ -6,6 +6,7 @@ import { ProductGridProperties } from '../widgets/product_grid/ProductGridProper
 import { ProductDetailProperties } from '../widgets/product_detail/ProductDetailProperties';
 import { ProductReviewsProperties } from '../widgets/product_reviews/ProductReviewsProperties';
 import { RelatedProductsProperties } from '../widgets/related_products/RelatedProductsProperties';
+import { CartListProperties } from '../widgets/cart_list/CartListProperties';
 
 export function PropertiesPanel({
     previewMode,
@@ -135,6 +136,11 @@ export function PropertiesPanel({
                         <RelatedProductsProperties
                             settings={selectedElement.settings}
                             categories={categories}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'cart_list' ? (
+                        <CartListProperties
+                            settings={selectedElement.settings}
                             onUpdate={onUpdate}
                         />
                     ) : (
