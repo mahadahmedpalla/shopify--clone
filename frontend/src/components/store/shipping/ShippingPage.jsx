@@ -13,9 +13,11 @@ import {
     ToggleRight,
     MapPin,
     DollarSign,
-    Box
+    Box,
+    Globe
 } from 'lucide-react';
 import { getCountryName } from '../../../lib/countries';
+import { AllowedCountriesModal } from './AllowedCountriesModal';
 
 export function ShippingPage() {
     const { storeId } = useParams();
@@ -24,6 +26,8 @@ export function ShippingPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingRate, setEditingRate] = useState(null);
+    const [showAllowedModal, setShowAllowedModal] = useState(false);
+    const [allowedCountries, setAllowedCountries] = useState(null); // null = all allowed
 
     useEffect(() => {
         if (storeId) {
@@ -41,6 +45,17 @@ export function ShippingPage() {
 
             if (error) throw error;
             setRates(data || []);
+
+            // Fetch store allowed countries
+            const { data: storeData } = await supabase
+                .from('stores')
+                .select('allowed_countries')
+                .eq('id', storeId)
+                .single();
+
+            if (storeData) {
+                setAllowedCountries(storeData.allowed_countries);
+            }
         } catch (err) {
             console.error('Error fetching shipping rates:', err);
         } finally {
@@ -94,6 +109,20 @@ export function ShippingPage() {
         rate.country.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    if (showAllowedModal) {
+        return (
+            <AllowedCountriesModal
+                storeId={storeId}
+                initialAllowed={allowedCountries}
+                onSuccess={(newAllowed) => {
+                    setAllowedCountries(newAllowed);
+                    setShowAllowedModal(false);
+                }}
+                onCancel={() => setShowAllowedModal(false)}
+            />
+        );
+    }
+
     if (showForm) {
         return (
             <ShippingForm
@@ -115,10 +144,16 @@ export function ShippingPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Shipping Rates</h1>
                     <p className="text-sm text-slate-500">Manage shipping costs and delivery zones.</p>
                 </div>
-                <Button onClick={() => setShowForm(true)} className="flex items-center space-x-2">
-                    <Plus className="w-4 h-4" />
-                    <span>Add Shipping Rate</span>
-                </Button>
+                <div className="flex space-x-3">
+                    <Button variant="outline" onClick={() => setShowAllowedModal(true)} className="flex items-center space-x-2">
+                        <Globe className="w-4 h-4" />
+                        <span>Allowed Zones</span>
+                    </Button>
+                    <Button onClick={() => setShowForm(true)} className="flex items-center space-x-2">
+                        <Plus className="w-4 h-4" />
+                        <span>Add Shipping Rate</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Filters */}
