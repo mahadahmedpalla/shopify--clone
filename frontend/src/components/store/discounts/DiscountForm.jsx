@@ -43,7 +43,9 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
             setFormData({
                 ...discount,
                 ends_at: discount.ends_at ? discount.ends_at.slice(0, 16) : '',
-                starts_at: discount.starts_at ? discount.starts_at.slice(0, 16) : ''
+                starts_at: discount.starts_at ? discount.starts_at.slice(0, 16) : '',
+                included_product_ids: discount.included_product_ids || [],
+                included_category_ids: discount.included_category_ids || []
             });
             // Initialize checkbox state
             if (discount.min_order_value && discount.min_order_value > 0) {
