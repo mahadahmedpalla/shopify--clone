@@ -41,9 +41,22 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
     const hideIfEmpty = style?.hideIfEmpty || false;
     const sortOrder = style?.sortOrder || 'newest';
 
+    // Pagination Settings
+    const enablePagination = style?.enablePagination || false;
+    const reviewsPerPage = style?.reviewsPerPage || 6;
+
+    const [currentPage, setCurrentPage] = useState(1);
+
     useEffect(() => {
         if (productId) fetchReviews();
+        setCurrentPage(1); // Reset page on filter/sort change
     }, [productId, sortOrder, filterRating]);
+
+    // PAGINATION LOGIC
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+    const displayReviews = enablePagination
+        ? reviews.slice((currentPage - 1) * reviewsPerPage, currentPage * reviewsPerPage)
+        : reviews;
 
     const fetchReviews = async () => {
         setLoading(true);
@@ -396,7 +409,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
 
                 {/* Reviews List */}
                 <div className="space-y-8">
-                    {reviews.map(review => (
+                    {displayReviews.map(review => (
                         <div key={review.id} className="group border-b border-slate-100 pb-8 last:border-0 last:pb-0">
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center space-x-4">
@@ -448,6 +461,29 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId }) =
                             </div>
                             <h3 className="font-bold text-slate-900">No reviews yet</h3>
                             <p className="text-sm text-slate-500 mt-1">Be the first to share your thoughts!</p>
+                        </div>
+                    )}
+
+                    {/* PAGINATION CONTROLS */}
+                    {enablePagination && totalPages > 1 && (
+                        <div className="flex justify-center items-center space-x-4 pt-8">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                Previous
+                            </button>
+                            <span className="text-sm font-medium text-slate-500">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                Next
+                            </button>
                         </div>
                     )}
                 </div>

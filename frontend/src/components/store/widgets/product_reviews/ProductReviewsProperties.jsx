@@ -113,6 +113,44 @@ export const ProductReviewsProperties = ({ settings, onUpdate }) => {
                     </label>
                 </div>
 
+                {/* PAGINATION SETTINGS */}
+                <div className="space-y-3 pt-4 border-t border-slate-100">
+                    <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer bg-white">
+                        <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-lg ${settings.enablePagination ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                                <Settings className="w-4 h-4" />
+                            </div>
+                            <div>
+                                <span className="text-sm font-bold text-slate-700 block">Pagination</span>
+                                <span className="text-[10px] text-slate-400 block">Split reviews into pages</span>
+                            </div>
+                        </div>
+                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${settings.enablePagination ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                            <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${settings.enablePagination ? 'translate-x-4' : ''}`} />
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={settings.enablePagination || false}
+                            onChange={(e) => handleChange('enablePagination', e.target.checked)}
+                            className="hidden"
+                        />
+                    </label>
+
+                    {settings.enablePagination && (
+                        <div className="animate-in slide-in-from-top-2 fade-in">
+                            <label className="block text-xs font-bold text-slate-500 mb-1 pl-1">Reviews Per Page</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="50"
+                                value={settings.reviewsPerPage || 6}
+                                onChange={(e) => handleChange('reviewsPerPage', parseInt(e.target.value) || 6)}
+                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                            />
+                        </div>
+                    )}
+                </div>
+
                 <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Default Sorting</label>
                     <div className="relative">
