@@ -193,6 +193,30 @@ export const RelatedProductsProperties = ({ settings, onUpdate, categories = [] 
                         check={settings.showPrice !== false}
                         onChange={(v) => handleChange('showPrice', v)}
                     />
+
+                    <ToggleCard
+                        label="Show Discount"
+                        subLabel="Show sale price & savings"
+                        icon={DollarSign}
+                        check={settings.showDiscount === true}
+                        onChange={(v) => handleChange('showDiscount', v)}
+                    />
+
+                    <ToggleCard
+                        label="Show Rating"
+                        subLabel="Display star rating"
+                        icon={Box} // Using Box as generic icon if Star not imported, checking imports... Star is not imported in Properties. Using Type/Grid/Box available.
+                        check={settings.showRating === true}
+                        onChange={(v) => handleChange('showRating', v)}
+                    />
+
+                    <ToggleCard
+                        label="Show Description"
+                        subLabel="Show short description"
+                        icon={Type}
+                        check={settings.showDescription === true}
+                        onChange={(v) => handleChange('showDescription', v)}
+                    />
                 </div>
             </div>
 
