@@ -362,7 +362,24 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
 
                             <div className="flex space-x-4">
                                 <button
-                                    onClick={() => !isEditor && isVariantValid && addToCart(foundVariant || displayProduct, qty)}
+                                    onClick={() => {
+                                        if (isEditor || !isVariantValid) return;
+
+                                        // Construct Cart Item
+                                        const cartItem = {
+                                            id: displayProduct.id,
+                                            name: displayProduct.name,
+                                            price: currentPrice, // Use calculated price (base or variant)
+                                            variantId: foundVariant?.id,
+                                            variantTitle: foundVariant ? Object.values(foundVariant.combination).join(' / ') : null,
+                                            selectedOptions: foundVariant?.combination,
+                                            images: foundVariant?.image_urls?.length > 0 ? foundVariant.image_urls : (displayProduct.image_urls || []),
+                                            image: foundVariant?.image_urls?.[0] || displayProduct.image_urls?.[0], // Main display image
+                                            store_id: displayProduct.store_id // Ensure store ID is present
+                                        };
+
+                                        addToCart(cartItem, qty);
+                                    }}
                                     disabled={!isVariantValid || currentQty === 0 || isEditor}
                                     className={`
                                         flex-1 py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-xl flex items-center justify-center group

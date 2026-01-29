@@ -54,11 +54,17 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
 
     const addToCart = (product, quantity = 1) => {
         setCart(prev => {
-            const existing = prev.find(item => item.id === product.id);
+            // Find existing item with matching ID AND Variant ID
+            const existing = prev.find(item =>
+                item.id === product.id &&
+                item.variantId === product.variantId
+            );
+
             if (existing) {
-                return prev.map(item => item.id === product.id
-                    ? { ...item, quantity: item.quantity + quantity }
-                    : item
+                return prev.map(item =>
+                    (item.id === product.id && item.variantId === product.variantId)
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
                 );
             }
             return [...prev, { ...product, quantity }];
@@ -66,13 +72,13 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
         setIsOpen(true); // Auto-open drawer
     };
 
-    const removeFromCart = (id) => {
-        setCart(prev => prev.filter(item => item.id !== id));
+    const removeFromCart = (id, variantId) => {
+        setCart(prev => prev.filter(item => !(item.id === id && item.variantId === variantId)));
     };
 
-    const updateQuantity = (id, quantity) => {
+    const updateQuantity = (id, variantId, quantity) => {
         if (quantity < 1) return;
-        setCart(prev => prev.map(item => item.id === id ? { ...item, quantity } : item));
+        setCart(prev => prev.map(item => (item.id === id && item.variantId === variantId) ? { ...item, quantity } : item));
     }
 
     const clearCart = () => {

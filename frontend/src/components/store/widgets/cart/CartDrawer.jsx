@@ -59,12 +59,12 @@ export function CartDrawer() {
                             </button>
                         </div>
                     ) : (
-                        cart.map(item => (
-                            <div key={item.id} className="flex gap-4">
+                        cart.map((item, idx) => (
+                            <div key={`${item.id}-${item.variantId || idx}`} className="flex gap-4">
                                 {/* Image */}
-                                <div className="h-24 w-24 bg-slate-100 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100">
-                                    {item.images?.[0] ? (
-                                        <img src={item.images[0]} alt={item.name} className="h-full w-full object-cover" />
+                                <div className="h-24 w-24 bg-slate-100 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100 relative">
+                                    {item.image || item.images?.[0] ? (
+                                        <img src={item.image || item.images[0]} alt={item.name} className="h-full w-full object-cover" />
                                     ) : (
                                         <div className="h-full w-full flex items-center justify-center text-slate-300">
                                             <ShoppingBag className="h-8 w-8" />
@@ -76,9 +76,14 @@ export function CartDrawer() {
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start">
-                                            <h4 className="font-bold text-slate-900 line-clamp-2 text-sm">{item.name}</h4>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 line-clamp-2 text-sm">{item.name}</h4>
+                                                {item.variantTitle && (
+                                                    <p className="text-xs text-slate-500 mt-0.5 font-medium">{item.variantTitle}</p>
+                                                )}
+                                            </div>
                                             <button
-                                                onClick={() => removeFromCart(item.id)}
+                                                onClick={() => removeFromCart(item.id, item.variantId)}
                                                 className="text-slate-300 hover:text-red-500 p-1 -mt-1 -mr-1"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -90,14 +95,14 @@ export function CartDrawer() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center border border-slate-200 rounded-lg">
                                             <button
-                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                onClick={() => updateQuantity(item.id, item.variantId, item.quantity - 1)}
                                                 className="p-1.5 hover:bg-slate-50 text-slate-500"
                                             >
                                                 <Minus className="h-3 w-3" />
                                             </button>
                                             <span className="w-8 text-center text-xs font-bold">{item.quantity}</span>
                                             <button
-                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                onClick={() => updateQuantity(item.id, item.variantId, item.quantity + 1)}
                                                 className="p-1.5 hover:bg-slate-50 text-slate-500"
                                             >
                                                 <Plus className="h-3 w-3" />
