@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -19,11 +18,11 @@ export function PublicStorefront() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Global Cart Settings for the Drawer (fetched from 'cart' page)
+    const [cartSettings, setCartSettings] = useState(null);
+
     // Responsive Detection
     const [viewMode, setViewMode] = useState('desktop');
-
-    // Global Cart Settings
-    const [cartSettings, setCartSettings] = useState(null);
 
     useEffect(() => {
         const handleResize = () => {
@@ -39,14 +38,7 @@ export function PublicStorefront() {
 
     useEffect(() => {
         fetchStoreData();
-        fetchCartSettings();
     }, [storeSubUrl, activeSlug]);
-
-    const fetchCartSettings = async () => {
-        // Fetch cart page settings for global drawer
-        if (!store) return; // Need store ID first. Moved to dependent effect or separate call?
-        // Actually, fetching store data happens first.
-    };
 
     const fetchStoreData = async () => {
         setLoading(true);
@@ -63,7 +55,8 @@ export function PublicStorefront() {
             if (storeError || !storeData) throw new Error(`Store "${storeSubUrl}" not found.`);
             setStore(storeData);
 
-            // Fetch Global Cart Settings
+            // 2. Fetch Global Cart Settings (from 'cart' page)
+            // We do this immediately after getting store ID so we can pass settings to Drawer
             const { data: cartPage } = await supabase.from('store_pages')
                 .select('content')
                 .eq('store_id', storeData.id)
@@ -72,10 +65,12 @@ export function PublicStorefront() {
 
             if (cartPage?.content) {
                 const widget = cartPage.content.find(w => w.type === 'cart_list');
-                if (widget) setCartSettings(widget.settings);
+                if (widget && widget.settings) {
+                    setCartSettings(widget.settings);
+                }
             }
 
-            // 2. Fetch Page
+            // 3. Fetch Current Page Content
             const { data: pageData, error: pageError } = await supabase
                 .from('store_pages')
                 .select('*')
@@ -84,12 +79,11 @@ export function PublicStorefront() {
                 .single();
 
             if (pageError) {
-                // Determine if it's a legal page requested that doesn't exist yet, or just a 404
                 console.warn("Page fetch error:", pageError);
             }
-            setPage(pageData); // Might be null if not found
+            setPage(pageData);
 
-            // 3. Fetch Products (for shared renderer)
+            // 4. Fetch Products (for shared renderer)
             const { data: prodData } = await supabase
                 .from('products')
                 .select('*')
@@ -97,7 +91,7 @@ export function PublicStorefront() {
                 .eq('is_active', true);
             setProducts(prodData || []);
 
-            // 4. Fetch Categories (for shared renderer)
+            // 5. Fetch Categories (for shared renderer)
             const { data: catData } = await supabase
                 .from('product_categories')
                 .select('*')
@@ -105,6 +99,7 @@ export function PublicStorefront() {
             setCategories(catData || []);
 
         } catch (err) {
+            console.error("Storefront Error:", err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -113,7 +108,6 @@ export function PublicStorefront() {
 
     if (loading) return <PublicLoader />;
     if (error) return <PublicError message={error} />;
-    // If page is null but no error (e.g. invalid slug), show error
     if (!page) return <PublicError message="Page not found" />;
 
     return (
