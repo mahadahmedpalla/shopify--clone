@@ -78,7 +78,7 @@ export function AllowedCountriesModal({ storeId, initialAllowed, onSuccess, onCa
                 <div className="flex items-center justify-between p-6 border-b border-slate-100 flex-shrink-0">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900">Allowed Shipping Zones</h2>
-                        <p className="text-sm text-slate-500">Select which countries customers can ship to.</p>
+                        <p className="text-sm text-slate-500">Select supported shipping countries</p>
                     </div>
                     <button
                         onClick={onCancel}
@@ -127,13 +127,13 @@ export function AllowedCountriesModal({ storeId, initialAllowed, onSuccess, onCa
                                 <label
                                     key={country.code}
                                     className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all border ${isSelected
-                                            ? 'bg-indigo-50 border-indigo-200'
-                                            : 'hover:bg-slate-50 border-transparent hover:border-slate-100'
+                                        ? 'bg-indigo-50 border-indigo-200'
+                                        : 'hover:bg-slate-50 border-transparent hover:border-slate-100'
                                         }`}
                                 >
                                     <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected
-                                            ? 'bg-indigo-600 border-indigo-600 text-white'
-                                            : 'border-slate-300 bg-white'
+                                        ? 'bg-indigo-600 border-indigo-600 text-white'
+                                        : 'border-slate-300 bg-white'
                                         }`}>
                                         {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
                                     </div>
