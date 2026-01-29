@@ -8,7 +8,6 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
     const scrollContainerRef = useRef(null);
 
     // Settings
-    // Settings
     const limit = style?.relatedLimit || 4;
     const title = style?.relatedTitle || 'You might also like';
     const showPrice = style?.showPrice !== false;
@@ -163,38 +162,23 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
     );
 };
 
-const ProductCard = ({ p, showPrice, isEditor, storeId }) => {
+const ProductCard = ({ p, showPrice, showDiscount, showRating, showDescription, isEditor, storeId }) => {
     // Determine wrapper
-    // Mock items or Editor mode -> no link
-    // Real items -> Link
     const isMock = p.id === 'mock';
     const Wrapper = (isEditor || isMock) ? 'div' : Link;
 
-    // Construct Path
-    // We assume 'preview' fallback if store URL not available in context, 
-    // but ideally we should get sub_url. For now, let's try to grab it or use a storeId based param if needed.
-    // Usually logic is /s/[sub_url]/p/[id]. 
-    // If we only have storeId here, we might not have sub_url easily unless passed down. 
-    // Let's assume standard preview path or try to get sub_url from props if we can.
-    // Re-checking props... we have `storeId` but not `store` object.
-    // Ideally we should pass `store` object to Renderer. 
-    // For now, let's use a generic path that might rely on router relative behavior or just `top` navigation 
-    // or fix `BlockRenderer` to pass `store`.
+    // Calculate Rating
+    const reviews = p.product_reviews || [];
+    const ratingCount = reviews.length;
+    const avgRating = ratingCount > 0
+        ? reviews.reduce((acc, r) => acc + r.rating, 0) / ratingCount
+        : 0;
 
-    // Wait, let's check if we can simply pass 'store' from BlockRenderer (it has it).
-    // Yes, we updated BlockRenderer to pass `storeId` but maybe `store`?
-    // BlockRenderer line 22: `storeId={store?.id}`. It has `store`.
-    // We should update BlockRenderer to pass `store={store}` instead of just ID.
-
-    // Assuming we fix BlockRenderer in next step (or it's already available as prop if we change it),
-    // let's write the code assuming we fix the prop passing.
-
-    const linkPath = `/p/${p.id}`; // Relative link? standard is /s/store/p/id...
-    // If we use relative `to` in React Router, it appends to current...
-    // Current is /s/abc/p/xyz
-    // We want /s/abc/p/new_id
-    // So `../${p.id}` might work?
-    // Or just `../${p.id}` if we are at `p/[id]`.
+    // Calculate Discount
+    const price = parseFloat(p.price || 0);
+    // Support both naming conventions
+    const comparePrice = parseFloat(p.compare_price || p.comparePrice || 0);
+    const hasDiscount = showDiscount && comparePrice > price;
 
     return (
         <Wrapper
@@ -214,15 +198,52 @@ const ProductCard = ({ p, showPrice, isEditor, storeId }) => {
                         <Box className="h-8 w-8 opacity-50" />
                     </div>
                 )}
+
+                {hasDiscount && (
+                    <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                        Sale
+                    </div>
+                )}
             </div>
 
-            <h3 className="font-bold text-slate-900 text-sm mb-1 leading-tight group-hover:text-indigo-600 transition-colors">
+            <h3 className="font-bold text-slate-900 text-sm mb-1 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
                 {p.name || 'Sample Product'}
             </h3>
 
+            {/* RATING */}
+            {showRating && (ratingCount > 0 || isMock) && (
+                <div className="flex items-center space-x-1 mb-1">
+                    <div className="flex text-yellow-400">
+                        {[1, 2, 3, 4, 5].map(star => (
+                            <svg key={star} className={`w-3 h-3 ${star <= (isMock ? 4.5 : avgRating) ? 'fill-current' : 'text-slate-200 fill-slate-200'}`} viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                        ))}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                        ({ratingCount})
+                    </span>
+                </div>
+            )}
+
+            {/* PRICE */}
             {showPrice && (
-                <p className="text-slate-500 text-sm">
-                    ${parseFloat(p.price || 0).toFixed(2)}
+                <div className="flex items-center space-x-2">
+                    <p className={`font-bold text-sm ${hasDiscount ? 'text-red-600' : 'text-slate-500'}`}>
+                        ${price.toFixed(2)}
+                    </p>
+                    {hasDiscount && (
+                        <p className="text-xs text-slate-400 line-through decoration-slate-300">
+                            ${comparePrice.toFixed(2)}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* DESCRIPTION */}
+            {showDescription && (
+                <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed opacity-80">
+                    {p.description || 'No description available for this product.'}
                 </p>
             )}
         </Wrapper>
