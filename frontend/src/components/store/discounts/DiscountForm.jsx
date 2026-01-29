@@ -12,7 +12,9 @@ import {
     LayoutGrid,
     AlertCircle,
     CheckCircle2,
-    Users
+    Users,
+    ChevronDown,
+    ChevronRight,
 } from 'lucide-react';
 
 export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) {
@@ -40,6 +42,7 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
 
     // ... inside function
     const [hasMinOrder, setHasMinOrder] = useState(false);
+    const [isExclusionExpanded, setIsExclusionExpanded] = useState(false);
 
     useEffect(() => {
         if (discount) {
@@ -363,55 +366,73 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
                         {/* 3.b Exclusions (New Section) */}
                         {(formData.applies_to === 'all' || formData.applies_to === 'specific_categories') && (
                             <div className="space-y-4 pt-4 border-t border-slate-100">
-                                <div className="flex items-center justify-between">
-                                    <label className="block text-sm font-bold text-red-600">Exclude Products</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Paste Product ID"
-                                            className="px-3 py-1 text-xs border border-slate-200 rounded-lg outline-none focus:border-red-500"
-                                            value={manualExcludeId}
-                                            onChange={(e) => setManualExcludeId(e.target.value)}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={handleManualExcludeById}
-                                            className="px-3 py-1 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
-                                        >
-                                            Add
-                                        </button>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-slate-500">Select products that should be EXCLUDED from this discount rule.</p>
-
-                                <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 max-h-60 overflow-y-auto">
-                                    <div className="space-y-2">
-                                        {candidateProductsForExclusion.map(product => (
-                                            <label key={product.id} className="flex items-center space-x-3 p-2 bg-white rounded-lg border border-slate-100 hover:border-red-200 cursor-pointer transition-colors group">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.excluded_product_ids.includes(product.id)}
-                                                    onChange={() => toggleExclusion(product.id)}
-                                                    className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
-                                                />
-                                                {product.image_urls?.[0] && (
-                                                    <img src={product.image_urls[0]} alt="" className="w-8 h-8 rounded bg-slate-100 object-cover grayscale group-hover:grayscale-0 transition-all" />
-                                                )}
-                                                <div>
-                                                    <span className="text-sm text-slate-700 font-medium group-hover:text-red-700">{product.name}</span>
-                                                    <p className="text-[10px] text-slate-400 font-mono">{product.id}</p>
-                                                </div>
-                                            </label>
-                                        ))}
-                                        {candidateProductsForExclusion.length === 0 && (
-                                            <p className="text-sm text-slate-400 italic">
-                                                {formData.applies_to === 'specific_categories' && formData.included_category_ids.length === 0
-                                                    ? "Select categories first to see products."
-                                                    : "No matching products found to exclude."}
-                                            </p>
+                                <div
+                                    className="flex items-center justify-between cursor-pointer group"
+                                    onClick={() => setIsExclusionExpanded(!isExclusionExpanded)}
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        {isExclusionExpanded ? (
+                                            <ChevronDown className="w-4 h-4 text-slate-500" />
+                                        ) : (
+                                            <ChevronRight className="w-4 h-4 text-slate-500" />
                                         )}
+                                        <label className="block text-sm font-bold text-red-600 cursor-pointer select-none">Exclude Products</label>
+                                    </div>
+                                    <div className="text-xs text-slate-400">
+                                        {formData.excluded_product_ids.length} excluded
                                     </div>
                                 </div>
+
+                                {isExclusionExpanded && (
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Paste Product ID"
+                                                className="flex-1 px-3 py-1 text-xs border border-slate-200 rounded-lg outline-none focus:border-red-500"
+                                                value={manualExcludeId}
+                                                onChange={(e) => setManualExcludeId(e.target.value)}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleManualExcludeById}
+                                                className="px-3 py-1 text-xs font-bold bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-slate-500">Select products that should be EXCLUDED from this discount rule.</p>
+
+                                        <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 max-h-60 overflow-y-auto">
+                                            <div className="space-y-2">
+                                                {candidateProductsForExclusion.map(product => (
+                                                    <label key={product.id} className="flex items-center space-x-3 p-2 bg-white rounded-lg border border-slate-100 hover:border-red-200 cursor-pointer transition-colors group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.excluded_product_ids.includes(product.id)}
+                                                            onChange={() => toggleExclusion(product.id)}
+                                                            className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
+                                                        />
+                                                        {product.image_urls?.[0] && (
+                                                            <img src={product.image_urls[0]} alt="" className="w-8 h-8 rounded bg-slate-100 object-cover grayscale group-hover:grayscale-0 transition-all" />
+                                                        )}
+                                                        <div>
+                                                            <span className="text-sm text-slate-700 font-medium group-hover:text-red-700">{product.name}</span>
+                                                            <p className="text-[10px] text-slate-400 font-mono">{product.id}</p>
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                                {candidateProductsForExclusion.length === 0 && (
+                                                    <p className="text-sm text-slate-400 italic">
+                                                        {formData.applies_to === 'specific_categories' && formData.included_category_ids.length === 0
+                                                            ? "Select categories first to see products."
+                                                            : "No matching products found to exclude."}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
