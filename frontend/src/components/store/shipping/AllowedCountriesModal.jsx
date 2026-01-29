@@ -11,16 +11,14 @@ export function AllowedCountriesModal({ storeId, initialAllowed, onSuccess, onCa
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        // If initialAllowed is null (default state), it technically means 'All'. 
-        // But for the UI, we should probably start with either 'Select All' or 'None' checked.
-        // Let's assume: If null, check everything? Or check nothing? 
-        // The prompt says "checkmark only countries which they are just making shipments to".
-        // Use an empty array if null for "Nothing selected" or prepopulate if needed.
-        // Let's go with: Null means ALL. So if null, we select all? 
-        // Or if it's the first time, maybe select all by default so they can uncheck?
-        // Let's default to selecting ALL if it's null, so the user sees everything is allowed.
         if (initialAllowed === null) {
-            setSelectedCountries(countries.map(c => c.code));
+            // User requested default to be deselecting all? 
+            // "moreover by default all countries will be de selected"
+            // If the user meant "Please make them deselected", then [] is correct.
+            // If the user meant "They ARE deselected and I hate it", then select all.
+            // Given "make it mandatory to search... in order to select them", implies they WANT to select specific ones.
+            // So a clean slate (empty) is better for whitelisting.
+            setSelectedCountries([]);
         } else {
             setSelectedCountries(initialAllowed || []);
         }
@@ -119,7 +117,7 @@ export function AllowedCountriesModal({ storeId, initialAllowed, onSuccess, onCa
                 </div>
 
                 {/* List */}
-                <div className="flex-1 overflow-y-auto p-2">
+                <div className="flex-1 overflow-y-auto p-2 min-h-0">
                     <div className="grid grid-cols-1 gap-1">
                         {filteredCountries.map(country => {
                             const isSelected = selectedCountries.includes(country.code);
