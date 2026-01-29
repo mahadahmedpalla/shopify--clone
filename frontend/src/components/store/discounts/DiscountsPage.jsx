@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../../../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { DiscountForm } from './DiscountForm';
@@ -125,8 +125,8 @@ export function DiscountsPage() {
                                                 {discount.name}
                                             </h3>
                                             <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${discount.is_active
-                                                    ? 'bg-green-100 text-green-700 border-green-200'
-                                                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                ? 'bg-green-100 text-green-700 border-green-200'
+                                                : 'bg-slate-100 text-slate-500 border-slate-200'
                                                 }`}>
                                                 {discount.is_active ? 'Active' : 'Inactive'}
                                             </span>

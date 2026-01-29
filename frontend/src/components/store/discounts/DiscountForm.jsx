@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { supabase } from '../../../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
 import {
     X,
     Save,
@@ -161,8 +161,8 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
                                         type="button"
                                         onClick={() => setFormData({ ...formData, discount_type: 'percentage' })}
                                         className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border border-slate-200 transition-all font-bold text-sm ${formData.discount_type === 'percentage'
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                                                : 'hover:bg-slate-50 text-slate-600'
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
+                                            : 'hover:bg-slate-50 text-slate-600'
                                             }`}
                                     >
                                         <Percent className="w-4 h-4" />
@@ -172,8 +172,8 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
                                         type="button"
                                         onClick={() => setFormData({ ...formData, discount_type: 'fixed_amount' })}
                                         className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border border-slate-200 transition-all font-bold text-sm ${formData.discount_type === 'fixed_amount'
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                                                : 'hover:bg-slate-50 text-slate-600'
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
+                                            : 'hover:bg-slate-50 text-slate-600'
                                             }`}
                                     >
                                         <DollarSign className="w-4 h-4" />
@@ -210,8 +210,8 @@ export function DiscountForm({ storeId, discount = null, onSuccess, onCancel }) 
                                         type="button"
                                         onClick={() => setFormData({ ...formData, applies_to: type })}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${formData.applies_to === type
-                                                ? 'bg-slate-900 text-white border-slate-900'
-                                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                            ? 'bg-slate-900 text-white border-slate-900'
+                                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                                             }`}
                                     >
                                         {type === 'all' && 'All Products'}
