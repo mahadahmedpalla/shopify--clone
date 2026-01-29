@@ -58,11 +58,26 @@ export const calculateBestPrice = (product, discounts = []) => {
         return false;
     });
 
-    // Find best discount
-    // We compare based on the SAVED AMOUNT against the CURRENT Base Price
-    const basePrice = result.finalPrice;
+    // Priority Helper
+    const getPriority = (d) => {
+        if (d.applies_to === 'specific_products') return 1;
+        if (d.applies_to === 'specific_categories') return 2;
+        return 3;
+    };
 
+    // Group valid discounts by priority
+    // We only want to consider the HIGHEST priority tier that has any matches.
+    let bestPriority = 4;
     validDiscounts.forEach(d => {
+        const p = getPriority(d);
+        if (p < bestPriority) bestPriority = p;
+    });
+
+    // Filter to only the best tier
+    const primaryCandidateDiscounts = validDiscounts.filter(d => getPriority(d) === bestPriority);
+
+    // Now find the best VALID savings within this tier
+    primaryCandidateDiscounts.forEach(d => {
         let savings = 0;
         if (d.discount_type === 'percentage') {
             savings = basePrice * (d.value / 100);
