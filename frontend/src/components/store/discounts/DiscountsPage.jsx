@@ -153,7 +153,7 @@ export function DiscountsPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center space-x-2 transition-opacity">
                                     <button
                                         onClick={() => handleToggleStatus(discount)}
                                         className={`p-2 rounded-lg transition-colors ${discount.is_active ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-100'}`}
