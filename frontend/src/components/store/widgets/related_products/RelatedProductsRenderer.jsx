@@ -31,8 +31,6 @@ export const RelatedProductsRenderer = ({ style, content, productId, product, st
         try {
             let query = supabase
                 .from('products')
-            let query = supabase
-                .from('products')
                 .select('*, product_reviews(rating)')
                 .eq('store_id', storeId)
                 .neq('id', productId || '') // Exclude current
