@@ -1,0 +1,38 @@
+export const countries = [
+    { code: 'US', name: 'United States', regions: ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'] },
+    { code: 'CA', name: 'Canada', regions: ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Nova Scotia', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Northwest Territories', 'Nunavut', 'Yukon'] },
+    { code: 'GB', name: 'United Kingdom', regions: ['England', 'Scotland', 'Wales', 'Northern Ireland'] },
+    { code: 'AU', name: 'Australia', regions: ['New South Wales', 'Queensland', 'South Australia', 'Tasmania', 'Victoria', 'Western Australia', 'Australian Capital Territory', 'Northern Territory'] },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'CN', name: 'China' },
+    { code: 'IN', name: 'India' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'NL', name: 'Netherlands' },
+    { code: 'SE', name: 'Sweden' },
+    { code: 'NO', name: 'Norway' },
+    { code: 'DK', name: 'Denmark' },
+    { code: 'FI', name: 'Finland' },
+    { code: 'RU', name: 'Russia' },
+    { code: 'ZA', name: 'South Africa' },
+    { code: 'AE', name: 'United Arab Emirates' },
+    { code: 'SG', name: 'Singapore' },
+    { code: 'NZ', name: 'New Zealand' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'TR', name: 'Turkey' },
+    { code: 'CH', name: 'Switzerland' },
+    { code: 'BE', name: 'Belgium' },
+    { code: 'AT', name: 'Austria' },
+    { code: 'PL', name: 'Poland' },
+    { code: 'IE', name: 'Ireland' },
+    // Add more as needed
+];
+
+export const getCountryName = (code) => {
+    const country = countries.find(c => c.code === code);
+    return country ? country.name : code;
+};
