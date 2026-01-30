@@ -4,6 +4,7 @@ import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 import { validateAddress, calculateOrderTotals, createOrder } from '../utils/checkoutUtils';
+import { ShoppingBag } from 'lucide-react';
 
 export function CheckoutPage() {
     const { storeSubUrl } = useParams();
