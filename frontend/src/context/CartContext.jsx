@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-const CartContext = createContext();
+import { supabase } from '../lib/supabase';
 
 export const useCart = () => {
     const context = useContext(CartContext);
@@ -15,7 +13,8 @@ export const useCart = () => {
             isOpen: false,
             setIsOpen: () => { },
             cartTotal: 0,
-            cartCount: 0
+            cartCount: 0,
+            refreshCart: async () => { }
         };
     }
     return context;
@@ -44,6 +43,74 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
         }
         setHydrated(true);
     }, [storageKey]);
+
+    // Refresh Cart Prices on Load
+    useEffect(() => {
+        if (hydrated && cart.length > 0) {
+            refreshCart();
+        }
+    }, [hydrated, storeKey]); // Only run once on hydration/store change
+
+    const refreshCart = async () => {
+        if (!cart || cart.length === 0) return;
+
+        try {
+            const productIds = [...new Set(cart.map(item => item.id))];
+
+            // Fetch fresh product data
+            const { data: products } = await supabase
+                .from('products')
+                .select('*')
+                .in('id', productIds);
+
+            if (!products) return;
+
+            // Fetch fresh variant data
+            const { data: variants } = await supabase
+                .from('product_variants')
+                .select('*')
+                .in('product_id', productIds);
+
+            setCart(prevCart => {
+                return prevCart.map(item => {
+                    const product = products.find(p => p.id === item.id);
+                    if (!product) return null; // Product no longer exists
+
+                    let newPrice = product.price;
+                    let newCompareAt = product.compare_at_price;
+                    let newName = product.name;
+                    let newImage = product.images?.[0] || item.image;
+
+                    if (item.variantId && variants) {
+                        const variant = variants.find(v => v.id === item.variantId);
+                        if (variant) {
+                            newPrice = variant.price;
+                            newCompareAt = variant.compare_at_price;
+                            // Optionally update title if needed, but usually constructed elsewhere
+                        } else {
+                            // Variant invalid? Keep item but maybe mark it? 
+                            // For now, if variant is gone, we might want to remove it or fallback.
+                            // Let's assume remove is safer to avoid price glitches.
+                            return null;
+                        }
+                    }
+
+                    // Only update if changes found? Or just overwrite.
+                    return {
+                        ...item,
+                        price: newPrice,
+                        compareAtPrice: newCompareAt,
+                        compare_at_price: newCompareAt, // Ensure consistency
+                        name: newName,
+                        image: newImage
+                    };
+                }).filter(Boolean); // Remote nulls
+            });
+
+        } catch (error) {
+            console.error("Failed to refresh cart prices:", error);
+        }
+    };
 
     // Save to local storage
     useEffect(() => {
