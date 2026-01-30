@@ -163,7 +163,7 @@ export function CartDrawer({ settings }) {
                                         </div>
                                         {showUnitPrice && (
                                             <div className="flex flex-col mt-1">
-                                                {(settings?.showCompareAtPrice && item.compareAtPrice && parseFloat(item.compareAtPrice) > parseFloat(item.price)) ? (
+                                                {(settings?.showCompareAtPrice && (item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price)) ? (
                                                     <div className={`flex items-baseline gap-2 ${getAlignClass() === 'text-right items-end' ? 'flex-row-reverse' : ''}`}>
                                                         <span
                                                             className="text-sm font-bold"
