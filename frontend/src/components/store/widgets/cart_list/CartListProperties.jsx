@@ -104,11 +104,11 @@ export const CartListProperties = ({ settings, onUpdate }) => {
 
             <hr className="border-slate-100" />
 
-            {/* Price Display */}
+            {/* Price Display Settings */}
             <div>
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide mb-3">Price Display</h3>
                 <div className="space-y-3">
-                    <label className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
                         <span className="text-sm text-slate-600">Show Unit Price</span>
                         <input
                             type="checkbox"
@@ -116,8 +116,22 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                             onChange={(e) => handleChange('showUnitPrice', e.target.checked)}
                             className="toggle checkbox-sm"
                         />
-                    </label>
-                    <label className="flex items-center justify-between">
+                    </div>
+                    {settings?.showUnitPrice !== false && (
+                        <div className="flex items-center justify-between pl-2 border-l-2 border-slate-100 ml-1">
+                            <span className="text-xs text-slate-500">Show Discounted Price</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-slate-400 max-w-[100px] leading-tight text-right">Show strike-through orig. price</span>
+                                <input
+                                    type="checkbox"
+                                    checked={settings?.showCompareAtPrice === true}
+                                    onChange={(e) => handleChange('showCompareAtPrice', e.target.checked)}
+                                    className="toggle checkbox-xs"
+                                />
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between">
                         <span className="text-sm text-slate-600">Show Item Subtotal</span>
                         <input
                             type="checkbox"
@@ -125,38 +139,55 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                             onChange={(e) => handleChange('showItemSubtotal', e.target.checked)}
                             className="toggle checkbox-sm"
                         />
-                    </label>
-                    <label className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Show Discounted Badge</span>
-                        <input
-                            type="checkbox"
-                            checked={settings?.showDiscountBadge !== false}
-                            onChange={(e) => handleChange('showDiscountBadge', e.target.checked)}
-                            className="toggle checkbox-sm"
-                        />
-                    </label>
-
-                    {(settings?.showDiscountBadge !== false) && (
-                        <div>
-                            <label className="block text-xs font-medium text-slate-500 mb-1">Badge Style</label>
-                            <div className="flex bg-slate-100 p-1 rounded-lg">
-                                {BADGE_STYLES.map(s => (
-                                    <button
-                                        key={s.value}
-                                        onClick={() => handleChange('badgeStyle', s.value)}
-                                        className={`flex-1 text-xs py-1.5 rounded-md transition-all ${(settings?.badgeStyle || 'pill') === s.value
-                                            ? 'bg-white shadow-sm text-slate-900 font-medium'
-                                            : 'text-slate-500 hover:text-slate-700'
-                                            }`}
-                                    >
-                                        {s.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                    </div>
                 </div>
             </div>
+
+            <hr className="border-slate-100" />
+
+            {/* Price Styling */}
+            <div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide mb-3">Price Styling</h3>
+                <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Price Color</label>
+                    <div className="flex items-center gap-2">
+                        <input type="color" value={settings?.priceColor || '#64748b'} onChange={(e) => handleChange('priceColor', e.target.value)} className="h-8 w-8 rounded cursor-pointer border-0" />
+                        <input type="text" value={settings?.priceColor || '#64748b'} onChange={(e) => handleChange('priceColor', e.target.value)} className="w-full text-xs border-slate-200 rounded" />
+                    </div>
+                </div>
+            </div>
+
+            <hr className="border-slate-100" />
+
+            <label className="flex items-center justify-between">
+                <span className="text-sm text-slate-600">Show Discounted Badge</span>
+                <input
+                    type="checkbox"
+                    checked={settings?.showDiscountBadge !== false}
+                    onChange={(e) => handleChange('showDiscountBadge', e.target.checked)}
+                    className="toggle checkbox-sm"
+                />
+            </label>
+
+            {(settings?.showDiscountBadge !== false) && (
+                <div>
+                    <label className="block text-xs font-medium text-slate-500 mb-1">Badge Style</label>
+                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                        {BADGE_STYLES.map(s => (
+                            <button
+                                key={s.value}
+                                onClick={() => handleChange('badgeStyle', s.value)}
+                                className={`flex-1 text-xs py-1.5 rounded-md transition-all ${(settings?.badgeStyle || 'pill') === s.value
+                                    ? 'bg-white shadow-sm text-slate-900 font-medium'
+                                    : 'text-slate-500 hover:text-slate-700'
+                                    }`}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <hr className="border-slate-100" />
 
@@ -338,6 +369,6 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                 </div>
             </div>
 
-        </div>
+        </div >
     );
 };

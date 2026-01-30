@@ -116,9 +116,28 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) =
                                     </div>
 
                                     {showUnitPrice && (
-                                        <p className="text-sm font-medium text-slate-600 mt-2">
-                                            ${parseFloat(item.price).toFixed(2)}
-                                        </p>
+                                        <div className="flex flex-col mt-2">
+                                            {(settings?.showCompareAtPrice === true && item.compareAtPrice && parseFloat(item.compareAtPrice) > parseFloat(item.price)) ? (
+                                                <div className={`flex items-baseline gap-2 ${getAlignClass() === 'text-right items-end' ? 'flex-row-reverse' : ''}`}>
+                                                    <span
+                                                        className="text-sm font-medium"
+                                                        style={{ color: settings?.priceColor || '#64748b' }}
+                                                    >
+                                                        ${parseFloat(item.price).toFixed(2)}
+                                                    </span>
+                                                    <span className="text-xs text-slate-400 line-through">
+                                                        ${parseFloat(item.compareAtPrice).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <p
+                                                    className="text-sm font-medium"
+                                                    style={{ color: settings?.priceColor || '#64748b' }}
+                                                >
+                                                    ${parseFloat(item.price).toFixed(2)}
+                                                </p>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
