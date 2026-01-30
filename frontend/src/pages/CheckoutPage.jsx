@@ -1,16 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 
 export function CheckoutPage() {
     const { storeSubUrl } = useParams();
-    const { cart } = useCart();
-
     const [store, setStore] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [step, setStep] = useState(1); // 1: Info, 2: Shipping, 3: Payment
+
+    useEffect(() => {
+        const fetchStore = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .eq('sub_url', storeSubUrl)
+                    .single();
+                if (error) throw error;
+                setStore(data);
+            } catch (err) {
+                console.error("Error loading store:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStore();
+    }, [storeSubUrl]);
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+        </div>
+    );
+
+    if (!store) return <div className="p-8 text-center text-red-500">Store not found</div>;
+
+    return (
+        <CartProvider storeKey={store.id}>
+            <CheckoutContent store={store} storeSubUrl={storeSubUrl} />
+        </CartProvider>
+    );
+}
+
+function CheckoutContent({ store, storeSubUrl }) {
+    const { cart } = useCart();
+    const [step, setStep] = useState(1);
     const [placingOrder, setPlacingOrder] = useState(false);
 
     // Form State
@@ -45,28 +80,17 @@ export function CheckoutPage() {
     const [checkoutSettings, setCheckoutSettings] = useState({});
 
     useEffect(() => {
-        const fetchStoreAndSettings = async () => {
+        const fetchSettings = async () => {
             try {
-                // 1. Fetch Store
-                const { data: storeData, error: storeError } = await supabase
-                    .from('stores')
-                    .select('*')
-                    .eq('sub_url', storeSubUrl)
-                    .single();
-                if (storeError) throw storeError;
-                setStore(storeData);
-
-                // 2. Fetch Checkout Page Settings
+                // Fetch Checkout Page Settings
                 const { data: pageData } = await supabase
                     .from('store_pages')
-                    .select('content') // Assuming content stores the widgets
-                    .eq('store_id', storeData.id)
-                    .eq('slug', 'checkout') // System slug
+                    .select('content')
+                    .eq('store_id', store.id)
+                    .eq('slug', 'checkout')
                     .single();
 
                 if (pageData?.content) {
-                    // Find checkout_form widget
-                    // Content is typically an array of widgets
                     const widgets = Array.isArray(pageData.content) ? pageData.content : [];
                     const checkoutWidget = widgets.find(w => w.type === 'checkout_form');
                     if (checkoutWidget && checkoutWidget.settings) {
@@ -74,19 +98,17 @@ export function CheckoutPage() {
                     }
                 }
 
-                // MOCK Shipping Rates for now (replace with DB fetch)
+                // MOCK Shipping Rates
                 setShippingRates([
                     { id: 'rate_standard', name: 'Standard Shipping', rate: 5.00, estimated_days: '3-5' },
                     { id: 'rate_express', name: 'Express Shipping', rate: 15.00, estimated_days: '1-2' }
                 ]);
             } catch (err) {
-                console.error("Error loading store/settings:", err);
-            } finally {
-                setLoading(false);
+                console.error("Error loading settings:", err);
             }
         };
-        fetchStoreAndSettings();
-    }, [storeSubUrl]);
+        fetchSettings();
+    }, [store.id]);
 
     // Recalculate totals when dependencies change
     useEffect(() => {
@@ -150,14 +172,6 @@ export function CheckoutPage() {
         if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
     };
 
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="animate-spin h-8 w-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
-        </div>
-    );
-
-    // ... existing Store/Empty checks ...
-    if (!store) return <div className="p-8 text-center text-red-500">Store not found</div>;
     if (cart.length === 0) return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
             <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
@@ -194,8 +208,7 @@ export function CheckoutPage() {
             totals={totals}
             storeName={store.name}
             storeSubUrl={storeSubUrl}
-            // Future settings can take store specific checkout settings
-            settings={{}}
+            settings={checkoutSettings}
         />
     );
 }
