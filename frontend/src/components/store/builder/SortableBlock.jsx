@@ -27,9 +27,11 @@ export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, 
                 <div {...attributes} {...listeners} className="p-2 bg-white shadow-xl rounded-lg border border-slate-200 text-slate-400 hover:text-indigo-600 cursor-grab active:cursor-grabbing">
                     <GripVertical className="h-4 w-4" />
                 </div>
-                <button onClick={onDelete} className="p-2 bg-white shadow-xl rounded-lg border border-slate-200 text-slate-400 hover:text-red-500">
-                    <Trash2 className="h-4 w-4" />
-                </button>
+                {onDelete && (
+                    <button onClick={onDelete} className="p-2 bg-white shadow-xl rounded-lg border border-slate-200 text-slate-400 hover:text-red-500">
+                        <Trash2 className="h-4 w-4" />
+                    </button>
+                )}
             </div>
 
             <BlockRenderer

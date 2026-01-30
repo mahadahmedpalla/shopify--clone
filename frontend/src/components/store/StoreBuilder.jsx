@@ -275,6 +275,22 @@ export function StoreBuilder() {
         ? canvasContent.find(w => w.type === 'cart_list')?.settings
         : cartSettings) || cartSettings;
 
+    // AUTO-INJECT CART WIDGET
+    useEffect(() => {
+        if (!loading && page?.slug === 'cart' && canvasContent.length === 0) {
+            // Short timeout to ensure state is settled
+            const timer = setTimeout(() => {
+                const newWidget = {
+                    id: `cart_list-${genId()}`,
+                    type: 'cart_list',
+                    settings: getWidgetDefaults('cart_list')
+                };
+                setCanvasContent([newWidget]);
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [loading, page?.slug, canvasContent.length]);
+
     if (loading) return <Loader />;
 
     return (
@@ -344,12 +360,15 @@ export function StoreBuilder() {
                 </header>
 
                 <div className="flex-1 flex overflow-hidden">
-                    <WidgetSidebar
-                        previewMode={previewMode}
-                        onAddWidget={addWidget}
-                        customWidgets={customWidgets}
-                        onDeleteCustom={handleDeleteCustomWidget}
-                    />
+                    {/* Hide Sidebar if in 'Cart Design Mode' */}
+                    {page?.slug !== 'cart' && (
+                        <WidgetSidebar
+                            previewMode={previewMode}
+                            onAddWidget={addWidget}
+                            customWidgets={customWidgets}
+                            onDeleteCustom={handleDeleteCustomWidget}
+                        />
+                    )}
 
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                         <CartProvider storeKey={storeId}>
@@ -366,7 +385,13 @@ export function StoreBuilder() {
                                     }}
                                 >
                                     <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
-                                        {canvasContent.length === 0 ? (
+                                        {/* Auto-Injector for Cart Page */}
+                                        {page?.slug === 'cart' && canvasContent.length === 0 ? (
+                                            <div className="flex items-center justify-center p-12 text-slate-400">
+                                                <Loader />
+                                                <span className="ml-2 text-sm">Initializing Cart Designer...</span>
+                                            </div>
+                                        ) : canvasContent.length === 0 ? (
                                             <EmptyState name={page?.name} />
                                         ) : (
                                             <div className="min-h-[80vh]">
@@ -378,7 +403,12 @@ export function StoreBuilder() {
                                                         store={store}
                                                         products={products}
                                                         categories={categories}
-                                                        onDelete={() => deleteWidget(block.id)}
+                                                        onDelete={
+                                                            /* Lock Cart Widget on Cart Page */
+                                                            (page?.slug === 'cart' && block.type === 'cart_list')
+                                                                ? undefined
+                                                                : () => deleteWidget(block.id)
+                                                        }
                                                         isSelected={selectedElement?.id === block.id}
                                                         onClick={() => setSelectedElement(block)}
                                                         isEditor={true}

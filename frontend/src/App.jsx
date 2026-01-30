@@ -63,6 +63,7 @@ function App() {
         <Route path="/s/:storeSubUrl" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/:pageSlug" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/p/:productId" element={<PublicProductPage />} />
+        <Route path="/s/:storeSubUrl/checkout" element={<CheckoutPage />} />
 
         <Route path="/login" element={
           <AuthLayout>
