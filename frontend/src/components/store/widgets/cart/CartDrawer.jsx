@@ -55,6 +55,15 @@ export function CartDrawer({ settings }) {
                     </button>
                 </div>
 
+                {/* items... but first, announcement */}
+                {settings?.drawerAnnouncement && (
+                    <div className="bg-indigo-50 px-6 py-3 border-b border-indigo-100">
+                        <p className="text-sm text-indigo-700 font-medium text-center leading-relaxed">
+                            {settings.drawerAnnouncement}
+                        </p>
+                    </div>
+                )}
+
                 {/* Items */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length === 0 ? (

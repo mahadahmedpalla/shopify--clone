@@ -188,6 +188,28 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                 </div>
             </div>
 
+            <hr className="border-slate-100" />
+
+            {/* Drawer Specifics */}
+            <div>
+                <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">Drawer Content</h3>
+                    <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-medium">Global</span>
+                </div>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Drawer Announcement</label>
+                        <textarea
+                            value={settings?.drawerAnnouncement || ''}
+                            onChange={(e) => handleChange('drawerAnnouncement', e.target.value)}
+                            className="w-full text-sm border-slate-200 rounded-md h-20"
+                            placeholder="e.g. Free shipping on orders over $50!"
+                        />
+                        <p className="text-[10px] text-slate-400 mt-1">This message will appear at the top of the global Cart Drawer.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     );
 };
