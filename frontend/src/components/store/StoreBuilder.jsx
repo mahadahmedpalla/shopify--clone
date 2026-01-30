@@ -419,15 +419,16 @@ export function StoreBuilder() {
                                                         store={store}
                                                         products={products}
                                                         categories={categories}
+                                                        onDelete={
                                                             /* Lock Cart & Checkout Widgets */
                                                             ((page?.slug === 'cart' && block.type === 'cart_list') ||
-                                                            (page?.slug === 'checkout' && block.type === 'checkout_form'))
-                                                    ? undefined
-                                                    : () => deleteWidget(block.id)
+                                                                (page?.slug === 'checkout' && block.type === 'checkout_form'))
+                                                                ? undefined
+                                                                : () => deleteWidget(block.id)
                                                         }
-                                                isSelected={selectedElement?.id === block.id}
-                                                onClick={() => setSelectedElement(block)}
-                                                isEditor={true}
+                                                        isSelected={selectedElement?.id === block.id}
+                                                        onClick={() => setSelectedElement(block)}
+                                                        isEditor={true}
                                                     />
                                                 ))}
                                             </div>
