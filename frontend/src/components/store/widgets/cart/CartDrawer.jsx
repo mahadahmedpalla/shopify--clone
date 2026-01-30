@@ -1,4 +1,7 @@
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useCart } from '../../../../context/CartContext';
+import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 
 export function CartDrawer({ settings }) {
     const { cart, removeFromCart, updateQuantity, isOpen, setIsOpen, cartTotal } = useCart();
