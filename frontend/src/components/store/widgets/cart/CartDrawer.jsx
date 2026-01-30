@@ -13,6 +13,9 @@ export function CartDrawer({ settings }) {
     const showUnitPrice = settings?.showUnitPrice !== false;
     const showItemSubtotal = settings?.showItemSubtotal !== false;
 
+    // Text Alignment
+    const textAlign = settings?.textAlignment || 'left';
+
     const getImgRound = () => imageShape === 'rounded' ? 'rounded-xl' : 'rounded-none';
     const getAlignClass = () => {
         if (textAlign === 'center') return 'text-center items-center';
