@@ -376,8 +376,8 @@ export function StoreBuilder() {
                 </header>
 
                 <div className="flex-1 flex overflow-hidden">
-                    {/* Hide Sidebar if in 'Cart Design Mode' */}
-                    {page?.slug !== 'cart' && (
+                    {/* Hide Sidebar if in 'Cart Design Mode' or 'Checkout Mode' */}
+                    {!['cart', 'checkout'].includes(page?.slug) && (
                         <WidgetSidebar
                             previewMode={previewMode}
                             onAddWidget={addWidget}
@@ -401,11 +401,11 @@ export function StoreBuilder() {
                                     }}
                                 >
                                     <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
-                                        {/* Auto-Injector for Cart Page */}
-                                        {page?.slug === 'cart' && canvasContent.length === 0 ? (
+                                        {/* Auto-Injector for Cart/Checkout Page */}
+                                        {['cart', 'checkout'].includes(page?.slug) && canvasContent.length === 0 ? (
                                             <div className="flex items-center justify-center p-12 text-slate-400">
                                                 <Loader />
-                                                <span className="ml-2 text-sm">Initializing Cart Designer...</span>
+                                                <span className="ml-2 text-sm">Initializing {page?.slug === 'checkout' ? 'Checkout' : 'Cart'} Designer...</span>
                                             </div>
                                         ) : canvasContent.length === 0 ? (
                                             <EmptyState name={page?.name} />
