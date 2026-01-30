@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
+import { validateAddress, calculateOrderTotals, createOrder } from '../utils/checkoutUtils';
 
 export function CheckoutPage() {
     const { storeSubUrl } = useParams();
