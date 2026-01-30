@@ -9,9 +9,9 @@ export function CartDrawer({ settings }) {
     const imageShape = settings?.imageShape || 'rounded';
     const showTaxSummary = settings?.showTaxSummary !== false;
     const showDiscountSummary = settings?.showDiscountSummary !== false;
-    // Drawer specific tweaks: Ignore imageSize settings as drawer is fixed width.
-    // Maybe use textAlignment?
-    const textAlign = settings?.textAlignment || 'left';
+    // Price Display Settings
+    const showUnitPrice = settings?.showUnitPrice !== false;
+    const showItemSubtotal = settings?.showItemSubtotal !== false;
 
     const getImgRound = () => imageShape === 'rounded' ? 'rounded-xl' : 'rounded-none';
     const getAlignClass = () => {
@@ -113,7 +113,9 @@ export function CartDrawer({ settings }) {
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-500 mt-1">${parseFloat(item.price).toFixed(2)}</p>
+                                        {showUnitPrice && (
+                                            <p className="text-sm font-medium text-slate-500 mt-1">${parseFloat(item.price).toFixed(2)}</p>
+                                        )}
                                     </div>
 
                                     <div className="flex items-center justify-between">
@@ -132,9 +134,11 @@ export function CartDrawer({ settings }) {
                                                 <Plus className="h-3 w-3" />
                                             </button>
                                         </div>
-                                        <p className="font-bold text-indigo-600 text-sm">
-                                            ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                                        </p>
+                                        {showItemSubtotal && (
+                                            <p className="font-bold text-indigo-600 text-sm">
+                                                ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
