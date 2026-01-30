@@ -94,23 +94,28 @@ export function StoreBuilder() {
     }, [pageId]);
 
     // Fetch Cart Global Settings (from 'cart' page widget)
-
     useEffect(() => {
         const fetchCartSettings = async () => {
-            // Only fetch from DB. Local preview is handled by derived state 'activeCartSettings'
-            const { data } = await supabase.from('store_pages')
-                .select('content')
-                .eq('store_id', storeId)
-                .eq('slug', 'cart')
-                .single();
-
-            if (data?.content) {
-                const widget = data.content.find(w => w.type === 'cart_list');
+            // 1. If we are editing the cart page, use live canvas content for instant feedback
+            if (page?.slug === 'cart') {
+                const widget = canvasContent.find(w => w.type === 'cart_list');
                 if (widget) setCartSettings(widget.settings);
+            } else {
+                // 2. Else fetch from DB if the user has a published cart page
+                const { data } = await supabase.from('store_pages')
+                    .select('content')
+                    .eq('store_id', storeId)
+                    .eq('slug', 'cart')
+                    .single();
+
+                if (data?.content) {
+                    const widget = data.content.find(w => w.type === 'cart_list');
+                    if (widget) setCartSettings(widget.settings);
+                }
             }
         };
         if (storeId) fetchCartSettings();
-    }, [storeId]); // Removed dependencies to avoid overwriting state with stale headers
+    }, [storeId, page?.slug, canvasContent]);
 
     const fetchStoreData = async () => {
         const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
