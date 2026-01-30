@@ -279,19 +279,31 @@ export function StoreBuilder() {
     // Commented out to avoid noise, but confirmed logic seems sound. 
     // One issue: if on Cart page, and we update settings, does CartDrawer re-render? Yes, it's a prop.
 
-    // AUTO-INJECT CART WIDGET
+    // AUTO-INJECT SYSTEM WIDGETS (Cart, Checkout)
     useEffect(() => {
-        if (!loading && page?.slug === 'cart' && canvasContent.length === 0) {
-            // Short timeout to ensure state is settled
-            const timer = setTimeout(() => {
-                const newWidget = {
-                    id: `cart_list-${genId()}`,
-                    type: 'cart_list',
-                    settings: getWidgetDefaults('cart_list')
-                };
-                setCanvasContent([newWidget]);
-            }, 100);
-            return () => clearTimeout(timer);
+        if (!loading && canvasContent.length === 0) {
+            if (page?.slug === 'cart') {
+                const timer = setTimeout(() => {
+                    const newWidget = {
+                        id: `cart_list-${genId()}`,
+                        type: 'cart_list',
+                        settings: getWidgetDefaults('cart_list')
+                    };
+                    setCanvasContent([newWidget]);
+                }, 100);
+                return () => clearTimeout(timer);
+            }
+            if (page?.slug === 'checkout') {
+                const timer = setTimeout(() => {
+                    const newWidget = {
+                        id: `checkout_form-${genId()}`,
+                        type: 'checkout_form',
+                        settings: getWidgetDefaults('checkout_form') // We'll need to define this
+                    };
+                    setCanvasContent([newWidget]);
+                }, 100);
+                return () => clearTimeout(timer);
+            }
         }
     }, [loading, page?.slug, canvasContent.length]);
 
@@ -407,15 +419,15 @@ export function StoreBuilder() {
                                                         store={store}
                                                         products={products}
                                                         categories={categories}
-                                                        onDelete={
-                                                            /* Lock Cart Widget on Cart Page */
-                                                            (page?.slug === 'cart' && block.type === 'cart_list')
-                                                                ? undefined
-                                                                : () => deleteWidget(block.id)
+                                                            /* Lock Cart & Checkout Widgets */
+                                                            ((page?.slug === 'cart' && block.type === 'cart_list') ||
+                                                            (page?.slug === 'checkout' && block.type === 'checkout_form'))
+                                                    ? undefined
+                                                    : () => deleteWidget(block.id)
                                                         }
-                                                        isSelected={selectedElement?.id === block.id}
-                                                        onClick={() => setSelectedElement(block)}
-                                                        isEditor={true}
+                                                isSelected={selectedElement?.id === block.id}
+                                                onClick={() => setSelectedElement(block)}
+                                                isEditor={true}
                                                     />
                                                 ))}
                                             </div>

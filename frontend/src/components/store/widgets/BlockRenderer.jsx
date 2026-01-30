@@ -7,6 +7,7 @@ import { ProductDetailRenderer } from './product_detail/ProductDetailRenderer';
 import { ProductReviewsRenderer } from './product_reviews/ProductReviewsRenderer';
 import { RelatedProductsRenderer } from './related_products/RelatedProductsRenderer';
 import { CartListRenderer } from './cart_list/CartListRenderer';
+import { CheckoutRenderer } from './checkout/CheckoutRenderer';
 
 export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts }) {
     switch (type) {

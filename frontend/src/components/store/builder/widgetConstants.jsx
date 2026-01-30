@@ -124,6 +124,11 @@ export const getWidgetDefaults = (type) => {
         relatedLimit: 4,
         showPrice: true,
         itemGap: 'normal'
+    } : type === 'checkout_form' ? {
+        primaryColor: '#4f46e5',
+        primaryTextColor: '#ffffff',
+        backgroundColor: '#ffffff',
+        textColor: '#0f172a'
     } : {
         title: type === 'hero' ? 'New Hero Banner' : 'New Title',
         content: 'Sample content for your ' + type
