@@ -164,7 +164,7 @@ export function CartDrawer({ settings }) {
                                         {showUnitPrice && (
                                             <div className="flex flex-col mt-1">
                                                 {(settings?.showCompareAtPrice && (item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price)) ? (
-                                                    <div className={`flex items-baseline gap-2 ${getAlignClass() === 'text-right items-end' ? 'flex-row-reverse' : ''}`}>
+                                                    <div className={`flex items-baseline gap-2 flex-wrap ${getAlignClass() === 'text-right items-end' ? 'flex-row-reverse' : ''}`}>
                                                         <span
                                                             className="text-sm font-bold"
                                                             style={{ color: settings?.priceColor || '#64748b' }}
@@ -172,7 +172,10 @@ export function CartDrawer({ settings }) {
                                                             ${parseFloat(item.price).toFixed(2)}
                                                         </span>
                                                         <span className="text-xs text-slate-400 line-through">
-                                                            ${parseFloat(item.compareAtPrice).toFixed(2)}
+                                                            ${parseFloat(item.compareAtPrice || item.compare_at_price).toFixed(2)}
+                                                        </span>
+                                                        <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                                                            (You saved ${(parseFloat(item.compareAtPrice || item.compare_at_price) - parseFloat(item.price)).toFixed(2)})
                                                         </span>
                                                     </div>
                                                 ) : (
