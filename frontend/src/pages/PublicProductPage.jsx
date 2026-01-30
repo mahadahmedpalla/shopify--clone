@@ -14,6 +14,7 @@ export function PublicProductPage() {
     const [viewMode, setViewMode] = useState('desktop');
 
     const [cartSettings, setCartSettings] = useState(null);
+    const [discounts, setDiscounts] = useState([]);
 
     // Responsive Detection
     useEffect(() => {
