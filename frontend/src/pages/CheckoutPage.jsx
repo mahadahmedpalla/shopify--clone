@@ -58,7 +58,7 @@ export function CheckoutPage() {
 
                 // 2. Fetch Checkout Page Settings
                 const { data: pageData } = await supabase
-                    .from('pages')
+                    .from('store_pages')
                     .select('content') // Assuming content stores the widgets
                     .eq('store_id', storeData.id)
                     .eq('slug', 'checkout') // System slug

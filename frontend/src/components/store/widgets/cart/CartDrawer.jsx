@@ -277,6 +277,10 @@ export function CartDrawer({ settings }) {
 
                         <p className="text-xs text-slate-400 text-center">Shipping calculated at checkout</p>
                         <button
+                            onClick={() => {
+                                onClose();
+                                navigate(`/s/${storeSubUrl}/checkout`);
+                            }}
                             className="w-full py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
                             style={{
                                 backgroundColor: settings?.checkoutBtnBg || '#4f46e5',
