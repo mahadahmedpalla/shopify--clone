@@ -58,14 +58,55 @@ export function CartDrawer({ settings }) {
                     </button>
                 </div>
 
-                {/* items... but first, announcement */}
-                {settings?.drawerAnnouncement && (
+                {/* items... but first, announcement(s) */}
+
+                {/* Announcement 1 */}
+                {settings?.showAnnouncement1 !== false && settings?.announcement1Text && (
+                    <div
+                        className="px-6 py-3 border-b border-slate-50 relative"
+                        style={{ backgroundColor: settings.announcement1Bg || '#eef2ff' }}
+                    >
+                        <p
+                            className="text-sm text-center leading-relaxed"
+                            style={{
+                                color: settings.announcement1Color || '#4338ca',
+                                fontWeight: settings.announcement1Weight === 'bold' ? 700 : settings.announcement1Weight === 'medium' ? 500 : 400
+                            }}
+                        >
+                            {settings.announcement1Text}
+                        </p>
+                    </div>
+                )}
+                {/* Legacy support for previous 'drawerAnnouncement' field if used, or migrate it? */}
+                {/* If user used old 'drawerAnnouncement', we treat it as Announcement 1 fallback if empty? 
+                    Actually, let's just support it as a legacy check if Ann1 is missing.
+                */}
+                {!settings?.announcement1Text && settings?.drawerAnnouncement && (
                     <div className="bg-indigo-50 px-6 py-3 border-b border-indigo-100">
                         <p className="text-sm text-indigo-700 font-medium text-center leading-relaxed">
                             {settings.drawerAnnouncement}
                         </p>
                     </div>
                 )}
+
+                {/* Announcement 2 */}
+                {settings?.showAnnouncement2 && settings?.announcement2Text && (
+                    <div
+                        className="px-6 py-3 border-b border-slate-50 relative"
+                        style={{ backgroundColor: settings.announcement2Bg || '#fff1f2' }}
+                    >
+                        <p
+                            className="text-sm text-center leading-relaxed"
+                            style={{
+                                color: settings.announcement2Color || '#be123c',
+                                fontWeight: settings.announcement2Weight === 'bold' ? 700 : settings.announcement2Weight === 'medium' ? 500 : 400
+                            }}
+                        >
+                            {settings.announcement2Text}
+                        </p>
+                    </div>
+                )}
+
 
                 {/* Items */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -159,33 +200,35 @@ export function CartDrawer({ settings }) {
                             </div>
 
                             {showDiscountSummary && (
-                                <div className="flex items-center justify-between text-red-600 text-sm">
+                                <div className="flex items-center justify-between text-sm text-emerald-600 font-medium">
                                     <span>Discount</span>
                                     <span>-$0.00</span>
                                 </div>
                             )}
 
                             {showTaxSummary && (
-                                <div className="flex items-center justify-between text-slate-500 text-sm">
-                                    <span>Estimated Tax</span>
-                                    <span>${(cartTotal * 0.1).toFixed(2)}</span>
+                                <div className="flex items-center justify-between text-sm text-slate-500">
+                                    <span>Tax (Estimate)</span>
+                                    <span>$0.00</span>
                                 </div>
                             )}
 
-                            <div className="h-px bg-slate-200 my-2" />
-
-                            <div className="flex items-center justify-between text-lg font-bold text-slate-900">
+                            <div className="flex items-center justify-between text-lg font-bold text-slate-900 pt-2 border-t border-slate-200">
                                 <span>Total</span>
-                                <span>${(cartTotal * (showTaxSummary ? 1.1 : 1.0)).toFixed(2)}</span>
+                                <span>${calculateTotal()}</span>
                             </div>
                         </div>
 
-                        <div className="text-xs text-slate-400 text-center">
-                            Tax included and shipping calculated at checkout
-                        </div>
-                        <button className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center group">
-                            Checkout
-                            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        <p className="text-xs text-slate-400 text-center">Shipping calculated at checkout</p>
+                        <button
+                            className="w-full py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            style={{
+                                backgroundColor: settings?.checkoutBtnBg || '#4f46e5',
+                                color: settings?.checkoutBtnColor || '#ffffff',
+                                fontWeight: settings?.checkoutBtnWeight === 'extrabold' ? 800 : settings?.checkoutBtnWeight === 'bold' ? 700 : settings?.checkoutBtnWeight === 'medium' ? 500 : 400
+                            }}
+                        >
+                            CHECKOUT <span className="ml-2">→</span>
                         </button>
                     </div>
                 )}

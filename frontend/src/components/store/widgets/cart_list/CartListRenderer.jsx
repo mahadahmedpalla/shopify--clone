@@ -194,10 +194,16 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) =
                                 <span>${(subtotal + (showTaxSummary ? estimatedTax : 0)).toFixed(2)}</span>
                             </div>
                         </div>
-
-                        <button className="w-full mt-8 py-4 bg-indigo-600 text-white rounded-xl font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center group">
-                            Checkout
-                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                        <p className="text-xs text-slate-400 text-center mt-4">Shipping calculated at checkout</p>
+                        <button
+                            className="w-full mt-4 py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            style={{
+                                backgroundColor: settings?.checkoutBtnBg || '#4f46e5',
+                                color: settings?.checkoutBtnColor || '#ffffff',
+                                fontWeight: settings?.checkoutBtnWeight === 'extrabold' ? 800 : settings?.checkoutBtnWeight === 'bold' ? 700 : settings?.checkoutBtnWeight === 'medium' ? 500 : 400
+                            }}
+                        >
+                            CHECKOUT <span className="ml-2">→</span>
                         </button>
                     </div>
                 </div>
