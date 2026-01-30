@@ -275,6 +275,10 @@ export function StoreBuilder() {
         ? canvasContent.find(w => w.type === 'cart_list')?.settings
         : cartSettings) || cartSettings;
 
+    // console.log("Active Cart Settings:", activeCartSettings); 
+    // Commented out to avoid noise, but confirmed logic seems sound. 
+    // One issue: if on Cart page, and we update settings, does CartDrawer re-render? Yes, it's a prop.
+
     // AUTO-INJECT CART WIDGET
     useEffect(() => {
         if (!loading && page?.slug === 'cart' && canvasContent.length === 0) {
