@@ -270,10 +270,23 @@ export function StoreBuilder() {
         setSelectedElement({ ...selectedElement, settings: newSettings });
     };
 
-    // Derived Settings: Prefer live canvas content if on Cart page, otherwise use fetched DB settings
-    const activeCartSettings = (page?.slug === 'cart'
-        ? canvasContent.find(w => w.type === 'cart_list')?.settings
-        : cartSettings) || cartSettings;
+    // Simplified logic: If on cart page, try to find the cart_list widget in canvas.
+    const cartWidgetOnCanvas = page?.slug === 'cart' ? canvasContent.find(w => w.type === 'cart_list') : null;
+
+    // Fallback chain: 
+    // 1. Live widget from Canvas (if on Cart page)
+    // 2. Fetched settings from DB (if not on Cart page OR if DB fetch finished)
+    // 3. Null (default)
+    const activeCartSettings = cartWidgetOnCanvas?.settings || cartSettings;
+
+    console.log('[StoreBuilder Debug] Cart Settings:', {
+        pageSlug: page?.slug,
+        onCartPage: page?.slug === 'cart',
+        foundWidgetOnCanvas: !!cartWidgetOnCanvas,
+        canvasSettings: cartWidgetOnCanvas?.settings,
+        dbSettings: cartSettings,
+        effectiveSettings: activeCartSettings
+    });
 
     if (loading) return <Loader />;
 
