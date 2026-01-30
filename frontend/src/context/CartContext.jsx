@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { calculateBestPrice } from '../utils/discountUtils';
 
 const CartContext = createContext();
 
@@ -74,6 +75,16 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                 .select('*')
                 .in('product_id', productIds);
 
+            // Fetch active discounts
+            const now = new Date().toISOString();
+            const { data: discounts } = await supabase
+                .from('discounts')
+                .select('*')
+                .eq('store_id', storeKey)
+                .eq('is_active', true)
+                .lte('starts_at', now);
+
+
             setCart(prevCart => {
                 return prevCart.map(item => {
                     const product = products.find(p => p.id === item.id);
@@ -84,30 +95,40 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                     let newName = product.name;
                     let newImage = product.images?.[0] || item.image;
 
+                    // Determine base price/compare from variant if applicable
+                    let basePrice = product.price;
+                    let baseCompare = product.compare_at_price;
+
                     if (item.variantId && variants) {
                         const variant = variants.find(v => v.id === item.variantId);
                         if (variant) {
-                            newPrice = variant.price;
-                            newCompareAt = variant.compare_at_price;
-                            // Optionally update title if needed, but usually constructed elsewhere
+                            basePrice = variant.use_base_price ? product.price : variant.price;
+                            baseCompare = variant.compare_at_price;
+                            newName = product.name;
                         } else {
-                            // Variant invalid? Keep item but maybe mark it? 
-                            // For now, if variant is gone, we might want to remove it or fallback.
-                            // Let's assume remove is safer to avoid price glitches.
                             return null;
                         }
                     }
 
-                    // Only update if changes found? Or just overwrite.
+                    // Calculate Best Price with Discounts
+                    const calcProduct = {
+                        ...product,
+                        price: basePrice,
+                        comparePrice: baseCompare,
+                        category_id: product.category_id
+                    };
+
+                    const { finalPrice, comparePrice } = calculateBestPrice(calcProduct, discounts || []);
+
                     return {
                         ...item,
-                        price: newPrice,
-                        compareAtPrice: newCompareAt,
-                        compare_at_price: newCompareAt, // Ensure consistency
+                        price: finalPrice,
+                        compareAtPrice: comparePrice,
+                        compare_at_price: comparePrice,
                         name: newName,
                         image: newImage
                     };
-                }).filter(Boolean); // Remote nulls
+                }).filter(Boolean);
             });
 
         } catch (error) {
