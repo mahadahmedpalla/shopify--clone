@@ -112,8 +112,8 @@ export function CheckoutPage() {
             const newOrder = await createOrder(orderPayload);
             console.log("Order Created:", newOrder);
             alert(`Order #${newOrder.id.slice(0, 8)} placed successfully! Redirecting...`);
-            // Here you would clear cart and redirect to success page
-            window.location.href = `/s/${storeSubUrl}`;
+            // Clear cart and redirect to success page
+            window.location.href = `/s/${storeSubUrl}/order/${newOrder.id}`;
         } catch (error) {
             console.error("Order Failed:", error);
             alert("Failed to place order. Please try again.");
