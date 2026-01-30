@@ -33,6 +33,10 @@ export function CartDrawer({ settings }) {
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
 
+    const calculateTotal = () => {
+        return cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2);
+    };
+
     return (
         <div className={`fixed inset-0 z-[100] transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             {/* Backdrop */}
