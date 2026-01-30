@@ -114,324 +114,326 @@ export function StoreBuilder() {
                 }
             }
         };
-        if (storeId) fetchCartSettings();
-    }, [storeId, page?.slug, canvasContent]);
+        // Fetch Cart Global Settings (from DB only)
+        useEffect(() => {
+            const fetchCartSettings = async () => {
+                // Only fetch from DB. Local preview is handled by derived state 'activeCartSettings'
+                const { data } = await supabase.from('store_pages')
+                    .select('content')
+                    .eq('store_id', storeId)
+                    .eq('slug', 'cart')
+                    .single();
 
-    const fetchStoreData = async () => {
-        const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
-        if (storeData) setStore(storeData);
-
-        const { data: cats } = await supabase.from('product_categories').select('*').eq('store_id', storeId);
-        setCategories(cats || []);
-
-        const { data: prods } = await supabase.from('products').select('*').eq('store_id', storeId);
-        setProducts(prods || []);
-
-        const { data: pagesData } = await supabase.from('store_pages').select('*').eq('store_id', storeId);
-        setStorePages(pagesData || []);
-
-        // Fetch Custom Widgets
-        const { data: customs } = await supabase.from('custom_widgets').select('*').eq('store_id', storeId);
-        if (customs) setCustomWidgets(customs);
-    };
-
-    const fetchPage = async () => {
-        setLoading(true);
-        try {
-            let query = supabase.from('store_pages').select('*').eq('store_id', storeId);
-            if (pageId) {
-                query = query.eq('id', pageId);
-            } else {
-                query = query.eq('slug', 'home');
-            }
-
-            const { data: pageData } = await query.single();
-
-            if (pageData) {
-                setPage(pageData);
-                if (pageData.content && Array.isArray(pageData.content)) {
-                    setCanvasContent(pageData.content);
+                if (data?.content) {
+                    const widget = data.content.find(w => w.type === 'cart_list');
+                    if (widget) setCartSettings(widget.settings);
                 }
-            } else {
-                setPage({ name: 'Home Page', slug: 'home', type: 'system' });
+            };
+            if (storeId) fetchCartSettings();
+        }, [storeId]); // Removed dependencies to avoid overwriting state with stale headers
+
+        const fetchStoreData = async () => {
+            const { data: storeData } = await supabase.from('stores').select('*').eq('id', storeId).single();
+            if (storeData) setStore(storeData);
+
+            const { data: cats } = await supabase.from('product_categories').select('*').eq('store_id', storeId);
+            setCategories(cats || []);
+
+            const { data: prods } = await supabase.from('products').select('*').eq('store_id', storeId);
+            setProducts(prods || []);
+
+            const { data: pagesData } = await supabase.from('store_pages').select('*').eq('store_id', storeId);
+            setStorePages(pagesData || []);
+
+            // Fetch Custom Widgets
+            const { data: customs } = await supabase.from('custom_widgets').select('*').eq('store_id', storeId);
+            if (customs) setCustomWidgets(customs);
+        };
+
+        const fetchPage = async () => {
+            setLoading(true);
+            try {
+                let query = supabase.from('store_pages').select('*').eq('store_id', storeId);
+                if (pageId) {
+                    query = query.eq('id', pageId);
+                } else {
+                    query = query.eq('slug', 'home');
+                }
+
+                const { data: pageData } = await query.single();
+
+                if (pageData) {
+                    setPage(pageData);
+                    if (pageData.content && Array.isArray(pageData.content)) {
+                        setCanvasContent(pageData.content);
+                    }
+                } else {
+                    setPage({ name: 'Home Page', slug: 'home', type: 'system' });
+                }
+            } catch (e) {
+                console.error("Error loading page:", e);
+            } finally {
+                setLoading(false);
             }
-        } catch (e) {
-            console.error("Error loading page:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
 
-    const handleSave = async () => {
-        try {
-            const { error } = await supabase
-                .from('store_pages')
-                .upsert({
+        const handleSave = async () => {
+            try {
+                const { error } = await supabase
+                    .from('store_pages')
+                    .upsert({
+                        store_id: storeId,
+                        slug: page?.slug || 'home',
+                        name: page?.name || 'Home Page',
+                        type: page?.type || 'custom',
+                        content: canvasContent,
+                        is_published: true
+                    }, { onConflict: 'store_id, slug' });
+
+                if (error) throw error;
+                alert('Layout Saved & Published! 🚀');
+            } catch (e) {
+                alert('Save failed: ' + e.message);
+            }
+        };
+
+        const handleSaveCustomWidget = async (name, type, settings) => {
+            try {
+                const { data, error } = await supabase.from('custom_widgets').insert({
                     store_id: storeId,
-                    slug: page?.slug || 'home',
-                    name: page?.name || 'Home Page',
-                    type: page?.type || 'custom',
-                    content: canvasContent,
-                    is_published: true
-                }, { onConflict: 'store_id, slug' });
+                    name,
+                    type,
+                    settings
+                }).select().single();
 
-            if (error) throw error;
-            alert('Layout Saved & Published! 🚀');
-        } catch (e) {
-            alert('Save failed: ' + e.message);
-        }
-    };
+                if (error) throw error;
+                setCustomWidgets([...customWidgets, data]);
+                alert('Widget Saved as Preset!');
+            } catch (e) {
+                console.error(e);
+                alert('Failed to save preset: ' + e.message);
+            }
+        };
 
-    const handleSaveCustomWidget = async (name, type, settings) => {
-        try {
-            const { data, error } = await supabase.from('custom_widgets').insert({
-                store_id: storeId,
-                name,
+        const handleDeleteCustomWidget = async (widgetId) => {
+            try {
+                const { error } = await supabase.from('custom_widgets').delete().eq('id', widgetId);
+                if (error) throw error;
+                setCustomWidgets(customWidgets.filter(w => w.id !== widgetId));
+            } catch (e) {
+                console.error(e);
+                alert('Failed to delete preset: ' + e.message);
+            }
+        };
+
+        const handleDragStart = (event) => {
+            const { active } = event;
+            const block = canvasContent.find(c => c.id === active.id);
+            if (block) setDraggedWidget(block);
+        };
+
+        const handleDragEnd = (event) => {
+            const { active, over } = event;
+            if (!over) return;
+
+            if (active.id !== over.id && canvasContent.find(c => c.id === active.id)) {
+                setCanvasContent((items) => {
+                    const oldIndex = items.findIndex(i => i.id === active.id);
+                    const newIndex = items.findIndex(i => i.id === over.id);
+                    return arrayMove(items, oldIndex, newIndex);
+                });
+            }
+            setDraggedWidget(null);
+        };
+
+        const addWidget = (type, customSettings = null) => {
+            const newWidgets = [];
+            newWidgets.push({
+                id: `${type}-${genId()}`,
                 type,
-                settings
-            }).select().single();
-
-            if (error) throw error;
-            setCustomWidgets([...customWidgets, data]);
-            alert('Widget Saved as Preset!');
-        } catch (e) {
-            console.error(e);
-            alert('Failed to save preset: ' + e.message);
-        }
-    };
-
-    const handleDeleteCustomWidget = async (widgetId) => {
-        try {
-            const { error } = await supabase.from('custom_widgets').delete().eq('id', widgetId);
-            if (error) throw error;
-            setCustomWidgets(customWidgets.filter(w => w.id !== widgetId));
-        } catch (e) {
-            console.error(e);
-            alert('Failed to delete preset: ' + e.message);
-        }
-    };
-
-    const handleDragStart = (event) => {
-        const { active } = event;
-        const block = canvasContent.find(c => c.id === active.id);
-        if (block) setDraggedWidget(block);
-    };
-
-    const handleDragEnd = (event) => {
-        const { active, over } = event;
-        if (!over) return;
-
-        if (active.id !== over.id && canvasContent.find(c => c.id === active.id)) {
-            setCanvasContent((items) => {
-                const oldIndex = items.findIndex(i => i.id === active.id);
-                const newIndex = items.findIndex(i => i.id === over.id);
-                return arrayMove(items, oldIndex, newIndex);
+                settings: customSettings || getWidgetDefaults(type)
             });
-        }
-        setDraggedWidget(null);
-    };
 
-    const addWidget = (type, customSettings = null) => {
-        const newWidgets = [];
-        newWidgets.push({
-            id: `${type}-${genId()}`,
-            type,
-            settings: customSettings || getWidgetDefaults(type)
-        });
+            // Triple Drop Magic
+            if (type === 'product_detail') {
+                newWidgets.push({
+                    id: `product_reviews-${genId()}`,
+                    type: 'product_reviews',
+                    settings: getWidgetDefaults('product_reviews')
+                });
+                newWidgets.push({
+                    id: `related_products-${genId()}`,
+                    type: 'related_products',
+                    settings: getWidgetDefaults('related_products')
+                });
+            }
 
-        // Triple Drop Magic
-        if (type === 'product_detail') {
-            newWidgets.push({
-                id: `product_reviews-${genId()}`,
-                type: 'product_reviews',
-                settings: getWidgetDefaults('product_reviews')
-            });
-            newWidgets.push({
-                id: `related_products-${genId()}`,
-                type: 'related_products',
-                settings: getWidgetDefaults('related_products')
-            });
-        }
+            setCanvasContent([...canvasContent, ...newWidgets]);
+        };
 
-        setCanvasContent([...canvasContent, ...newWidgets]);
-    };
+        const deleteWidget = (id) => {
+            setCanvasContent(canvasContent.filter(c => c.id !== id));
+            if (selectedElement?.id === id) setSelectedElement(null);
+        };
 
-    const deleteWidget = (id) => {
-        setCanvasContent(canvasContent.filter(c => c.id !== id));
-        if (selectedElement?.id === id) setSelectedElement(null);
-    };
+        const handleUpdateSettings = (newSettings) => {
+            if (!selectedElement) return;
+            const newContent = canvasContent.map(c =>
+                c.id === selectedElement.id ? { ...c, settings: newSettings } : c
+            );
+            setCanvasContent(newContent);
+            setSelectedElement({ ...selectedElement, settings: newSettings });
+        };
 
-    const handleUpdateSettings = (newSettings) => {
-        if (!selectedElement) return;
-        const newContent = canvasContent.map(c =>
-            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
-        );
-        setCanvasContent(newContent);
-        setSelectedElement({ ...selectedElement, settings: newSettings });
-    };
+        // Derived Settings: Prefer live canvas content if on Cart page, otherwise use fetched DB settings
+        const activeCartSettings = (page?.slug === 'cart'
+            ? canvasContent.find(w => w.type === 'cart_list')?.settings
+            : cartSettings) || cartSettings;
 
-    // Simplified logic: If on cart page, try to find the cart_list widget in canvas.
-    const cartWidgetOnCanvas = page?.slug === 'cart' ? canvasContent.find(w => w.type === 'cart_list') : null;
+        if (loading) return <Loader />;
 
-    // Fallback chain: 
-    // 1. Live widget from Canvas (if on Cart page)
-    // 2. Fetched settings from DB (if not on Cart page OR if DB fetch finished)
-    // 3. Null (default)
-    const activeCartSettings = cartWidgetOnCanvas?.settings || cartSettings;
-
-    console.log('[StoreBuilder Debug] Cart Settings:', {
-        pageSlug: page?.slug,
-        onCartPage: page?.slug === 'cart',
-        foundWidgetOnCanvas: !!cartWidgetOnCanvas,
-        canvasSettings: cartWidgetOnCanvas?.settings,
-        dbSettings: cartSettings,
-        effectiveSettings: activeCartSettings
-    });
-
-    if (loading) return <Loader />;
-
-    return (
-        <ErrorBoundary>
-            <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
-                <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-50 shadow-2xl">
-                    <div className="flex items-center space-x-4">
-                        <button onClick={() => navigate(`/store/${storeId}/customize`)} className="p-2 text-slate-400 hover:text-white transition-colors">
-                            <ChevronLeft className="h-5 w-5" />
-                        </button>
-                        <div className="h-6 w-[1px] bg-slate-800" />
-                        <div>
-                            <h1 className="text-sm font-bold text-white leading-tight">{page?.name}</h1>
-                            <p className="text-[10px] text-slate-500 font-medium tracking-tight">/{page?.slug}</p>
+        return (
+            <ErrorBoundary>
+                <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
+                    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-50 shadow-2xl">
+                        <div className="flex items-center space-x-4">
+                            <button onClick={() => navigate(`/store/${storeId}/customize`)} className="p-2 text-slate-400 hover:text-white transition-colors">
+                                <ChevronLeft className="h-5 w-5" />
+                            </button>
+                            <div className="h-6 w-[1px] bg-slate-800" />
+                            <div>
+                                <h1 className="text-sm font-bold text-white leading-tight">{page?.name}</h1>
+                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">/{page?.slug}</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1 border border-slate-700">
-                        <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
-                        <ViewModeBtn active={viewMode === 'tablet'} onClick={() => setViewMode('tablet')} icon={<Tablet className="h-4 w-4" />} />
-                        <ViewModeBtn active={viewMode === 'mobile'} onClick={() => setViewMode('mobile')} icon={<Smartphone className="h-4 w-4" />} />
+                        <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1 border border-slate-700">
+                            <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
+                            <ViewModeBtn active={viewMode === 'tablet'} onClick={() => setViewMode('tablet')} icon={<Tablet className="h-4 w-4" />} />
+                            <ViewModeBtn active={viewMode === 'mobile'} onClick={() => setViewMode('mobile')} icon={<Smartphone className="h-4 w-4" />} />
 
-                        {viewMode === 'desktop' && (
-                            <>
-                                <div className="w-[1px] h-4 bg-slate-700 mx-1" />
-                                <button
-                                    onClick={() => {
-                                        const nextFit = !fitToWidth;
-                                        setFitToWidth(nextFit);
-                                        setPreviewMode(!nextFit); // Toggle sidebars
-                                    }}
-                                    className={`p-1.5 rounded-md transition-all ${fitToWidth ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-400 hover:text-white'}`}
-                                    title={fitToWidth ? "Scale: Fit" : "Scale: 100%"}
+                            {viewMode === 'desktop' && (
+                                <>
+                                    <div className="w-[1px] h-4 bg-slate-700 mx-1" />
+                                    <button
+                                        onClick={() => {
+                                            const nextFit = !fitToWidth;
+                                            setFitToWidth(nextFit);
+                                            setPreviewMode(!nextFit); // Toggle sidebars
+                                        }}
+                                        className={`p-1.5 rounded-md transition-all ${fitToWidth ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-400 hover:text-white'}`}
+                                        title={fitToWidth ? "Scale: Fit" : "Scale: 100%"}
+                                    >
+                                        {fitToWidth ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                            {store?.sub_url && (
+                                <a
+                                    href={`/s/${store.sub_url}/${page?.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 text-slate-400 hover:text-white transition-colors flex items-center text-[10px] font-bold uppercase tracking-widest bg-slate-800 rounded-lg mr-2"
                                 >
-                                    {fitToWidth ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                        {store?.sub_url && (
-                            <a
-                                href={`/s/${store.sub_url}/${page?.slug}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 text-slate-400 hover:text-white transition-colors flex items-center text-[10px] font-bold uppercase tracking-widest bg-slate-800 rounded-lg mr-2"
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Live
+                                </a>
+                            )}
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setPreviewMode(!previewMode)}
+                                className={`bg-slate-800 border-slate-700 text-slate-300 hover:text-white ${previewMode ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : ''}`}
                             >
                                 <Eye className="h-4 w-4 mr-2" />
-                                Live
-                            </a>
-                        )}
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => setPreviewMode(!previewMode)}
-                            className={`bg-slate-800 border-slate-700 text-slate-300 hover:text-white ${previewMode ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : ''}`}
-                        >
-                            <Eye className="h-4 w-4 mr-2" />
-                            {previewMode ? 'Edit' : 'Preview'}
-                        </Button>
-                        <Button size="sm" onClick={handleSave} isLoading={loading}>
-                            <Save className="h-4 w-4 mr-2" />
-                            Publish
-                        </Button>
-                    </div>
-                </header>
+                                {previewMode ? 'Edit' : 'Preview'}
+                            </Button>
+                            <Button size="sm" onClick={handleSave} isLoading={loading}>
+                                <Save className="h-4 w-4 mr-2" />
+                                Publish
+                            </Button>
+                        </div>
+                    </header>
 
-                <div className="flex-1 flex overflow-hidden">
-                    <WidgetSidebar
-                        previewMode={previewMode}
-                        onAddWidget={addWidget}
-                        customWidgets={customWidgets}
-                        onDeleteCustom={handleDeleteCustomWidget}
-                    />
+                    <div className="flex-1 flex overflow-hidden">
+                        <WidgetSidebar
+                            previewMode={previewMode}
+                            onAddWidget={addWidget}
+                            customWidgets={customWidgets}
+                            onDeleteCustom={handleDeleteCustomWidget}
+                        />
 
-                    <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
-                        <CartProvider storeKey={storeId}>
-                            <CartDrawer settings={activeCartSettings} />
-                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-                                <div
-                                    className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
+                        <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
+                            <CartProvider storeKey={storeId}>
+                                <CartDrawer settings={activeCartSettings} />
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
+                                    <div
+                                        className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
                                     ${viewMode === 'desktop' ? (fitToWidth ? 'w-full' : 'w-[1280px]') : ''}
                                     ${viewMode === 'tablet' ? 'w-[768px]' : ''}
                                     ${viewMode === 'mobile' ? 'w-[375px]' : ''}
                                 `}
-                                    onClick={(e) => {
-                                        if (e.target === e.currentTarget) setSelectedElement(null);
-                                    }}
-                                >
-                                    <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
-                                        {canvasContent.length === 0 ? (
-                                            <EmptyState name={page?.name} />
-                                        ) : (
-                                            <div className="min-h-[80vh]">
-                                                {canvasContent.map((block) => (
-                                                    <SortableBlock
-                                                        key={block.id}
-                                                        block={block}
-                                                        viewMode={viewMode}
-                                                        store={store}
-                                                        products={products}
-                                                        categories={categories}
-                                                        onDelete={() => deleteWidget(block.id)}
-                                                        isSelected={selectedElement?.id === block.id}
-                                                        onClick={() => setSelectedElement(block)}
-                                                        isEditor={true}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-                                    </SortableContext>
-                                </div>
-                            </DndContext>
-                        </CartProvider>
-                    </main>
+                                        onClick={(e) => {
+                                            if (e.target === e.currentTarget) setSelectedElement(null);
+                                        }}
+                                    >
+                                        <SortableContext items={canvasContent.map(c => c.id)} strategy={verticalListSortingStrategy}>
+                                            {canvasContent.length === 0 ? (
+                                                <EmptyState name={page?.name} />
+                                            ) : (
+                                                <div className="min-h-[80vh]">
+                                                    {canvasContent.map((block) => (
+                                                        <SortableBlock
+                                                            key={block.id}
+                                                            block={block}
+                                                            viewMode={viewMode}
+                                                            store={store}
+                                                            products={products}
+                                                            categories={categories}
+                                                            onDelete={() => deleteWidget(block.id)}
+                                                            isSelected={selectedElement?.id === block.id}
+                                                            onClick={() => setSelectedElement(block)}
+                                                            isEditor={true}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </SortableContext>
+                                    </div>
+                                </DndContext>
+                            </CartProvider>
+                        </main>
 
-                    <PropertiesPanel
-                        previewMode={previewMode}
-                        selectedElement={selectedElement}
-                        onClose={() => setSelectedElement(null)}
-                        onUpdate={handleUpdateSettings}
-                        products={products}
-                        categories={categories}
-                        viewMode={viewMode}
-                        storePages={storePages}
-                        onSaveCustom={handleSaveCustomWidget}
-                    />
+                        <PropertiesPanel
+                            previewMode={previewMode}
+                            selectedElement={selectedElement}
+                            onClose={() => setSelectedElement(null)}
+                            onUpdate={handleUpdateSettings}
+                            products={products}
+                            categories={categories}
+                            viewMode={viewMode}
+                            storePages={storePages}
+                            onSaveCustom={handleSaveCustomWidget}
+                        />
+                    </div>
                 </div>
-            </div>
-        </ErrorBoundary>
-    );
-}
+            </ErrorBoundary>
+        );
+    }
 
 function EmptyState({ name }) {
-    return (
-        <div className="h-96 flex flex-col items-center justify-center text-center space-y-6 opacity-30 border-2 border-dashed border-slate-300 rounded-3xl m-8">
-            <div className="p-6 bg-slate-100 rounded-full">
-                <Layout className="h-12 w-12 text-slate-400" />
-            </div>
-            <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">Start Building {name}</h3>
-                <p className="text-slate-500 font-medium max-w-xs mx-auto">Drag widgets from the left sidebar to start constructing your masterpiece.</p>
-            </div>
-        </div>
-    );
-}
+            return (
+                <div className="h-96 flex flex-col items-center justify-center text-center space-y-6 opacity-30 border-2 border-dashed border-slate-300 rounded-3xl m-8">
+                    <div className="p-6 bg-slate-100 rounded-full">
+                        <Layout className="h-12 w-12 text-slate-400" />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-slate-900">Start Building {name}</h3>
+                        <p className="text-slate-500 font-medium max-w-xs mx-auto">Drag widgets from the left sidebar to start constructing your masterpiece.</p>
+                    </div>
+                </div>
+            );
+        }
