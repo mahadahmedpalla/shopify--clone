@@ -127,15 +127,6 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                         />
                     </label>
                     <label className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">Show Original Price</span>
-                        <input
-                            type="checkbox"
-                            checked={settings?.showStrikePrice !== false}
-                            onChange={(e) => handleChange('showStrikePrice', e.target.checked)}
-                            className="toggle checkbox-sm"
-                        />
-                    </label>
-                    <label className="flex items-center justify-between">
                         <span className="text-sm text-slate-600">Show Discounted Badge</span>
                         <input
                             type="checkbox"

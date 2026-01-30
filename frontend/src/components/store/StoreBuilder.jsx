@@ -81,7 +81,6 @@ export function StoreBuilder() {
     const [storePages, setStorePages] = useState([]);
     const [store, setStore] = useState(null);
     const [customWidgets, setCustomWidgets] = useState([]);
-    const [storeDiscounts, setStoreDiscounts] = useState([]);
     const [cartSettings, setCartSettings] = useState(null);
 
     const sensors = useSensors(
@@ -134,10 +133,6 @@ export function StoreBuilder() {
         // Fetch Custom Widgets
         const { data: customs } = await supabase.from('custom_widgets').select('*').eq('store_id', storeId);
         if (customs) setCustomWidgets(customs);
-
-        // Fetch Discounts
-        const { data: dsc } = await supabase.from('discounts').select('*').eq('store_id', storeId);
-        setStoreDiscounts(dsc || []);
     };
 
     const fetchPage = async () => {
@@ -378,7 +373,6 @@ export function StoreBuilder() {
                                                         store={store}
                                                         products={products}
                                                         categories={categories}
-                                                        storeDiscounts={storeDiscounts}
                                                         onDelete={() => deleteWidget(block.id)}
                                                         isSelected={selectedElement?.id === block.id}
                                                         onClick={() => setSelectedElement(block)}

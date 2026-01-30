@@ -15,7 +15,6 @@ export function PublicStorefront() {
     const [page, setPage] = useState(null);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [storeDiscounts, setStoreDiscounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -99,13 +98,6 @@ export function PublicStorefront() {
                 .eq('store_id', storeData.id);
             setCategories(catData || []);
 
-            // 6. Fetch Discounts
-            const { data: dscData } = await supabase
-                .from('discounts')
-                .select('*')
-                .eq('store_id', storeData.id);
-            setStoreDiscounts(dscData || []);
-
         } catch (err) {
             console.error("Storefront Error:", err);
             setError(err.message);
@@ -131,7 +123,6 @@ export function PublicStorefront() {
                         store={store}
                         products={products}
                         categories={categories}
-                        storeDiscounts={storeDiscounts}
                     />
                 ))}
             </CartProvider>
