@@ -17,6 +17,7 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { DiscountsPage } from './components/store/discounts/DiscountsPage';
 import { CouponsPage } from './components/store/coupons/CouponsPage';
 import { ShippingPage } from './components/store/shipping/ShippingPage';
+import { OrdersPage } from './components/store/orders/OrdersPage';
 // ... existing imports ...
 
 
@@ -90,7 +91,7 @@ function App() {
             <Route index element={<Navigate to="categories" replace />} />
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="products" element={<ProductsPage />} />
-            <Route path="orders" element={<div className="p-8 text-center text-slate-400 font-medium">Orders Feature Coming Soon</div>} />
+            <Route path="orders" element={<OrdersPage />} />
             <Route path="analytics" element={<div className="p-8 text-center text-slate-400 font-medium">Analytics Feature Coming Soon</div>} />
             <Route path="coupons" element={<CouponsPage />} />
             <Route path="discounts" element={<DiscountsPage />} />
