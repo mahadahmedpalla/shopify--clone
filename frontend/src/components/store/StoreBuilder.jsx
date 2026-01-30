@@ -270,6 +270,11 @@ export function StoreBuilder() {
         setSelectedElement({ ...selectedElement, settings: newSettings });
     };
 
+    // Derived Settings: Prefer live canvas content if on Cart page, otherwise use fetched DB settings
+    const activeCartSettings = (page?.slug === 'cart'
+        ? canvasContent.find(w => w.type === 'cart_list')?.settings
+        : cartSettings) || cartSettings;
+
     if (loading) return <Loader />;
 
     return (
@@ -348,7 +353,7 @@ export function StoreBuilder() {
 
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                         <CartProvider storeKey={storeId}>
-                            <CartDrawer settings={cartSettings} />
+                            <CartDrawer settings={activeCartSettings} />
                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
                                 <div
                                     className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
