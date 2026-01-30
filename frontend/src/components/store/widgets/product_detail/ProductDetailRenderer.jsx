@@ -375,7 +375,12 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                             selectedOptions: foundVariant?.combination,
                                             images: foundVariant?.image_urls?.length > 0 ? foundVariant.image_urls : (displayProduct.image_urls || []),
                                             image: foundVariant?.image_urls?.[0] || displayProduct.image_urls?.[0], // Main display image
-                                            store_id: displayProduct.store_id // Ensure store ID is present
+                                            store_id: displayProduct.store_id, // Ensure store ID is present,
+
+                                            // Discount Data for Drawer/Cart usage
+                                            originalPrice: hasDiscount ? comparePrice : null,
+                                            discountApplied: hasDiscount,
+                                            discountPct: discountPct
                                         };
 
                                         addToCart(cartItem, qty);

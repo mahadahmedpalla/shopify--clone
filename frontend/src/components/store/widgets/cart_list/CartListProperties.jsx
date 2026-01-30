@@ -90,8 +90,8 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                                     key={a.value}
                                     onClick={() => handleChange('textAlignment', a.value)}
                                     className={`flex-1 text-xs py-1.5 rounded-md transition-all ${(settings?.textAlignment || 'left') === a.value
-                                            ? 'bg-white shadow-sm text-slate-900 font-medium'
-                                            : 'text-slate-500 hover:text-slate-700'
+                                        ? 'bg-white shadow-sm text-slate-900 font-medium'
+                                        : 'text-slate-500 hover:text-slate-700'
                                         }`}
                                 >
                                     {a.label}
@@ -127,6 +127,15 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                         />
                     </label>
                     <label className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600">Show Original Price</span>
+                        <input
+                            type="checkbox"
+                            checked={settings?.showStrikePrice !== false}
+                            onChange={(e) => handleChange('showStrikePrice', e.target.checked)}
+                            className="toggle checkbox-sm"
+                        />
+                    </label>
+                    <label className="flex items-center justify-between">
                         <span className="text-sm text-slate-600">Show Discounted Badge</span>
                         <input
                             type="checkbox"
@@ -145,8 +154,8 @@ export const CartListProperties = ({ settings, onUpdate }) => {
                                         key={s.value}
                                         onClick={() => handleChange('badgeStyle', s.value)}
                                         className={`flex-1 text-xs py-1.5 rounded-md transition-all ${(settings?.badgeStyle || 'pill') === s.value
-                                                ? 'bg-white shadow-sm text-slate-900 font-medium'
-                                                : 'text-slate-500 hover:text-slate-700'
+                                            ? 'bg-white shadow-sm text-slate-900 font-medium'
+                                            : 'text-slate-500 hover:text-slate-700'
                                             }`}
                                     >
                                         {s.label}

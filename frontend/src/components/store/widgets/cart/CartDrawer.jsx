@@ -9,6 +9,8 @@ export function CartDrawer({ settings }) {
     const imageShape = settings?.imageShape || 'rounded';
     const showTaxSummary = settings?.showTaxSummary !== false;
     const showDiscountSummary = settings?.showDiscountSummary !== false;
+    const showDiscountBadge = settings?.showDiscountBadge !== false;
+    const showStrikePrice = settings?.showStrikePrice !== false;
     // Drawer specific tweaks: Ignore imageSize settings as drawer is fixed width.
     // Maybe use textAlignment?
     const textAlign = settings?.textAlignment || 'left';
@@ -96,6 +98,15 @@ export function CartDrawer({ settings }) {
                                                 {item.variantTitle && (
                                                     <p className="text-xs text-slate-500 mt-0.5 font-medium">{item.variantTitle}</p>
                                                 )}
+                                                {showDiscountBadge && item.discountApplied && (
+                                                    <span className={`
+                                                        mt-2 text-[10px] font-bold px-1.5 py-0.5 uppercase tracking-wide w-fit
+                                                        ${settings?.badgeStyle === 'tag' ? 'rounded-md' : 'rounded-full'}
+                                                        bg-red-100 text-red-700
+                                                    `}>
+                                                        Save {item.discountPct || 10}%
+                                                    </span>
+                                                )}
                                             </div>
                                             <button
                                                 onClick={() => removeFromCart(item.id, item.variantId)}
@@ -104,7 +115,12 @@ export function CartDrawer({ settings }) {
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-500 mt-1">${parseFloat(item.price).toFixed(2)}</p>
+                                        <div className={`flex items-baseline gap-2 mt-1 flex-wrap ${textAlign === 'right' ? 'justify-end' : textAlign === 'center' ? 'justify-center' : 'justify-start'}`}>
+                                            <p className="text-sm font-bold text-indigo-600">${parseFloat(item.price).toFixed(2)}</p>
+                                            {showStrikePrice && item.originalPrice && (
+                                                <p className="text-xs text-slate-400 line-through">${parseFloat(item.originalPrice).toFixed(2)}</p>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center justify-between">

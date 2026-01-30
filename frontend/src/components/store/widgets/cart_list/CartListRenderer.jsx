@@ -18,6 +18,7 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) =
 
     // Price Display
     const showUnitPrice = settings?.showUnitPrice !== false;
+    const showStrikePrice = settings?.showStrikePrice !== false;
     const showItemSubtotal = settings?.showItemSubtotal !== false;
     const showDiscountBadge = settings?.showDiscountBadge !== false;
     const badgeStyle = settings?.badgeStyle || 'pill';
@@ -51,7 +52,7 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) =
     // -- DATA PREP --
     // In editor, show mock items if empty
     const displayCart = (isEditor && cart.length === 0) ? [
-        { id: 'mock1', name: 'Sample Product', price: 99.00, quantity: 1, variantTitle: 'Color: Red', image: null },
+        { id: 'mock1', name: 'Sample Product', price: 99.00, originalPrice: 120.00, discountApplied: true, discountPct: 20, quantity: 1, variantTitle: 'Color: Red', image: null },
         { id: 'mock2', name: 'Another Item', price: 45.50, quantity: 2, image: null }
     ] : cart;
 
@@ -116,9 +117,16 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) =
                                     </div>
 
                                     {showUnitPrice && (
-                                        <p className="text-sm font-medium text-slate-600 mt-2">
-                                            ${parseFloat(item.price).toFixed(2)}
-                                        </p>
+                                        <div className={`flex flex-wrap gap-2 items-baseline mt-2 ${textAlign === 'center' ? 'justify-center' : textAlign === 'right' ? 'justify-end' : ''}`}>
+                                            <p className="text-sm font-medium text-slate-600">
+                                                ${parseFloat(item.price).toFixed(2)}
+                                            </p>
+                                            {showStrikePrice && item.originalPrice && (
+                                                <p className="text-xs text-slate-400 line-through">
+                                                    ${parseFloat(item.originalPrice).toFixed(2)}
+                                                </p>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
