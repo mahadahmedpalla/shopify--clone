@@ -177,7 +177,7 @@ export function CartDrawer({ settings }) {
                                         {showUnitPrice && (
                                             <div className="flex flex-col mt-1">
                                                 {(settings?.showCompareAtPrice && (item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price)) ? (
-                                                    <div className={`flex items-baseline gap-2 ${getAlignClass() === 'text-right items-end' ? 'flex-row-reverse' : ''}`}>
+                                                    <div className={`flex items-baseline gap-2 flex-wrap ${getAlignClass() === 'text-right items-end' ? 'flex-row-reverse' : ''}`}>
                                                         <span
                                                             className="text-sm font-bold"
                                                             style={{ color: settings?.priceColor || '#64748b' }}
@@ -186,6 +186,9 @@ export function CartDrawer({ settings }) {
                                                         </span>
                                                         <span className="text-xs text-slate-400 line-through">
                                                             ${parseFloat(item.compareAtPrice || item.compare_at_price).toFixed(2)}
+                                                        </span>
+                                                        <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                                                            (You saved ${(parseFloat(item.compareAtPrice || item.compare_at_price) - parseFloat(item.price)).toFixed(2)})
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -241,15 +244,8 @@ export function CartDrawer({ settings }) {
 
                             {showDiscountSummary && (
                                 <div className="flex items-center justify-between text-sm text-emerald-600 font-medium">
-                                    <div className="flex items-center gap-2">
-                                        <span>Discount</span>
-                                        {parseFloat(totalSavings) > 0 && (
-                                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">
-                                                (You saved ${totalSavings})
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span>-$0.00</span>
+                                    <span>Discount</span>
+                                    <span>-${totalSavings}</span>
                                 </div>
                             )}
 
