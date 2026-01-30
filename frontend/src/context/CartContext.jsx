@@ -1,4 +1,7 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+
+const CartContext = createContext();
 
 export const useCart = () => {
     const context = useContext(CartContext);
