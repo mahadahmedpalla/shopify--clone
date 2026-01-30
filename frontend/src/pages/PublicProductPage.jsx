@@ -13,7 +13,7 @@ export function PublicProductPage() {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('desktop');
 
-    const [discounts, setDiscounts] = useState([]);
+    const [cartSettings, setCartSettings] = useState(null);
 
     // Responsive Detection
     useEffect(() => {
@@ -44,6 +44,20 @@ export function PublicProductPage() {
 
             if (storeError || !storeData) throw new Error('Store not found');
             setStore(storeData);
+
+            // 1.5 Fetch Global Cart Settings (from 'cart' page)
+            const { data: cartPage } = await supabase.from('store_pages')
+                .select('content')
+                .eq('store_id', storeData.id)
+                .eq('slug', 'cart')
+                .single();
+
+            if (cartPage?.content) {
+                const widget = cartPage.content.find(w => w.type === 'cart_list');
+                if (widget && widget.settings) {
+                    setCartSettings(widget.settings);
+                }
+            }
 
             // 2. Fetch Product
             const { data: prodData, error: prodError } = await supabase
@@ -118,7 +132,7 @@ export function PublicProductPage() {
 
     return (
         <CartProvider storeKey={store.id}>
-            <CartDrawer />
+            <CartDrawer settings={cartSettings} />
             <div className="min-h-screen bg-white">
                 {pageContent?.map((block) => (
                     <BlockRenderer
