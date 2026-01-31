@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ShoppingBag, CreditCard, Info } from 'lucide-react';
+import { ChevronRight, ShoppingBag, CreditCard, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { countries } from '../../lib/countries';
 
 export function CheckoutForm({
@@ -37,6 +37,8 @@ export function CheckoutForm({
         color: primaryText,
     };
 
+    const [showOrderSummary, setShowOrderSummary] = useState(false);
+
     // Navigation handler for editor
     const onNavClick = (e, targetStep) => {
         if (isEditor) {
@@ -62,6 +64,66 @@ export function CheckoutForm({
                                 {storeName}
                             </Link>
                         )}
+
+                        {/* Mobile Order Summary Toggle */}
+                        <div className="lg:hidden border-y border-slate-200 -mx-6 px-6 py-4 bg-slate-50 mb-6">
+                            <button
+                                type="button"
+                                onClick={() => setShowOrderSummary(!showOrderSummary)}
+                                className="flex w-full items-center justify-between font-medium transition-colors"
+                                style={{ color: primaryColor }}
+                            >
+                                <span className="flex items-center text-sm">
+                                    <ShoppingBag className="w-4 h-4 mr-2" />
+                                    <span className="mr-1">{showOrderSummary ? 'Hide' : 'Show'} order summary</span>
+                                    {showOrderSummary ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </span>
+                                <span className="font-bold text-slate-900 text-lg">${totals.total.toFixed(2)}</span>
+                            </button>
+
+                            {showOrderSummary && (
+                                <div className="pt-6 space-y-6 animate-in slide-in-from-top-2 border-t border-slate-200 mt-4">
+                                    <div className="space-y-4">
+                                        {cart.map((item, i) => (
+                                            <div key={i} className="flex items-center gap-4">
+                                                <div className="relative h-16 w-16 bg-white border border-slate-200 rounded-lg items-center justify-center flex overflow-hidden shrink-0">
+                                                    <span className="absolute -top-2 -right-2 bg-slate-500 text-white text-xs font-bold h-5 w-5 flex items-center justify-center rounded-full z-10 shadow-sm">{item.quantity}</span>
+                                                    {item.image ? (
+                                                        <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <ShoppingBag className="h-6 w-6 text-slate-300" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-bold text-slate-800 text-sm truncate">{item.name}</h4>
+                                                    {item.variantTitle && <p className="text-xs text-slate-500 truncate">{item.variantTitle}</p>}
+                                                </div>
+                                                <p className="font-bold text-slate-700 text-sm whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="border-t border-slate-200 pt-4 space-y-3">
+                                        <div className="flex justify-between text-sm text-slate-600">
+                                            <span>Subtotal</span>
+                                            <span className="font-bold text-slate-900">${totals.subtotal.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm text-slate-600">
+                                            <span>Shipping {selectedRate ? `(${selectedRate.name})` : ''}</span>
+                                            {selectedRate ? (
+                                                <span className="font-bold text-slate-900">${selectedRate.rate.toFixed(2)}</span>
+                                            ) : (
+                                                <span className="text-xs text-slate-400">Calculated at next step</span>
+                                            )}
+                                        </div>
+                                        <div className="flex justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200">
+                                            <span>Total</span>
+                                            <span className="text-xl" style={{ color: primaryColor }}>${totals.total.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         <nav className="flex items-center space-x-2 text-xs font-medium text-slate-500">
                             <span className={isEditor ? '' : 'hover:text-indigo-600 transition'}>Cart</span>
