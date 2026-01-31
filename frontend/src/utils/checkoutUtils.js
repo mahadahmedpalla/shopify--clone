@@ -45,12 +45,17 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
     let taxTotal = 0;
     const taxesBreakdown = {}; // { 'VAT': 12.50, 'GST': 5.00 }
 
+    // Calculate Discount Ratio to prorate discount across items for tax calculation
+    const discountRatio = subtotal > 0 ? Math.max(0, (subtotal - discountAmount) / subtotal) : 1;
+
     if (country && taxes && taxes.length > 0) {
         // Filter taxes for this country
         const applicableTaxes = taxes.filter(t => t.is_active && t.country === country);
 
         items.forEach(item => {
             const itemTotal = parseFloat(item.price) * item.quantity;
+            // Prorated Item Total for Percentage Tax Adjustment
+            const taxableItemAmount = itemTotal * discountRatio;
 
             applicableTaxes.forEach(tax => {
                 let applies = false;
@@ -74,9 +79,10 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
                 if (applies) {
                     let taxAmount = 0;
                     if (tax.type === 'percentage') {
-                        taxAmount = itemTotal * (tax.value / 100);
+                        // Apply tax on DISCOUNTED item amount
+                        taxAmount = taxableItemAmount * (tax.value / 100);
                     } else {
-                        // Fixed amount per item
+                        // Fixed amount per item (usually UNAFFECTED by price discount)
                         taxAmount = (tax.value * item.quantity);
                     }
 
