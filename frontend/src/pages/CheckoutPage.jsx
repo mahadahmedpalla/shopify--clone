@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
-import { validateAddress, calculateOrderTotals, createOrder } from '../utils/checkoutUtils';
+import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
 import { ShoppingBag } from 'lucide-react';
 
 export function CheckoutPage() {
@@ -81,6 +81,9 @@ function CheckoutContent({ store, storeSubUrl }) {
 
     const [checkoutSettings, setCheckoutSettings] = useState({});
 
+    // Allowed Countries
+    const allowedCountries = store.allowed_countries || null; // null means all
+
     useEffect(() => {
         const fetchSettings = async () => {
             try {
@@ -99,18 +102,56 @@ function CheckoutContent({ store, storeSubUrl }) {
                         setCheckoutSettings(checkoutWidget.settings);
                     }
                 }
-
-                // MOCK Shipping Rates
-                setShippingRates([
-                    { id: 'rate_standard', name: 'Standard Shipping', rate: 5.00, estimated_days: '3-5' },
-                    { id: 'rate_express', name: 'Express Shipping', rate: 15.00, estimated_days: '1-2' }
-                ]);
             } catch (err) {
                 console.error("Error loading settings:", err);
             }
         };
         fetchSettings();
     }, [store.id]);
+
+    // Fetch Shipping Rates when Country Changes or Cart Changes
+    useEffect(() => {
+        const fetchRates = async () => {
+            if (!customerInfo.country) return;
+
+            try {
+                // Fetch active rates for this store
+                // Filter by Country (Specific OR All)
+                // Filter by Min Order Value is handled in utility or here?
+                // Lets fetch all active candidates for the country first.
+
+                const { data: rates, error } = await supabase
+                    .from('shipping_rates')
+                    .select('*')
+                    .eq('store_id', store.id)
+                    .eq('is_active', true)
+                    .or(`country.eq.All,country.eq.${customerInfo.country}`);
+
+                if (error) throw error;
+
+                // Calculate Options based on Cart
+                const options = calculateShippingOptions(cart, rates || []);
+                setShippingRates(options);
+
+                // Auto-select if only 1 option or if previously selected is invalid
+                if (options.length === 1) {
+                    setSelectedRate(options[0]);
+                } else if (selectedRate) {
+                    // Check if selected still exists
+                    const stillValid = options.find(r => r.id === selectedRate.id);
+                    if (!stillValid) setSelectedRate(null);
+                    else setSelectedRate(stillValid); // Update with new calculation
+                }
+
+            } catch (err) {
+                console.error("Error fetching rates:", err);
+            }
+        };
+
+        if (step >= 1) { // Fetch if on info step or later
+            fetchRates();
+        }
+    }, [store.id, customerInfo.country, cart, step]);
 
     // Recalculate totals when dependencies change
     useEffect(() => {
@@ -211,6 +252,7 @@ function CheckoutContent({ store, storeSubUrl }) {
             storeName={store.name}
             storeSubUrl={storeSubUrl}
             settings={checkoutSettings}
+            allowedCountries={allowedCountries}
         />
     );
 }

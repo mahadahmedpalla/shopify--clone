@@ -69,7 +69,7 @@ export const createOrder = async (orderData) => {
         currency: orderData.totals.currency,
         subtotal: orderData.totals.subtotal,
         shipping_cost: orderData.totals.shippingCost,
-        shipping_rate_id: orderData.shippingRate?.id || null,
+        shipping_rate_id: orderData.shippingRate?.id || null, // Primary ID or JSON of IDs? For now primary.
         discount_total: orderData.totals.discountTotal,
         tax_total: orderData.totals.taxTotal,
         total: orderData.totals.total,
@@ -86,4 +86,156 @@ export const createOrder = async (orderData) => {
 
     if (error) throw error;
     return data;
+};
+
+/**
+ * Calculates available shipping options based on cart items and active rates.
+ * Supports "Additive Shipping": sums specific product rates + general cart rates.
+ * 
+ * @param {Array} cartItems 
+ * @param {Array} availableRates - Raw rates from DB for the country
+ * @returns {Array} options - [{ id, name, rate, breakdown: [] }]
+ */
+export const calculateShippingOptions = (cartItems, availableRates) => {
+    // 1. Separate Specific Rules vs General Rules
+    const specificproductRates = availableRates.filter(r => r.applies_to === 'specific_products');
+    const specificCategoryRates = availableRates.filter(r => r.applies_to === 'specific_categories');
+    const generalRates = availableRates.filter(r => r.applies_to === 'all');
+
+    // 2. Classify Items
+    let lockedShippingCost = 0;
+    let lockedBreakdown = [];
+    let generalItems = [];
+
+    cartItems.forEach(item => {
+        let matchedRate = null;
+
+        // A. Check Product Specific
+        matchedRate = specificproductRates.find(r => r.included_product_ids?.includes(item.id));
+
+        // B. Check Category Specific (If not matched yet)
+        if (!matchedRate) {
+            matchedRate = specificCategoryRates.find(r => r.included_category_ids?.includes(item.category_id));
+        }
+
+        if (matchedRate) {
+            // Item is "Locked" to this rate
+            // Logic: Is the rate per item or per order? 
+            // Usually per order for that group, but if additive... 
+            // Simplified Additive: If rate applies, add it ONCE per distinct rate? 
+            // Or add for every item? 
+            // Assumption: Rate is "Flat rate for this shipment group".
+            // If multiple items share the SAME rate ID, we shouldn't charge it twice unless specified.
+            // Converting to "Grouped Items" logic.
+
+            // For this implementation: We add the cost for the *Group*.
+            // We need to track which rates have been applied.
+        } else {
+            generalItems.push(item);
+        }
+    });
+
+    // 2b. Refined Grouping Logic
+    const specificGroups = {}; // { rateId: { rate, items: [] } }
+    const generalItemsList = [];
+
+    cartItems.forEach(item => {
+        // A. Product Specific
+        const productRate = specificproductRates.find(r => r.included_product_ids?.includes(item.id));
+        if (productRate) {
+            if (!specificGroups[productRate.id]) specificGroups[productRate.id] = { rate: productRate, items: [] };
+            specificGroups[productRate.id].items.push(item);
+            return;
+        }
+
+        // B. Category Specific
+        const categoryRate = specificCategoryRates.find(r => r.included_category_ids?.includes(item.category_id));
+        if (categoryRate) {
+            if (!specificGroups[categoryRate.id]) specificGroups[categoryRate.id] = { rate: categoryRate, items: [] };
+            specificGroups[categoryRate.id].items.push(item);
+            return;
+        }
+
+        // C. General
+        generalItemsList.push(item);
+    });
+
+    // 3. Calculate Locked Cost
+    Object.values(specificGroups).forEach(group => {
+        const cost = parseFloat(group.rate.amount || 0);
+        lockedShippingCost += cost;
+        lockedBreakdown.push({
+            name: group.rate.name,
+            cost: cost,
+            items: group.items.map(i => i.name).join(', ')
+        });
+    });
+
+    // 4. Generate Options based on General Items
+    // If NO general items, mapped options is just ONE (Locked Cost)
+    // If YES general items, mapped options is (Locked + General Option 1), (Locked + General Option 2)...
+
+    let options = [];
+
+    if (generalItemsList.length === 0) {
+        if (lockedBreakdown.length > 0) {
+            options.push({
+                id: 'combined_specific',
+                name: 'Shipping', // Generic name, breakdown shows details
+                rate: lockedShippingCost,
+                breakdown: lockedBreakdown,
+                is_auto_applied: true
+            });
+        } else {
+            // No items? Free?
+            options.push({ id: 'free', name: 'Free Shipping', rate: 0, breakdown: [] });
+        }
+    } else {
+        // We have general items, we need to find applicable general rates
+        // Filter by min_order_value based on TOTAL cart value (standard behavior)
+        const cartTotal = cartItems.reduce((sum, i) => sum + (parseFloat(i.price) * i.quantity), 0);
+
+        const validGeneralRates = generalRates.filter(r => {
+            if (r.min_order_value && cartTotal < parseFloat(r.min_order_value)) return false;
+            return true;
+        });
+
+        if (validGeneralRates.length === 0) {
+            // Fallback if no general rates found?
+            // If specific rates exist, maybe we just charge those?
+            // "Shipping not available for remaining items" -> Error?
+            // For now, return specific only (incomplete) or Free fallback.
+            if (lockedShippingCost > 0) {
+                options.push({
+                    id: 'combined_specific_partial',
+                    name: 'Shipping (Partial)',
+                    rate: lockedShippingCost,
+                    breakdown: [...lockedBreakdown, { name: 'Standard Items', cost: 0, note: 'Rate not found' }],
+                    warning: "Some items do not have eligible shipping rates."
+                });
+            }
+        } else {
+            options = validGeneralRates.map(genRate => {
+                const genCost = parseFloat(genRate.amount || 0);
+                const totalCost = lockedShippingCost + genCost;
+
+                const breakdown = [...lockedBreakdown];
+                breakdown.push({
+                    name: genRate.name,
+                    cost: genCost,
+                    items: generalItemsList.map(i => i.name).join(', ')
+                });
+
+                return {
+                    id: genRate.id, // Primary ID is the General Rate ID (user chooses this)
+                    name: genRate.name,
+                    rate: totalCost,
+                    breakdown: breakdown,
+                    original_rate_obj: genRate
+                };
+            });
+        }
+    }
+
+    return options;
 };

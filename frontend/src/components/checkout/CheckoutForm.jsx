@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ShoppingBag, CreditCard } from 'lucide-react';
+import { ChevronRight, ShoppingBag, CreditCard, Info } from 'lucide-react';
+import { countries } from '../../lib/countries';
 
 export function CheckoutForm({
     step,
@@ -20,7 +21,8 @@ export function CheckoutForm({
     storeName,
     storeSubUrl,
     settings = {},
-    isEditor = false
+    isEditor = false,
+    allowedCountries = null
 }) {
     // Style Helpers
     const primaryColor = settings?.primaryColor || '#4f46e5'; // indigo-600
@@ -120,7 +122,13 @@ export function CheckoutForm({
                                             onChange={handleInput}
                                             disabled={isEditor}
                                         >
-                                            <option value="US">United States</option>
+                                            <option value="" disabled>Select Country</option>
+                                            {countries
+                                                .filter(c => !allowedCountries || allowedCountries.length === 0 || allowedCountries.includes(c.code) || allowedCountries.includes(c.name))
+                                                .map(c => (
+                                                    <option key={c.code} value={c.name}>{c.name}</option>
+                                                ))
+                                            }
                                         </select>
                                         <div>
                                             <input name="zip" type="text" placeholder="Postal Code" className={`w-full px-4 py-3 bg-white border ${errors.zip ? 'border-red-500' : 'border-slate-200'} rounded-lg outline-none`} value={customerInfo.zip} onChange={handleInput} readOnly={isEditor} />
@@ -167,24 +175,61 @@ export function CheckoutForm({
 
                                 <h2 className="text-lg font-bold">Shipping Method</h2>
                                 <div className="space-y-3">
-                                    {shippingRates.map((rate) => (
-                                        <label key={rate.id} className={`flex items-center justify-between border rounded-lg p-4 cursor-pointer transition-all ${selectedRate?.id === rate.id ? 'bg-indigo-50 border-indigo-600 ring-1 ring-indigo-600' : 'border-slate-200 hover:border-indigo-300'}`}>
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="radio"
-                                                    name="shippingRate"
-                                                    checked={selectedRate?.id === rate.id}
-                                                    onChange={() => setSelectedRate(rate)}
-                                                    className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-                                                    disabled={isEditor}
-                                                />
-                                                <div className="ml-3 flex flex-col">
-                                                    <span className="block text-sm font-medium text-slate-900">{rate.name}</span>
-                                                    <span className="block text-xs text-slate-500">{rate.estimated_days} business days</span>
-                                                </div>
+                                    {shippingRates.length === 0 && (
+                                        <div className="p-4 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg text-sm flex items-start">
+                                            <Info className="h-5 w-5 mr-2 shrink-0" />
+                                            <div>
+                                                <p className="font-bold">No shipping methods found.</p>
+                                                <p>Unfortunately, we do not ship to this location or your cart total does not meet the requirements.</p>
                                             </div>
-                                            <span className="font-bold text-sm text-slate-900">${rate.rate.toFixed(2)}</span>
-                                        </label>
+                                        </div>
+                                    )}
+
+                                    {shippingRates.map((rate) => (
+                                        <div key={rate.id} className={`border rounded-lg p-4 transition-all ${rate.is_auto_applied || selectedRate?.id === rate.id ? 'bg-indigo-50 border-indigo-600 ring-1 ring-indigo-600' : 'border-slate-200 hover:border-indigo-300'}`}>
+                                            <label className="flex items-center justify-between cursor-pointer">
+                                                <div className="flex items-center">
+                                                    {!rate.is_auto_applied && (
+                                                        <input
+                                                            type="radio"
+                                                            name="shippingRate"
+                                                            checked={selectedRate?.id === rate.id}
+                                                            onChange={() => setSelectedRate(rate)}
+                                                            className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 mr-3"
+                                                            disabled={isEditor}
+                                                        />
+                                                    )}
+                                                    {rate.is_auto_applied && (
+                                                        <div className="mr-3 h-4 w-4 rounded-full bg-indigo-600 flex items-center justify-center">
+                                                            <div className="h-1.5 w-1.5 bg-white rounded-full"></div>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-col">
+                                                        <span className="block text-sm font-bold text-slate-900">{rate.name}</span>
+                                                        {rate.estimated_days && <span className="block text-xs text-slate-500">{rate.estimated_days} business days</span>}
+                                                    </div>
+                                                </div>
+                                                <span className="font-bold text-sm text-slate-900">${rate.rate.toFixed(2)}</span>
+                                            </label>
+
+                                            {/* Additive Breakdown */}
+                                            {rate.breakdown && rate.breakdown.length > 0 && (
+                                                <div className="mt-3 pl-7 pt-3 border-t border-indigo-200/50 space-y-2">
+                                                    {rate.breakdown.map((item, idx) => (
+                                                        <div key={idx} className="flex justify-between text-xs text-slate-600">
+                                                            <span>
+                                                                <span className="font-medium text-slate-800">{item.name}</span>
+                                                                {item.items && <span className="block text-slate-400 truncate max-w-[200px]">{item.items}</span>}
+                                                            </span>
+                                                            <span className="font-medium">${item.cost.toFixed(2)}</span>
+                                                        </div>
+                                                    ))}
+                                                    {rate.warning && (
+                                                        <p className="text-xs text-orange-600 mt-2 font-medium">{rate.warning}</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
 
