@@ -122,6 +122,8 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
 
                     return {
                         ...item,
+                        // Ensure category_id is updated/present
+                        category_id: product.category_id,
                         price: finalPrice,
                         compareAtPrice: comparePrice,
                         compare_at_price: comparePrice,

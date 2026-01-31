@@ -116,35 +116,6 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
     // 2. Classify Items
     let lockedShippingCost = 0;
     let lockedBreakdown = [];
-    let generalItems = [];
-
-    cartItems.forEach(item => {
-        let matchedRate = null;
-
-        // A. Check Product Specific
-        matchedRate = specificproductRates.find(r => r.included_product_ids?.includes(item.id));
-
-        // B. Check Category Specific (If not matched yet)
-        if (!matchedRate) {
-            matchedRate = specificCategoryRates.find(r => r.included_category_ids?.includes(item.category_id));
-        }
-
-        if (matchedRate) {
-            // Item is "Locked" to this rate
-            // Logic: Is the rate per item or per order? 
-            // Usually per order for that group, but if additive... 
-            // Simplified Additive: If rate applies, add it ONCE per distinct rate? 
-            // Or add for every item? 
-            // Assumption: Rate is "Flat rate for this shipment group".
-            // If multiple items share the SAME rate ID, we shouldn't charge it twice unless specified.
-            // Converting to "Grouped Items" logic.
-
-            // For this implementation: We add the cost for the *Group*.
-            // We need to track which rates have been applied.
-        } else {
-            generalItems.push(item);
-        }
-    });
 
     // 2b. Refined Grouping Logic
     const specificGroups = {}; // { rateId: { rate, items: [] } }
