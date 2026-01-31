@@ -4,7 +4,6 @@ import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
-import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
 import { calculateOrderDiscount } from '../utils/discountUtils';
 import { validateCoupon } from '../utils/couponUtils';
 import { ShoppingBag } from 'lucide-react';
