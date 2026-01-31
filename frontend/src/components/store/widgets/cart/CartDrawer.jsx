@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
+import { calculateOrderDiscount } from '../../../../utils/discountUtils';
 import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 
 export function CartDrawer({ settings }) {
-    const { cart, removeFromCart, updateQuantity, isOpen, setIsOpen, cartTotal } = useCart();
+    const { cart, removeFromCart, updateQuantity, isOpen, setIsOpen, cartTotal, storeDiscounts } = useCart();
     const navigate = useNavigate();
     const { storeSubUrl } = useParams();
 
@@ -46,18 +47,10 @@ export function CartDrawer({ settings }) {
         return cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2);
     };
 
-    const calculateSavings = () => {
-        return cart.reduce((total, item) => {
-            const price = parseFloat(item.price);
-            const compareAt = parseFloat(item.compareAtPrice || item.compare_at_price || 0);
-            if (compareAt > price) {
-                return total + ((compareAt - price) * item.quantity);
-            }
-            return total;
-        }, 0).toFixed(2);
-    };
+    // Calculate Automatic Order Discount (MOV)
+    const autoDiscount = calculateOrderDiscount(cartTotal, storeDiscounts || []);
+    const discountAmount = autoDiscount.discountAmount;
 
-    const totalSavings = calculateSavings();
 
     return (
         <div className={`fixed inset-0 z-[100] transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
@@ -248,17 +241,17 @@ export function CartDrawer({ settings }) {
 
 
 
-                            {showDiscountSummary && (
+                            {showDiscountSummary && discountAmount > 0 && (
                                 <div className="flex items-center justify-between text-sm text-emerald-600 font-medium">
                                     <div className="flex items-center gap-2">
                                         <span>Discount</span>
-                                        {parseFloat(totalSavings) > 0 && (
-                                            <span className="text-[10px] font-bold">
-                                                (You saved)
+                                        {autoDiscount.discountName && (
+                                            <span className="text-[10px] font-bold bg-emerald-100 px-1.5 py-0.5 rounded-full">
+                                                {autoDiscount.discountName}
                                             </span>
                                         )}
                                     </div>
-                                    <span>${totalSavings}</span>
+                                    <span>-${discountAmount.toFixed(2)}</span>
                                 </div>
                             )}
 
@@ -271,7 +264,7 @@ export function CartDrawer({ settings }) {
 
                             <div className="flex items-center justify-between text-lg font-bold text-slate-900 pt-2 border-t border-slate-200">
                                 <span>Total</span>
-                                <span>${calculateTotal()}</span>
+                                <span>${(parseFloat(calculateTotal()) - discountAmount).toFixed(2)}</span>
                             </div>
                         </div>
 

@@ -28,6 +28,7 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
     const [cart, setCart] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [hydrated, setHydrated] = useState(false);
+    const [storeDiscounts, setStoreDiscounts] = useState([]); // Store active discounts
     const storageKey = `shopping-cart-${storeKey}`;
 
     // Load from local storage
@@ -82,7 +83,10 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                 .select('*')
                 .eq('store_id', storeKey)
                 .eq('is_active', true)
+                .eq('is_active', true)
                 .lte('starts_at', now);
+
+            setStoreDiscounts(discounts || []);
 
 
             setCart(prevCart => {
@@ -191,7 +195,9 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
             isOpen,
             setIsOpen,
             cartTotal,
-            cartCount
+            cartCount,
+            storeDiscounts,
+            refreshCart
         }}>
             {children}
         </CartContext.Provider>
