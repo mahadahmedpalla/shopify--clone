@@ -203,23 +203,32 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
         // Filter by min_order_value based on TOTAL cart value (standard behavior)
         const cartTotal = cartItems.reduce((sum, i) => sum + (parseFloat(i.price) * i.quantity), 0);
 
-        const validGeneralRates = generalRates.filter(r => {
-            // Safe Check: If min_order_value is defined and greater than 0
-            // AND cartTotal is less than it, exclude.
+        const validGeneralRates = generalRates.map(r => {
+            // Logic Change: min_order_value acts as a "Free Shipping Threshold"
+            // If Total >= min_order_value, price becomes 0.
+            // If Total < min_order_value, price remains as is.
+            // Rate is ALWAYS valid (unless we want to support exclusion too? user implied strict free threshold)
+
+            let finalAmount = parseFloat(r.amount || 0);
+            let isFreeApplied = false;
+
             if (r.min_order_value !== null && r.min_order_value !== undefined && r.min_order_value !== '') {
                 const minVal = parseFloat(r.min_order_value);
-                if (!isNaN(minVal) && minVal > 0 && cartTotal < minVal) {
-                    return false;
+                if (!isNaN(minVal) && minVal > 0) {
+                    if (cartTotal >= minVal) {
+                        finalAmount = 0;
+                        isFreeApplied = true;
+                    }
+                    // If cartTotal < minVal, we typically STILL show the rate at full price 
+                    // per user request "under 14000 there will be shipping options available"
                 }
             }
-            return true;
+
+            return { ...r, finalAmount, isFreeApplied };
         });
 
         if (validGeneralRates.length === 0) {
-            // Fallback if no general rates found?
-            // If specific rates exist, maybe we just charge those?
-            // "Shipping not available for remaining items" -> Error?
-            // For now, return specific only (incomplete) or Free fallback.
+            // Fallback logic
             if (lockedShippingCost > 0) {
                 options.push({
                     id: 'combined_specific_partial',
@@ -231,19 +240,24 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
             }
         } else {
             options = validGeneralRates.map(genRate => {
-                const genCost = parseFloat(genRate.amount || 0);
+                const genCost = genRate.finalAmount;
                 const totalCost = lockedShippingCost + genCost;
 
                 const breakdown = [...lockedBreakdown];
+
+                let rateName = genRate.name;
+                // Optional: Append info about free shipping
+                // if (genRate.isFreeApplied) rateName += " (Free Shipping Qualified)";
+
                 breakdown.push({
-                    name: genRate.name,
+                    name: rateName,
                     cost: genCost,
                     items: generalItemsList.map(i => i.name).join(', ')
                 });
 
                 return {
-                    id: genRate.id, // Primary ID is the General Rate ID (user chooses this)
-                    name: genRate.name,
+                    id: genRate.id,
+                    name: rateName,
                     rate: totalCost,
                     breakdown: breakdown,
                     original_rate_obj: genRate
