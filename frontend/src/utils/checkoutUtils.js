@@ -43,6 +43,7 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
 
     // Tax Calculation
     let taxTotal = 0;
+    const taxesBreakdown = {}; // { 'VAT': 12.50, 'GST': 5.00 }
 
     if (country && taxes && taxes.length > 0) {
         // Filter taxes for this country
@@ -71,12 +72,21 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
                 }
 
                 if (applies) {
+                    let taxAmount = 0;
                     if (tax.type === 'percentage') {
-                        taxTotal += itemTotal * (tax.value / 100);
+                        taxAmount = itemTotal * (tax.value / 100);
                     } else {
                         // Fixed amount per item
-                        taxTotal += (tax.value * item.quantity);
+                        taxAmount = (tax.value * item.quantity);
                     }
+
+                    taxTotal += taxAmount;
+
+                    // Accumulate breakdown
+                    if (!taxesBreakdown[tax.code]) {
+                        taxesBreakdown[tax.code] = 0;
+                    }
+                    taxesBreakdown[tax.code] += taxAmount;
                 }
             });
         });
@@ -88,6 +98,7 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
         subtotal: parseFloat(subtotal.toFixed(2)),
         shippingCost: parseFloat(shippingCost.toFixed(2)),
         taxTotal: parseFloat(taxTotal.toFixed(2)),
+        taxBreakdown: taxesBreakdown, // Return the breakdown
         discountTotal: parseFloat(discountAmount.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
         currency: 'USD'
