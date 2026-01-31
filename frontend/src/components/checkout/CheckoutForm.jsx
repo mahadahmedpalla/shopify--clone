@@ -24,7 +24,6 @@ export function CheckoutForm({
     isEditor = false,
     allowedCountries = null,
     paymentMethod,
-    paymentMethod,
     setPaymentMethod,
     couponCode,
     setCouponCode,

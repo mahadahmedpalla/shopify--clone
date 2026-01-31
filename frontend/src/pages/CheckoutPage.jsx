@@ -288,9 +288,6 @@ function CheckoutContent({ store, storeSubUrl }) {
                 items: cart,
                 totals: totals, // Use calculated totals
                 shippingRate: selectedRate,
-                items: cart,
-                totals: totals, // Use calculated totals
-                shippingRate: selectedRate,
                 paymentMethod: paymentMethod,
                 couponCode: appliedCoupon ? appliedCoupon.coupon.code : null // Track used coupon
             };
