@@ -51,6 +51,7 @@ function CheckoutContent({ store, storeSubUrl }) {
     const [placingOrder, setPlacingOrder] = useState(false);
 
     // Form State
+    // Form State
     const [customerInfo, setCustomerInfo] = useState({
         email: '',
         firstName: '',
@@ -58,7 +59,7 @@ function CheckoutContent({ store, storeSubUrl }) {
         address1: '',
         address2: '',
         city: '',
-        country: 'US', // Default
+        country: '', // Will be set after store loads
         zip: '',
         phone: ''
     });
@@ -83,6 +84,14 @@ function CheckoutContent({ store, storeSubUrl }) {
 
     // Allowed Countries
     const allowedCountries = store.allowed_countries || null; // null means all
+
+    // Set Default Country
+    useEffect(() => {
+        if (store) {
+            const defaultCountry = (allowedCountries && allowedCountries.length > 0) ? allowedCountries[0] : 'US';
+            setCustomerInfo(prev => ({ ...prev, country: defaultCountry }));
+        }
+    }, [store, allowedCountries]);
 
     useEffect(() => {
         const fetchSettings = async () => {
