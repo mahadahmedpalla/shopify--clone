@@ -270,6 +270,8 @@ function CheckoutContent({ store, storeSubUrl }) {
             storeSubUrl={storeSubUrl}
             settings={checkoutSettings}
             allowedCountries={allowedCountries}
+            paymentMethod={paymentMethod}
+            setPaymentMethod={setPaymentMethod}
         />
     );
 }
