@@ -174,6 +174,7 @@ export const createOrder = async (orderData) => {
         shipping_rate_id: finalShippingRateId,
         discount_total: orderData.totals.discountTotal,
         tax_total: orderData.totals.taxTotal,
+        tax_breakdown: orderData.totals.taxBreakdown || {},
         total: orderData.totals.total,
 
         payment_method: orderData.paymentMethod || 'manual',

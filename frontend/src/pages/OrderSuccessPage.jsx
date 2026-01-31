@@ -74,7 +74,8 @@ export function OrderSuccessPage() {
         shippingCost: shipping_cost,
         total: total,
         discountTotal: discount_total,
-        taxTotal: tax_total || 0
+        taxTotal: tax_total || 0,
+        taxBreakdown: order.tax_breakdown || {}
     };
 
     // Parse if they are strings (depends on DB storage, usually JSONB comes as object)
@@ -139,22 +140,61 @@ export function OrderSuccessPage() {
                                     <span>Subtotal</span>
                                     <span className="font-medium">${totals?.subtotal?.toFixed(2) || '0.00'}</span>
                                 </div>
-                                <div className="flex justify-between text-sm text-slate-600">
-                                    <span>Shipping</span>
-                                    <span className="font-medium">${totals?.shippingCost?.toFixed(2) || '0.00'}</span>
-                                </div>
-                                {(totals?.taxTotal > 0) && (
-                                    <div className="flex justify-between text-sm text-slate-600">
-                                        <span>Tax</span>
-                                        <span className="font-medium">${totals.taxTotal.toFixed(2)}</span>
-                                    </div>
-                                )}
+
                                 {(totals?.discountTotal > 0) && (
                                     <div className="flex justify-between text-sm text-green-600">
                                         <span>Discount</span>
                                         <span className="font-medium">-${totals.discountTotal.toFixed(2)}</span>
                                     </div>
                                 )}
+
+                                <div className="flex justify-between text-sm text-slate-600">
+                                    <span>Shipping</span>
+                                    <span className="font-medium">${totals?.shippingCost?.toFixed(2) || '0.00'}</span>
+                                </div>
+
+                                {/* Tax Breakdown */}
+                                {totals.taxBreakdown && Object.keys(totals.taxBreakdown).length > 0 ? (
+                                    Object.entries(totals.taxBreakdown).map(([code, data]) => {
+                                        const amount = typeof data === 'number' ? data : data.amount;
+                                        const rate = typeof data === 'object' ? data.rate : null;
+                                        const type = typeof data === 'object' ? data.type : null;
+                                        const count = typeof data === 'object' ? data.count : 0;
+                                        const applyPerItem = typeof data === 'object' && data.apply_per_item !== undefined ? data.apply_per_item : true;
+
+                                        let label = code;
+                                        if (rate !== null && type) {
+                                            if (type === 'percentage') {
+                                                label = `${code} (${rate}%)`;
+                                            } else {
+                                                if (applyPerItem === false) {
+                                                    label = `${code} ($${Number(rate).toFixed(2)} fixed)`;
+                                                } else {
+                                                    if (count > 1) {
+                                                        label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                                                    } else {
+                                                        label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        return (
+                                            <div key={code} className="flex justify-between text-sm text-slate-600">
+                                                <span>{label}</span>
+                                                <span className="font-medium">${amount.toFixed(2)}</span>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    totals.taxTotal > 0 && (
+                                        <div className="flex justify-between text-sm text-slate-600">
+                                            <span>Tax</span>
+                                            <span className="font-medium">${totals.taxTotal.toFixed(2)}</span>
+                                        </div>
+                                    )
+                                )}
+
                                 <div className="flex justify-between text-lg font-bold text-slate-900 pt-3 border-t border-slate-200 mt-2">
                                     <span>Total</span>
                                     <span>${totals?.total?.toFixed(2) || '0.00'}</span>

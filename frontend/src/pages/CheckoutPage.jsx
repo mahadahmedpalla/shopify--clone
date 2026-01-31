@@ -49,7 +49,7 @@ export function CheckoutPage() {
 }
 
 function CheckoutContent({ store, storeSubUrl }) {
-    const { cart } = useCart();
+    const { cart, clearCart } = useCart();
     const [step, setStep] = useState(1);
     const [placingOrder, setPlacingOrder] = useState(false);
 
@@ -342,7 +342,11 @@ function CheckoutContent({ store, storeSubUrl }) {
             }
 
             alert(`Order #${newOrder.id.slice(0, 8)} placed successfully! Redirecting...`);
-            // Clear cart and redirect to success page
+
+            // Clear cart before redirecting
+            clearCart();
+
+            // Redirect to success page
             window.location.href = `/s/${storeSubUrl}/order/${newOrder.id}`;
         } catch (error) {
             console.error("Order Failed:", error);
