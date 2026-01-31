@@ -127,3 +127,59 @@ export const calculateBestPrice = (product, discounts = []) => {
 
     return result;
 };
+
+/**
+ * Calculates the best "Order Level" discount (Min Order Value).
+ * These apply to the details SUB-TOTAL, not individual items.
+ * 
+ * @param {Number} subtotal 
+ * @param {Array} discounts 
+ * @returns {Object} { discountAmount, discountRule }
+ */
+export const calculateOrderDiscount = (subtotal, discounts = []) => {
+    if (!discounts || discounts.length === 0) return { discountAmount: 0, discountRule: null };
+
+    const now = new Date();
+    let bestDiscountAmount = 0;
+    let bestRule = null;
+
+    // Filter for MOV Rules
+    const validDiscounts = discounts.filter(d => {
+        if (!d.is_active) return false;
+
+        // Date Check
+        const start = new Date(d.starts_at);
+        if (now < start) return false;
+        if (d.ends_at) {
+            const end = new Date(d.ends_at);
+            if (now > end) return false;
+        }
+
+        // MUST have Min Order Value
+        if (!d.min_order_value || d.min_order_value <= 0) return false;
+
+        // Must meet threshold
+        if (subtotal < parseFloat(d.min_order_value)) return false;
+
+        return true;
+    });
+
+    validDiscounts.forEach(d => {
+        let savings = 0;
+        if (d.discount_type === 'percentage') {
+            savings = subtotal * (d.value / 100);
+        } else if (d.discount_type === 'fixed_amount') {
+            savings = d.value;
+        }
+
+        if (savings > bestDiscountAmount) {
+            bestDiscountAmount = savings;
+            bestRule = d;
+        }
+    });
+
+    return {
+        discountAmount: bestDiscountAmount,
+        discountRule: bestRule
+    };
+};

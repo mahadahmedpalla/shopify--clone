@@ -4,6 +4,7 @@ import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
+import { calculateOrderDiscount } from '../utils/discountUtils';
 import { ShoppingBag } from 'lucide-react';
 
 export function CheckoutPage() {
@@ -81,6 +82,9 @@ function CheckoutContent({ store, storeSubUrl }) {
     });
 
     const [checkoutSettings, setCheckoutSettings] = useState({});
+
+    // Store Discounts
+    const [storeDiscounts, setStoreDiscounts] = useState([]);
 
     // Payment State
     const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -160,8 +164,17 @@ function CheckoutContent({ store, storeSubUrl }) {
                     setSelectedRate(null);
                 }
 
+                // Fetch Store Discounts
+                const { data: discounts } = await supabase
+                    .from('discounts')
+                    .select('*')
+                    .eq('store_id', store.id)
+                    .eq('is_active', true);
+
+                if (discounts) setStoreDiscounts(discounts);
+
             } catch (err) {
-                console.error("Error fetching rates:", err);
+                console.error("Error fetching rates/discounts:", err);
             }
         };
 
@@ -173,10 +186,16 @@ function CheckoutContent({ store, storeSubUrl }) {
     // Recalculate totals when dependencies change
     useEffect(() => {
         if (cart.length > 0) {
-            const newTotals = calculateOrderTotals(cart, selectedRate, 0); // 0 discount for now
+            // Calculate Item-Level total
+            const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+
+            // Calculate Order-Level Discount (Min Order Value)
+            const { discountAmount } = calculateOrderDiscount(subtotal, storeDiscounts);
+
+            const newTotals = calculateOrderTotals(cart, selectedRate, discountAmount);
             setTotals(newTotals);
         }
-    }, [cart, selectedRate]);
+    }, [cart, selectedRate, storeDiscounts]);
 
 
     const handleInfoSubmit = () => {
