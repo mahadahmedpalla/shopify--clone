@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
 import { calculateOrderDiscount } from '../utils/discountUtils';
-import { validateCoupon } from '../utils/couponUtils';
+import { validateCoupon, incrementCouponUsage } from '../utils/couponUtils';
 import { ShoppingBag } from 'lucide-react';
 
 export function CheckoutPage() {
@@ -294,6 +294,12 @@ function CheckoutContent({ store, storeSubUrl }) {
 
             const newOrder = await createOrder(orderPayload);
             console.log("Order Created:", newOrder);
+
+            // Increment Coupon Usage
+            if (appliedCoupon) {
+                await incrementCouponUsage(appliedCoupon.coupon.code, store.id);
+            }
+
             alert(`Order #${newOrder.id.slice(0, 8)} placed successfully! Redirecting...`);
             // Clear cart and redirect to success page
             window.location.href = `/s/${storeSubUrl}/order/${newOrder.id}`;

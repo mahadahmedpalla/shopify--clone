@@ -151,3 +151,27 @@ export const validateCoupon = async (code, storeId, cart, subtotal, customerEmai
         return { isValid: false, error: "Unexpected error validating coupon." };
     }
 };
+
+/**
+ * Increments the usage count for a coupon.
+ * Uses a database RPC 'increment_coupon_usage' to bypass RLS and ensure atomicity.
+ * 
+ * @param {String} code 
+ * @param {String} storeId 
+ */
+export const incrementCouponUsage = async (code, storeId) => {
+    try {
+        const { error } = await supabase.rpc('increment_coupon_usage', {
+            p_code: code,
+            p_store_id: storeId
+        });
+
+        if (error) {
+            console.error("Error incrementing coupon usage:", error);
+            // Fallback: If RPC missing, try direct update (will likely fail on RLS if public)
+            // But we can log it.
+        }
+    } catch (err) {
+        console.error("Exception incrementing coupon usage:", err);
+    }
+};
