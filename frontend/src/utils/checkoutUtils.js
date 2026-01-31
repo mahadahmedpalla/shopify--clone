@@ -50,7 +50,10 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
 
     if (country && taxes && taxes.length > 0) {
         // Filter taxes for this country
-        const applicableTaxes = taxes.filter(t => t.is_active && t.country === country);
+        // Filter taxes for this country and deduplicate by ID to prevent double application
+        const applicableTaxes = taxes
+            .filter(t => t.is_active && t.country === country)
+            .filter((tax, index, self) => index === self.findIndex(t => t.id === tax.id));
 
         items.forEach(item => {
             const itemTotal = parseFloat(item.price) * item.quantity;
