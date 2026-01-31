@@ -96,17 +96,23 @@ export function CheckoutForm({
                 const rate = typeof data === 'object' ? data.rate : null;
                 const type = typeof data === 'object' ? data.type : null;
                 const count = typeof data === 'object' ? data.count : 0;
+                const applyPerItem = typeof data === 'object' && data.apply_per_item !== undefined ? data.apply_per_item : true;
 
                 let label = code;
                 if (rate !== null && type) {
                     if (type === 'percentage') {
                         label = `${code} (${rate}%)`;
                     } else {
-                        // Show quantity multiplier for fixed taxes if > 1
-                        if (count > 1) {
-                            label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                        // Fixed Amount Logic
+                        if (applyPerItem === false) {
+                            label = `${code} ($${Number(rate).toFixed(2)} fixed)`;
                         } else {
-                            label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                            // Show quantity multiplier for fixed taxes if > 1
+                            if (count > 1) {
+                                label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                            } else {
+                                label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                            }
                         }
                     }
                 }

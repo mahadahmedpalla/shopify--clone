@@ -49,7 +49,9 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
     const discountRatio = subtotal > 0 ? Math.max(0, (subtotal - discountAmount) / subtotal) : 1;
 
     if (country && taxes && taxes.length > 0) {
-        // Filter taxes for this country
+        // Track which global fixed taxes have been applied
+        const appliedFixedTaxes = new Set();
+
         // Filter taxes for this country and deduplicate by ID to prevent double application
         const applicableTaxes = taxes
             .filter(t => t.is_active && t.country === country)
@@ -81,29 +83,44 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
 
                 if (applies) {
                     let taxAmount = 0;
+                    let applyCount = 0;
+
                     if (tax.type === 'percentage') {
                         // Apply tax on DISCOUNTED item amount
                         taxAmount = taxableItemAmount * (tax.value / 100);
                     } else {
-                        // Fixed amount per item (usually UNAFFECTED by price discount)
-                        taxAmount = (tax.value * item.quantity);
+                        // Fixed amount
+                        if (tax.apply_per_item !== false) { // Default true (Per Item)
+                            taxAmount = (tax.value * item.quantity);
+                            applyCount = item.quantity;
+                        } else {
+                            // Once per order
+                            if (!appliedFixedTaxes.has(tax.code)) {
+                                taxAmount = tax.value;
+                                appliedFixedTaxes.add(tax.code);
+                                applyCount = 1;
+                            }
+                        }
                     }
 
-                    taxTotal += taxAmount;
+                    if (taxAmount > 0 || applyCount > 0) {
+                        taxTotal += taxAmount;
 
-                    // Accumulate breakdown
-                    if (!taxesBreakdown[tax.code]) {
-                        taxesBreakdown[tax.code] = {
-                            amount: 0,
-                            rate: tax.value,
-                            type: tax.type,
-                            count: 0
-                        };
-                    }
-                    taxesBreakdown[tax.code].amount += taxAmount;
-                    if (tax.type !== 'percentage') {
-                        // For fixed taxes, track how many items it applied to
-                        taxesBreakdown[tax.code].count += item.quantity;
+                        // Accumulate breakdown
+                        if (!taxesBreakdown[tax.code]) {
+                            taxesBreakdown[tax.code] = {
+                                amount: 0,
+                                rate: tax.value,
+                                type: tax.type,
+                                count: 0,
+                                apply_per_item: tax.apply_per_item
+                            };
+                        }
+                        taxesBreakdown[tax.code].amount += taxAmount;
+                        if (tax.type !== 'percentage') {
+                            // For fixed taxes, track how many items it applied to (or 1 if global)
+                            taxesBreakdown[tax.code].count += applyCount;
+                        }
                     }
                 }
             });

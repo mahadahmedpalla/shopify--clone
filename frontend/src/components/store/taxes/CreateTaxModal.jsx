@@ -39,7 +39,8 @@ export function CreateTaxModal({ storeId, tax = null, onSuccess, onCancel }) {
         included_category_ids: [],
         excluded_product_ids: [],
         excluded_category_ids: [],
-        is_active: true
+        is_active: true,
+        apply_per_item: true
     });
 
     const [isExclusionExpanded, setIsExclusionExpanded] = useState(false);
@@ -53,7 +54,8 @@ export function CreateTaxModal({ storeId, tax = null, onSuccess, onCancel }) {
                 included_product_ids: tax.included_product_ids || [],
                 included_category_ids: tax.included_category_ids || [],
                 excluded_product_ids: tax.excluded_product_ids || [],
-                excluded_category_ids: tax.excluded_category_ids || []
+                excluded_category_ids: tax.excluded_category_ids || [],
+                apply_per_item: tax.apply_per_item !== undefined ? tax.apply_per_item : true
             });
         }
         fetchStoreData();
@@ -237,6 +239,26 @@ export function CreateTaxModal({ storeId, tax = null, onSuccess, onCancel }) {
                             </div>
                         </div>
 
+
+                        {/* Per Item Toggle (Only for Fixed) */}
+                        {formData.type === 'fixed' && (
+                            <div className="flex items-center space-x-3 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                                <input
+                                    type="checkbox"
+                                    id="apply_per_item"
+                                    checked={formData.apply_per_item}
+                                    onChange={e => setFormData({ ...formData, apply_per_item: e.target.checked })}
+                                    className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer"
+                                />
+                                <label htmlFor="apply_per_item" className="cursor-pointer">
+                                    <span className="block text-sm font-bold text-slate-800">Apply to each item</span>
+                                    <span className="block text-xs text-slate-500">
+                                        If unchecked, tax is applied once per order (if any item matches).
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
                         {/* 3. Applicability */}
                         <div className="space-y-4">
                             <label className="block text-sm font-bold text-slate-700">Applies To</label>
@@ -309,6 +331,6 @@ export function CreateTaxModal({ storeId, tax = null, onSuccess, onCancel }) {
                     </div>
                 </form>
             </Card>
-        </div>
+        </div >
     );
 }
