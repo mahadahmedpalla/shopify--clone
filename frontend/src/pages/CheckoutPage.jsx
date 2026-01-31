@@ -7,6 +7,7 @@ import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOp
 import { calculateOrderDiscount } from '../utils/discountUtils';
 import { validateCoupon, incrementCouponUsage } from '../utils/couponUtils';
 import { ShoppingBag } from 'lucide-react';
+import { getCountryName } from '../lib/countries';
 
 export function CheckoutPage() {
     const { storeSubUrl } = useParams();
@@ -87,6 +88,9 @@ function CheckoutContent({ store, storeSubUrl }) {
     // Store Discounts (Automatic)
     const [storeDiscounts, setStoreDiscounts] = useState([]);
 
+    // Store Taxes
+    const [storeTaxes, setStoreTaxes] = useState([]);
+
     // Coupon State
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -132,6 +136,25 @@ function CheckoutContent({ store, storeSubUrl }) {
         };
 
         fetchDiscounts();
+    }, [store.id]);
+
+    // Fetch Store Taxes
+    useEffect(() => {
+        const fetchTaxes = async () => {
+            try {
+                const { data: taxes } = await supabase
+                    .from('taxes')
+                    .select('*')
+                    .eq('store_id', store.id)
+                    .eq('is_active', true);
+
+                if (taxes) setStoreTaxes(taxes);
+            } catch (err) {
+                console.error("Error fetching taxes:", err);
+            }
+        };
+
+        fetchTaxes();
     }, [store.id]);
 
     // Fetch Shipping Rates when Country Changes or Cart Changes
@@ -243,10 +266,11 @@ function CheckoutContent({ store, storeSubUrl }) {
                 totalDiscountAmount += couponDiscount;
             }
 
-            const newTotals = calculateOrderTotals(cart, selectedRate, totalDiscountAmount);
+            const countryName = getCountryName(customerInfo.country); // Convert Code (US) to Name (United States) for Tax matching
+            const newTotals = calculateOrderTotals(cart, selectedRate, totalDiscountAmount, storeTaxes, countryName);
             setTotals(newTotals);
         }
-    }, [cart, selectedRate, storeDiscounts, appliedCoupon]);
+    }, [cart, selectedRate, storeDiscounts, appliedCoupon, storeTaxes, customerInfo.country]);
 
     // Coupon Handlers
     const handleApplyCoupon = async () => {

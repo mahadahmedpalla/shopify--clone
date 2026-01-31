@@ -29,13 +29,58 @@ export const validateAddress = (address) => {
  * @param {Object} shippingRate - Selected shipping rate object (optional)
  * @param {Number} discountAmount - Applied discount amount (optional)
  */
-export const calculateOrderTotals = (items, shippingRate = null, discountAmount = 0) => {
+/**
+ * Calculates order totals including shipping, tax, and discounts.
+ * @param {Array} items - Cart items
+ * @param {Object} shippingRate - Selected shipping rate object (optional)
+ * @param {Number} discountAmount - Applied discount amount (optional)
+ * @param {Array} taxes - List of available taxes (optional)
+ * @param {String} country - Customer country (optional)
+ */
+export const calculateOrderTotals = (items, shippingRate = null, discountAmount = 0, taxes = [], country = null) => {
     const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const shippingCost = shippingRate ? parseFloat(shippingRate.rate) : 0;
 
-    // Tax Calculation (placeholder - flat 0% or logic can be added later)
-    const taxRate = 0;
-    const taxTotal = subtotal * taxRate;
+    // Tax Calculation
+    let taxTotal = 0;
+
+    if (country && taxes && taxes.length > 0) {
+        // Filter taxes for this country
+        const applicableTaxes = taxes.filter(t => t.is_active && t.country === country);
+
+        items.forEach(item => {
+            const itemTotal = parseFloat(item.price) * item.quantity;
+
+            applicableTaxes.forEach(tax => {
+                let applies = false;
+
+                // Check Inclusion
+                if (tax.applies_to === 'all') {
+                    applies = true;
+                } else if (tax.applies_to === 'specific_products') {
+                    if (tax.included_product_ids?.includes(item.id)) applies = true;
+                } else if (tax.applies_to === 'specific_categories') {
+                    if (tax.included_category_ids?.includes(item.category_id)) applies = true;
+                }
+
+                // Check Exclusion
+                if (applies) {
+                    if (tax.excluded_product_ids?.includes(item.id)) applies = false;
+                    // Note: Category exclusion schema exists but simple logic for now:
+                    if (tax.excluded_category_ids?.includes(item.category_id)) applies = false;
+                }
+
+                if (applies) {
+                    if (tax.type === 'percentage') {
+                        taxTotal += itemTotal * (tax.value / 100);
+                    } else {
+                        // Fixed amount per item
+                        taxTotal += (tax.value * item.quantity);
+                    }
+                }
+            });
+        });
+    }
 
     const total = Math.max(0, subtotal + shippingCost + taxTotal - discountAmount);
 

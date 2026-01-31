@@ -17,7 +17,7 @@ import {
 const COUNTRIES = [
     "United States", "Canada", "United Kingdom", "Australia", "Germany", "France",
     "India", "Japan", "China", "Brazil", "Mexico", "Italy", "Spain", "Netherlands",
-    "Sweden", "Norway", "Denmark", "Finland", "Singapore", "New Zealand"
+    "Sweden", "Norway", "Denmark", "Finland", "Singapore", "New Zealand", "Pakistan"
     // Extend as needed
 ].sort();
 

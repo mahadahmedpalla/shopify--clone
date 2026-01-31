@@ -156,6 +156,12 @@ export function CheckoutForm({
                                                 <span className="text-xs text-slate-400">Calculated at next step</span>
                                             )}
                                         </div>
+                                        {totals.taxTotal > 0 && (
+                                            <div className="flex justify-between text-sm text-slate-600">
+                                                <span>Taxes</span>
+                                                <span className="font-bold text-slate-900">${totals.taxTotal.toFixed(2)}</span>
+                                            </div>
+                                        )}
                                         {totals.discountTotal > 0 && (
                                             <div className="flex justify-between text-sm text-green-600 font-medium">
                                                 <span>Discount</span>
@@ -517,6 +523,12 @@ export function CheckoutForm({
                                 <span className="text-xs text-slate-400">Calculated at next step</span>
                             )}
                         </div>
+                        {totals.taxTotal > 0 && (
+                            <div className="flex justify-between text-sm text-slate-600">
+                                <span>Taxes</span>
+                                <span className="font-bold text-slate-900">${totals.taxTotal.toFixed(2)}</span>
+                            </div>
+                        )}
                         {totals.discountTotal > 0 && (
                             <div className="flex justify-between text-sm text-green-600 font-medium">
                                 <span>Discount</span>

@@ -66,14 +66,15 @@ export function OrderSuccessPage() {
         );
     }
 
-    const { shipping_address, items_snapshot, payment_method, subtotal, shipping_cost, total, discount_total } = order;
+    const { shipping_address, items_snapshot, payment_method, subtotal, shipping_cost, total, discount_total, tax_total } = order;
 
     // Map flat DB columns to the structure expected by the UI
     const totals = {
         subtotal: subtotal,
         shippingCost: shipping_cost,
         total: total,
-        discountTotal: discount_total
+        discountTotal: discount_total,
+        taxTotal: tax_total || 0
     };
 
     // Parse if they are strings (depends on DB storage, usually JSONB comes as object)
@@ -142,6 +143,12 @@ export function OrderSuccessPage() {
                                     <span>Shipping</span>
                                     <span className="font-medium">${totals?.shippingCost?.toFixed(2) || '0.00'}</span>
                                 </div>
+                                {(totals?.taxTotal > 0) && (
+                                    <div className="flex justify-between text-sm text-slate-600">
+                                        <span>Tax</span>
+                                        <span className="font-medium">${totals.taxTotal.toFixed(2)}</span>
+                                    </div>
+                                )}
                                 {(totals?.discountTotal > 0) && (
                                     <div className="flex justify-between text-sm text-green-600">
                                         <span>Discount</span>
