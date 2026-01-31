@@ -142,8 +142,8 @@ function CheckoutContent({ store, storeSubUrl }) {
                 const options = calculateShippingOptions(cart, rates || []);
                 setShippingRates(options);
 
-                // Auto-select logic
-                if (options.length > 0) {
+                // Auto-select logic (Only applies if user is on Shipping step or later)
+                if (options.length > 0 && step >= 2) {
                     // 1. If only 1 option, select it
                     if (options.length === 1) {
                         setSelectedRate(options[0]);
@@ -163,6 +163,13 @@ function CheckoutContent({ store, storeSubUrl }) {
                     else {
                         const cheapest = options.reduce((prev, curr) => prev.rate < curr.rate ? prev : curr);
                         setSelectedRate(cheapest);
+                    }
+                } else if (options.length > 0 && step < 2) {
+                    // Start fresh if going back? Or keep selection if exists?
+                    // Usually we don't want to clear it if they just went back to edit info.
+                    // But we don't want to AUTO select if they haven't been there.
+                    if (!selectedRate) {
+                        // Do nothing, let user select when they get there.
                     }
                 } else {
                     setSelectedRate(null);
