@@ -110,6 +110,9 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
     const specificCategoryRates = availableRates.filter(r => r.applies_to === 'specific_categories');
     const generalRates = availableRates.filter(r => r.applies_to === 'all');
 
+    // 0. Calculate Total Cart Value (used for Min Order Thresholds)
+    const cartTotal = cartItems.reduce((sum, i) => sum + (parseFloat(i.price) * i.quantity), 0);
+
     // 2. Classify Items
     let lockedShippingCost = 0;
     let lockedBreakdown = [];
@@ -149,7 +152,7 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
 
     cartItems.forEach(item => {
         // A. Product Specific
-        const productRate = specificproductRates.find(r => r.included_product_ids?.includes(item.id));
+        const productRate = specificproductRates.find(r => r.included_product_ids?.some(id => String(id) === String(item.id)));
         if (productRate) {
             if (!specificGroups[productRate.id]) specificGroups[productRate.id] = { rate: productRate, items: [] };
             specificGroups[productRate.id].items.push(item);
@@ -157,7 +160,8 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
         }
 
         // B. Category Specific
-        const categoryRate = specificCategoryRates.find(r => r.included_category_ids?.includes(item.category_id));
+        // Robust check: Convert both to string to avoid type mismatches
+        const categoryRate = specificCategoryRates.find(r => r.included_category_ids?.some(id => String(id) === String(item.category_id)));
         if (categoryRate) {
             if (!specificGroups[categoryRate.id]) specificGroups[categoryRate.id] = { rate: categoryRate, items: [] };
             specificGroups[categoryRate.id].items.push(item);
@@ -169,13 +173,28 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
     });
 
     // 3. Calculate Locked Cost
+    // 3. Calculate Locked Cost
     Object.values(specificGroups).forEach(group => {
-        const cost = parseFloat(group.rate.amount || 0);
+        let cost = parseFloat(group.rate.amount || 0);
+        let note = '';
+
+        // APPLY MIN ORDER THRESHOLD LOGIC (Legacy "Free Shipping" behavior)
+        if (group.rate.min_order_value !== null && group.rate.min_order_value !== undefined && group.rate.min_order_value !== '') {
+            const minVal = parseFloat(group.rate.min_order_value);
+            if (!isNaN(minVal) && minVal > 0) {
+                if (cartTotal >= minVal) {
+                    cost = 0;
+                    note = 'Free Shipping Applied';
+                }
+            }
+        }
+
         lockedShippingCost += cost;
         lockedBreakdown.push({
             name: group.rate.name,
             cost: cost,
-            items: group.items.map(i => i.name).join(', ')
+            items: group.items.map(i => i.name).join(', '),
+            note: note
         });
     });
 
