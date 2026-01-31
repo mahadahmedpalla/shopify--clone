@@ -220,10 +220,27 @@ function CheckoutContent({ store, storeSubUrl }) {
             // TODO: Re-validate coupon on cart change.
 
             let totalDiscountAmount = autoDiscount.discountAmount;
+            let couponDiscount = 0;
 
             if (appliedCoupon) {
-                // If we want to stack:
-                totalDiscountAmount += appliedCoupon.discountAmount;
+                const coupon = appliedCoupon.coupon;
+                // If percentage based AND applies to all, apply to the remaining balance (Compound)
+                // This prevents 50% coupon + 30% auto discount = 80% total discount.
+                // Instead: 30% auto triggers first, then 50% of the REMAINING.
+                if (coupon.discount_type === 'percentage' && coupon.applies_to === 'all') {
+                    const remainingSubtotal = Math.max(0, subtotal - autoDiscount.discountAmount);
+                    couponDiscount = remainingSubtotal * (coupon.value / 100);
+                } else {
+                    // Start with the amount calculated by validateCoupon (based on item prices)
+                    couponDiscount = appliedCoupon.discountAmount;
+                }
+
+                // Cap discount at remaining total to avoid negative
+                if (totalDiscountAmount + couponDiscount > subtotal) {
+                    couponDiscount = Math.max(0, subtotal - totalDiscountAmount);
+                }
+
+                totalDiscountAmount += couponDiscount;
             }
 
             const newTotals = calculateOrderTotals(cart, selectedRate, totalDiscountAmount);
