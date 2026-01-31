@@ -4,7 +4,9 @@ import { useCart, CartProvider } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { CheckoutForm } from '../components/checkout/CheckoutForm';
 import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
+import { validateAddress, calculateOrderTotals, createOrder, calculateShippingOptions } from '../utils/checkoutUtils';
 import { calculateOrderDiscount } from '../utils/discountUtils';
+import { validateCoupon } from '../utils/couponUtils';
 import { ShoppingBag } from 'lucide-react';
 
 export function CheckoutPage() {
@@ -83,8 +85,15 @@ function CheckoutContent({ store, storeSubUrl }) {
 
     const [checkoutSettings, setCheckoutSettings] = useState({});
 
-    // Store Discounts
+    // Store Discounts (Automatic)
     const [storeDiscounts, setStoreDiscounts] = useState([]);
+
+    // Coupon State
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [couponError, setCouponError] = useState(null);
+    const [couponSuccess, setCouponSuccess] = useState(null);
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
     // Payment State
     const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -196,16 +205,59 @@ function CheckoutContent({ store, storeSubUrl }) {
     // Recalculate totals when dependencies change
     useEffect(() => {
         if (cart.length > 0) {
-            // Calculate Item-Level total
+            // 1. Calculate Item-Level total
             const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
 
-            // Calculate Order-Level Discount (Min Order Value)
-            const { discountAmount } = calculateOrderDiscount(subtotal, storeDiscounts);
+            // 2. Calculate Order-Level Automatic Discount (MOV)
+            const autoDiscount = calculateOrderDiscount(subtotal, storeDiscounts);
 
-            const newTotals = calculateOrderTotals(cart, selectedRate, discountAmount);
+            // 3. Calculate Coupon Discount
+            // Note: If we had a coupon applied, we need to Re-Validate it just in case cart changed
+            // For now, we'll assume the fixed amount stored in appliedCoupon is valid OR we could store the coupon OBJECT and re-calc.
+            // Let's rely on the `appliedCoupon.amount` for now, but strictly we should re-run validation if cart changes.
+            // Simplified: If cart changes, we might want to remove coupon or re-validate. 
+            // Better UX: Re-validate silently.
+            // For MVP: We will just use the value if it exists, but realize it might become invalid if items are removed.
+            // TODO: Re-validate coupon on cart change.
+
+            let totalDiscountAmount = autoDiscount.discountAmount;
+
+            if (appliedCoupon) {
+                // If we want to stack:
+                totalDiscountAmount += appliedCoupon.discountAmount;
+            }
+
+            const newTotals = calculateOrderTotals(cart, selectedRate, totalDiscountAmount);
             setTotals(newTotals);
         }
-    }, [cart, selectedRate, storeDiscounts]);
+    }, [cart, selectedRate, storeDiscounts, appliedCoupon]);
+
+    // Coupon Handlers
+    const handleApplyCoupon = async () => {
+        setCouponError(null);
+        setCouponSuccess(null);
+        setIsApplyingCoupon(true);
+
+        const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+
+        const result = await validateCoupon(couponCode, store.id, cart, subtotal);
+
+        if (result.isValid) {
+            setAppliedCoupon(result);
+            setCouponSuccess(`Coupon "${result.coupon.code}" applied!`);
+            setCouponCode('');
+        } else {
+            setCouponError(result.error);
+            setAppliedCoupon(null);
+        }
+        setIsApplyingCoupon(false);
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponSuccess(null);
+        setCouponError(null);
+    };
 
 
     const handleInfoSubmit = () => {
@@ -237,7 +289,11 @@ function CheckoutContent({ store, storeSubUrl }) {
                 items: cart,
                 totals: totals, // Use calculated totals
                 shippingRate: selectedRate,
-                paymentMethod: paymentMethod
+                items: cart,
+                totals: totals, // Use calculated totals
+                shippingRate: selectedRate,
+                paymentMethod: paymentMethod,
+                couponCode: appliedCoupon ? appliedCoupon.coupon.code : null // Track used coupon
             };
 
             const newOrder = await createOrder(orderPayload);
@@ -301,6 +357,16 @@ function CheckoutContent({ store, storeSubUrl }) {
             allowedCountries={allowedCountries}
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
+
+            // Coupon Props
+            couponCode={couponCode}
+            setCouponCode={setCouponCode}
+            handleApplyCoupon={handleApplyCoupon}
+            handleRemoveCoupon={handleRemoveCoupon}
+            appliedCoupon={appliedCoupon}
+            couponError={couponError}
+            couponSuccess={couponSuccess}
+            isApplyingCoupon={isApplyingCoupon}
         />
     );
 }

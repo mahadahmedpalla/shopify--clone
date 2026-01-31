@@ -70,7 +70,10 @@ export const createOrder = async (orderData) => {
         customer_phone: orderData.shippingAddress.phone,
 
         shipping_address: orderData.shippingAddress,
-        billing_address: orderData.billingAddress || orderData.shippingAddress, // Default to shipping
+        billing_address: {
+            ...(orderData.billingAddress || orderData.shippingAddress),
+            coupon_code: orderData.couponCode // Hack: Store coupon in billing_address JSONB
+        },
 
         items: orderData.items,
 
