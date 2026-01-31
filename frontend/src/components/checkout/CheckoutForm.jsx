@@ -47,14 +47,43 @@ export function CheckoutForm({
 
     const [showOrderSummary, setShowOrderSummary] = useState(false);
 
-    // Navigation handler for editor
-    const onNavClick = (e, targetStep) => {
-        if (isEditor) {
-            e.preventDefault();
-            // In editor we might want to just switch steps locally without validation
-            setStep(targetStep);
-        }
-    };
+    // Reusable Coupon Section
+    const CouponSection = (
+        <div className="border-t border-slate-200 mt-6 pt-6 mb-6">
+            {!appliedCoupon ? (
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        placeholder="Discount code"
+                        className={`flex-1 px-4 py-3 bg-white border ${couponError ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none`}
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        disabled={isApplyingCoupon || isEditor}
+                    />
+                    <button
+                        onClick={handleApplyCoupon}
+                        disabled={!couponCode || isApplyingCoupon || isEditor}
+                        className="px-6 py-3 font-bold rounded-lg shadow-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition text-white"
+                        style={{ backgroundColor: primaryColor }}
+                    >
+                        {isApplyingCoupon ? '...' : 'Apply'}
+                    </button>
+                </div>
+            ) : (
+                <div className="flex items-center justify-between p-3 bg-slate-100 rounded-lg border border-slate-200">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 text-slate-500" />
+                        <span className="font-bold text-slate-700">{appliedCoupon.coupon.code}</span>
+                    </div>
+                    <button onClick={handleRemoveCoupon} className="text-xs font-bold text-red-500 hover:text-red-700">
+                        Remove
+                    </button>
+                </div>
+            )}
+            {couponError && <p className="text-xs text-red-500 mt-2 font-medium">{couponError}</p>}
+            {couponSuccess && <p className="text-xs text-green-600 mt-2 font-medium">{couponSuccess}</p>}
+        </div>
+    );
 
     return (
         <div className="min-h-screen lg:flex font-sans" style={{ backgroundColor: bgColor, color: textColor }}>
@@ -110,6 +139,9 @@ export function CheckoutForm({
                                             </div>
                                         ))}
                                     </div>
+
+                                    {/* Mobile Coupon Section */}
+                                    {CouponSection}
 
                                     <div className="border-t border-slate-200 pt-4 space-y-3">
                                         <div className="flex justify-between text-sm text-slate-600">
@@ -463,40 +495,8 @@ export function CheckoutForm({
                         ))}
                     </div>
 
-                    {/* Coupon Input */}
-                    <div className="border-t border-slate-200 mt-6 pt-6 mb-6">
-                        {!appliedCoupon ? (
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Discount code"
-                                    className={`flex-1 px-4 py-3 bg-white border ${couponError ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none`}
-                                    value={couponCode}
-                                    onChange={(e) => setCouponCode(e.target.value)}
-                                    disabled={isApplyingCoupon || isEditor}
-                                />
-                                <button
-                                    onClick={handleApplyCoupon}
-                                    disabled={!couponCode || isApplyingCoupon || isEditor}
-                                    className="px-6 py-3 bg-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    {isApplyingCoupon ? '...' : 'Apply'}
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-between p-3 bg-slate-100 rounded-lg border border-slate-200">
-                                <div className="flex items-center gap-2">
-                                    <ShoppingBag className="w-4 h-4 text-slate-500" />
-                                    <span className="font-bold text-slate-700">{appliedCoupon.coupon.code}</span>
-                                </div>
-                                <button onClick={handleRemoveCoupon} className="text-xs font-bold text-red-500 hover:text-red-700">
-                                    Remove
-                                </button>
-                            </div>
-                        )}
-                        {couponError && <p className="text-xs text-red-500 mt-2 font-medium">{couponError}</p>}
-                        {couponSuccess && <p className="text-xs text-green-600 mt-2 font-medium">{couponSuccess}</p>}
-                    </div>
+                    {/* Coupon Input (Desktop) */}
+                    {CouponSection}
 
                     <div className="border-t border-slate-200 my-8 pt-6 space-y-4">
                         <div className="flex justify-between text-sm text-slate-600">
