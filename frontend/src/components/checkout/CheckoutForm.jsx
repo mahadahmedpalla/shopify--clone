@@ -453,6 +453,12 @@ export function CheckoutForm({
                                     </div>
                                 </div>
 
+                                {/* Coupon Section (Payment Phase) */}
+                                <div className="pt-6">
+                                    <h3 className="text-sm font-medium mb-2 text-slate-700">Discount Code</h3>
+                                    {CouponSection}
+                                </div>
+
                                 <div className="pt-6 flex items-center justify-between">
                                     <button onClick={() => setStep(2)} className="text-sm hover:underline flex items-center font-medium" style={{ color: primaryColor }}>
                                         <ChevronRight className="h-4 w-4 rotate-180 mr-1" /> Return to Shipping
