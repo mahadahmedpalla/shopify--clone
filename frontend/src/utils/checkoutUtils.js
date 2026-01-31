@@ -248,7 +248,7 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
 
         if (validGeneralRates.length === 0) {
             // Fallback logic
-            if (lockedShippingCost > 0) {
+            if (lockedBreakdown.length > 0) {
                 options.push({
                     id: 'combined_specific_partial',
                     name: 'Shipping (Partial)',
