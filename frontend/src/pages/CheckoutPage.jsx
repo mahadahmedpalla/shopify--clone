@@ -107,6 +107,25 @@ function CheckoutContent({ store, storeSubUrl }) {
 
     // ... (existing fetchRates effect) ...
 
+    // Fetch Store Discounts (Independent of Country)
+    useEffect(() => {
+        const fetchDiscounts = async () => {
+            try {
+                const { data: discounts } = await supabase
+                    .from('discounts')
+                    .select('*')
+                    .eq('store_id', store.id)
+                    .eq('is_active', true);
+
+                if (discounts) setStoreDiscounts(discounts);
+            } catch (err) {
+                console.error("Error fetching discounts:", err);
+            }
+        };
+
+        fetchDiscounts();
+    }, [store.id]);
+
     // Fetch Shipping Rates when Country Changes or Cart Changes
     useEffect(() => {
         const fetchRates = async () => {
@@ -164,17 +183,8 @@ function CheckoutContent({ store, storeSubUrl }) {
                     setSelectedRate(null);
                 }
 
-                // Fetch Store Discounts
-                const { data: discounts } = await supabase
-                    .from('discounts')
-                    .select('*')
-                    .eq('store_id', store.id)
-                    .eq('is_active', true);
-
-                if (discounts) setStoreDiscounts(discounts);
-
             } catch (err) {
-                console.error("Error fetching rates/discounts:", err);
+                console.error("Error fetching rates:", err);
             }
         };
 
