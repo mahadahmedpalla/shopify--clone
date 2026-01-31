@@ -187,6 +187,14 @@ export function CheckoutForm({
                                             <span>Subtotal</span>
                                             <span className="font-bold text-slate-900">${totals.subtotal.toFixed(2)}</span>
                                         </div>
+
+                                        {totals.discountTotal > 0 && (
+                                            <div className="flex justify-between text-sm text-green-600 font-medium">
+                                                <span>Discount</span>
+                                                <span>-${totals.discountTotal.toFixed(2)}</span>
+                                            </div>
+                                        )}
+
                                         <div className="flex justify-between text-sm text-slate-600">
                                             <span>Shipping {selectedRate ? `(${selectedRate.name})` : ''}</span>
                                             {selectedRate ? (
@@ -551,6 +559,14 @@ export function CheckoutForm({
                             <span>Subtotal</span>
                             <span className="font-bold text-slate-900">${totals.subtotal.toFixed(2)}</span>
                         </div>
+
+                        {totals.discountTotal > 0 && (
+                            <div className="flex justify-between text-sm text-green-600 font-medium">
+                                <span>Discount</span>
+                                <span>-${totals.discountTotal.toFixed(2)}</span>
+                            </div>
+                        )}
+
                         <div className="flex justify-between text-sm text-slate-600">
                             <span>Shipping {selectedRate ? `(${selectedRate.name})` : ''}</span>
                             {selectedRate ? (
@@ -561,13 +577,6 @@ export function CheckoutForm({
                         </div>
 
                         {TaxDisplay}
-
-                        {totals.discountTotal > 0 && (
-                            <div className="flex justify-between text-sm text-green-600 font-medium">
-                                <span>Discount</span>
-                                <span>-${totals.discountTotal.toFixed(2)}</span>
-                            </div>
-                        )}
                         <div className="flex justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200 mt-4">
                             <span>Total</span>
                             <span className="text-2xl" style={{ color: primaryColor }}>${totals.total.toFixed(2)}</span>
