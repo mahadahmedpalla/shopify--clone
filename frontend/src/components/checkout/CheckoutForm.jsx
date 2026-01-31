@@ -95,13 +95,19 @@ export function CheckoutForm({
                 const amount = typeof data === 'number' ? data : data.amount;
                 const rate = typeof data === 'object' ? data.rate : null;
                 const type = typeof data === 'object' ? data.type : null;
+                const count = typeof data === 'object' ? data.count : 0;
 
                 let label = code;
                 if (rate !== null && type) {
                     if (type === 'percentage') {
                         label = `${code} (${rate}%)`;
                     } else {
-                        label = `${code} ($${Number(rate).toFixed(2)} ea)`; // Fixed
+                        // Show quantity multiplier for fixed taxes if > 1
+                        if (count > 1) {
+                            label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                        } else {
+                            label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                        }
                     }
                 }
 

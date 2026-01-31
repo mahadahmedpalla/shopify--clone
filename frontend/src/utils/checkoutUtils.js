@@ -96,10 +96,15 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
                         taxesBreakdown[tax.code] = {
                             amount: 0,
                             rate: tax.value,
-                            type: tax.type
+                            type: tax.type,
+                            count: 0
                         };
                     }
                     taxesBreakdown[tax.code].amount += taxAmount;
+                    if (tax.type !== 'percentage') {
+                        // For fixed taxes, track how many items it applied to
+                        taxesBreakdown[tax.code].count += item.quantity;
+                    }
                 }
             });
         });
