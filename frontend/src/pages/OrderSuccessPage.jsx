@@ -66,7 +66,15 @@ export function OrderSuccessPage() {
         );
     }
 
-    const { shipping_address, items_snapshot, totals, payment_method } = order;
+    const { shipping_address, items_snapshot, payment_method, subtotal, shipping_cost, total, discount_total } = order;
+
+    // Map flat DB columns to the structure expected by the UI
+    const totals = {
+        subtotal: subtotal,
+        shippingCost: shipping_cost,
+        total: total,
+        discountTotal: discount_total
+    };
 
     // Parse if they are strings (depends on DB storage, usually JSONB comes as object)
     // Supabase JS client auto-parses JSONB columns.
