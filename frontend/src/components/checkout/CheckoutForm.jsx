@@ -92,8 +92,8 @@ export function CheckoutForm({
         if (totals.taxBreakdown && Object.keys(totals.taxBreakdown).length > 0) {
             return Object.entries(totals.taxBreakdown).map(([code, amount]) => (
                 <div key={code} className="flex justify-between text-sm text-slate-600">
-                    <span>Tax ({code})</span>
-                    <span className="font-bold text-slate-900">${amount.toFixed(2)}</span>
+                    <span>{code}</span>
+                    <span className="font-medium text-slate-900">${amount.toFixed(2)}</span>
                 </div>
             ));
         }
@@ -101,7 +101,7 @@ export function CheckoutForm({
             return (
                 <div className="flex justify-between text-sm text-slate-600">
                     <span>Taxes</span>
-                    <span className="font-bold text-slate-900">${totals.taxTotal.toFixed(2)}</span>
+                    <span className="font-medium text-slate-900">${totals.taxTotal.toFixed(2)}</span>
                 </div>
             );
         }
