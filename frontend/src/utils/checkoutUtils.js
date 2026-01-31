@@ -84,9 +84,13 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
 
                     // Accumulate breakdown
                     if (!taxesBreakdown[tax.code]) {
-                        taxesBreakdown[tax.code] = 0;
+                        taxesBreakdown[tax.code] = {
+                            amount: 0,
+                            rate: tax.value,
+                            type: tax.type
+                        };
                     }
-                    taxesBreakdown[tax.code] += taxAmount;
+                    taxesBreakdown[tax.code].amount += taxAmount;
                 }
             });
         });
@@ -98,7 +102,7 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
         subtotal: parseFloat(subtotal.toFixed(2)),
         shippingCost: parseFloat(shippingCost.toFixed(2)),
         taxTotal: parseFloat(taxTotal.toFixed(2)),
-        taxBreakdown: taxesBreakdown, // Return the breakdown
+        taxBreakdown: taxesBreakdown, // Return the breakdown object
         discountTotal: parseFloat(discountAmount.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
         currency: 'USD'

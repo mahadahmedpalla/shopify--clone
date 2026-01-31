@@ -90,12 +90,28 @@ export function CheckoutForm({
     // Tax Display Helper
     const TaxDisplay = useMemo(() => {
         if (totals.taxBreakdown && Object.keys(totals.taxBreakdown).length > 0) {
-            return Object.entries(totals.taxBreakdown).map(([code, amount]) => (
-                <div key={code} className="flex justify-between text-sm text-slate-600">
-                    <span>{code}</span>
-                    <span className="font-medium text-slate-900">${amount.toFixed(2)}</span>
-                </div>
-            ));
+            return Object.entries(totals.taxBreakdown).map(([code, data]) => {
+                // Handle new object structure or legacy number
+                const amount = typeof data === 'number' ? data : data.amount;
+                const rate = typeof data === 'object' ? data.rate : null;
+                const type = typeof data === 'object' ? data.type : null;
+
+                let label = code;
+                if (rate !== null && type) {
+                    if (type === 'percentage') {
+                        label = `${code} (${rate}%)`;
+                    } else {
+                        label = `${code} ($${Number(rate).toFixed(2)} ea)`; // Fixed
+                    }
+                }
+
+                return (
+                    <div key={code} className="flex justify-between text-sm text-slate-600">
+                        <span>{label}</span>
+                        <span className="font-medium text-slate-900">${amount.toFixed(2)}</span>
+                    </div>
+                );
+            });
         }
         if (totals.taxTotal > 0) {
             return (
