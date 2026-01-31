@@ -82,41 +82,26 @@ function CheckoutContent({ store, storeSubUrl }) {
 
     const [checkoutSettings, setCheckoutSettings] = useState({});
 
+    // Payment State
+    const [paymentMethod, setPaymentMethod] = useState('cod');
+
     // Allowed Countries
     const allowedCountries = store.allowed_countries || null; // null means all
 
-    // Set Default Country
-    useEffect(() => {
-        if (store) {
-            const defaultCountry = (allowedCountries && allowedCountries.length > 0) ? allowedCountries[0] : 'US';
-            setCustomerInfo(prev => ({ ...prev, country: defaultCountry }));
-        }
-    }, [store, allowedCountries]);
+    // ... (existing effects)
 
+    // Enforce COD Restriction
     useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                // Fetch Checkout Page Settings
-                const { data: pageData } = await supabase
-                    .from('store_pages')
-                    .select('content')
-                    .eq('store_id', store.id)
-                    .eq('slug', 'checkout')
-                    .single();
-
-                if (pageData?.content) {
-                    const widgets = Array.isArray(pageData.content) ? pageData.content : [];
-                    const checkoutWidget = widgets.find(w => w.type === 'checkout_form');
-                    if (checkoutWidget && checkoutWidget.settings) {
-                        setCheckoutSettings(checkoutWidget.settings);
-                    }
-                }
-            } catch (err) {
-                console.error("Error loading settings:", err);
+        if (selectedRate && selectedRate.accepts_cod === false) {
+            if (paymentMethod === 'cod') {
+                setPaymentMethod('credit_card');
             }
-        };
-        fetchSettings();
-    }, [store.id]);
+        }
+    }, [selectedRate, paymentMethod]);
+
+    // ... (existing fetchRates effect) ...
+
+    // ... (existing fetchRates effect) ...
 
     // Fetch Shipping Rates when Country Changes or Cart Changes
     useEffect(() => {

@@ -250,11 +250,40 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
                     name: rateName,
                     rate: totalCost,
                     breakdown: breakdown,
-                    original_rate_obj: genRate
+                    original_rate_obj: genRate,
+                    // Propagate strict COD restriction if ANY locked rate or the general rate forbids it
+                    accepts_cod: genRate.accepts_cod !== false // Default true, only false if explicitly false
                 };
             });
         }
     }
+
+    // Final Pass: If we have specific groups (lockedShippingCost > 0 or lockedBreakdown), check their COD status too.
+    // However, the structure above returns distinct OPTIONS.
+    // Each option (which represents a "Shipping Method" the user selects) needs to know if it allows COD.
+    // For "Combined Specific" (fallback option), we need to check ALL locked rates.
+
+    options = options.map(opt => {
+        // Gather all involved rates
+        // 1. General Rate (if exists) -> opt.original_rate_obj
+        // 2. Specific Rates -> found in `specificGroups` (which is closure scope here)
+
+        let allRatesAllowCod = true;
+
+        // Check General Rate
+        if (opt.original_rate_obj && opt.original_rate_obj.accepts_cod === false) {
+            allRatesAllowCod = false;
+        }
+
+        // Check Specific Locked Rates (These apply to ALL options effectively because they are locked)
+        Object.values(specificGroups).forEach(g => {
+            if (g.rate.accepts_cod === false) {
+                allRatesAllowCod = false;
+            }
+        });
+
+        return { ...opt, accepts_cod: allRatesAllowCod };
+    });
 
     return options;
 };

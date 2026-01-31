@@ -35,7 +35,10 @@ export function ShippingForm({ storeId, rate = null, onSuccess, onCancel }) {
         included_product_ids: [],
         included_category_ids: [],
         excluded_product_ids: [],
-        is_active: true
+        included_category_ids: [],
+        excluded_product_ids: [],
+        is_active: true,
+        accepts_cod: true
     });
 
     const [manualExcludeId, setManualExcludeId] = useState('');
@@ -126,7 +129,9 @@ export function ShippingForm({ storeId, rate = null, onSuccess, onCancel }) {
                 min_order_value: hasMinOrder ? parseFloat(formData.min_order_value || 0) : null,
                 included_product_ids: formData.applies_to === 'specific_products' ? formData.included_product_ids : [],
                 included_category_ids: formData.applies_to === 'specific_categories' ? formData.included_category_ids : [],
-                excluded_product_ids: (formData.applies_to === 'all' || formData.applies_to === 'specific_categories') ? formData.excluded_product_ids : []
+                included_category_ids: formData.applies_to === 'specific_categories' ? formData.included_category_ids : [],
+                excluded_product_ids: (formData.applies_to === 'all' || formData.applies_to === 'specific_categories') ? formData.excluded_product_ids : [],
+                accepts_cod: formData.accepts_cod
             };
 
             if (!payload.name) throw new Error('Shipping Name is required');
@@ -505,6 +510,19 @@ export function ShippingForm({ storeId, rate = null, onSuccess, onCancel }) {
                     </div>
 
                     {/* Footer */}
+                    <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-4">
+                        <label className="flex items-center space-x-2 text-sm font-bold text-slate-700 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={formData.accepts_cod}
+                                onChange={(e) => setFormData({ ...formData, accepts_cod: e.target.checked })}
+                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                            />
+                            <span>Accept Cash on Delivery (COD)</span>
+                        </label>
+                        <p className="text-xs text-slate-400 pl-6 -mt-2">Uncheck this if you want to disable COD for this shipping rate.</p>
+                    </div>
+
                     <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end space-x-4 rounded-b-2xl">
                         <Button variant="ghost" type="button" onClick={onCancel}>
                             Cancel

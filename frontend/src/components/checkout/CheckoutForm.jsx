@@ -22,7 +22,10 @@ export function CheckoutForm({
     storeSubUrl,
     settings = {},
     isEditor = false,
-    allowedCountries = null
+    isEditor = false,
+    allowedCountries = null,
+    paymentMethod,
+    setPaymentMethod
 }) {
     // Style Helpers
     const primaryColor = settings?.primaryColor || '#4f46e5'; // indigo-600
@@ -280,27 +283,66 @@ export function CheckoutForm({
                                 <h2 className="text-lg font-bold">Payment</h2>
                                 <p className="text-sm text-slate-500">All transactions are secure and encrypted.</p>
 
-                                <div className="border border-slate-200 rounded-lg overflow-hidden">
-                                    <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="h-4 w-4 rounded-full border-[5px] border-indigo-600 bg-white mr-3"></div>
-                                            <span className="text-sm font-bold text-slate-900">Credit Card (Mock)</span>
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            {/* Icons */}
-                                            <div className="h-6 w-10 bg-white border border-slate-200 rounded flex items-center justify-center text-[10px] font-bold text-slate-400">VISA</div>
-                                        </div>
+                                <div className="space-y-4">
+                                    {/* Credit Card Option */}
+                                    <div className={`border rounded-lg overflow-hidden transition-all ${paymentMethod === 'credit_card' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200'}`}>
+                                        <label className="flex items-center p-4 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="credit_card"
+                                                checked={paymentMethod === 'credit_card'}
+                                                onChange={() => setPaymentMethod('credit_card')}
+                                                className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                            />
+                                            <span className="ml-3 font-bold text-slate-900">Credit Card</span>
+                                            <div className="ml-auto flex gap-2">
+                                                <div className="h-6 w-10 bg-white border border-slate-200 rounded flex items-center justify-center text-[10px] font-bold text-slate-400">VISA</div>
+                                                <div className="h-6 w-10 bg-white border border-slate-200 rounded flex items-center justify-center text-[10px] font-bold text-slate-400">MC</div>
+                                            </div>
+                                        </label>
+
+                                        {paymentMethod === 'credit_card' && (
+                                            <div className="p-6 border-t border-slate-200 bg-slate-50 space-y-4 animate-in fade-in slide-in-from-top-2">
+                                                <div className="relative">
+                                                    <CreditCard className="absolute top-3.5 left-4 h-5 w-5 text-slate-400" />
+                                                    <input type="text" placeholder="Card number" defaultValue="4242 4242 4242 4242 (Test)" className="w-full pl-12 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <input type="text" placeholder="Expiration date (MM / YY)" defaultValue="12 / 28" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
+                                                    <input type="text" placeholder="Security code" defaultValue="123" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
+                                                </div>
+                                                <input type="text" placeholder="Name on card" defaultValue={customerInfo.firstName + ' ' + customerInfo.lastName} className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="p-6 bg-slate-50 space-y-4">
-                                        <div className="relative">
-                                            <CreditCard className="absolute top-3.5 left-4 h-5 w-5 text-slate-400" />
-                                            <input type="text" placeholder="Card number" defaultValue="4242 4242 4242 4242 (Test)" className="w-full pl-12 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <input type="text" placeholder="Expiration date (MM / YY)" defaultValue="12 / 28" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
-                                            <input type="text" placeholder="Security code" defaultValue="123" className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
-                                        </div>
-                                        <input type="text" placeholder="Name on card" defaultValue={customerInfo.firstName + ' ' + customerInfo.lastName} className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" readOnly />
+
+                                    {/* COD Option */}
+                                    <div className={`border rounded-lg overflow-hidden transition-all ${selectedRate?.accepts_cod === false
+                                            ? 'opacity-60 bg-slate-50 border-slate-200 cursor-not-allowed'
+                                            : paymentMethod === 'cod' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200 hover:border-slate-300'
+                                        }`}>
+                                        <label className={`flex items-start p-4 ${selectedRate?.accepts_cod === false ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value="cod"
+                                                checked={paymentMethod === 'cod'}
+                                                onChange={() => setPaymentMethod('cod')}
+                                                disabled={selectedRate?.accepts_cod === false}
+                                                className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 mt-1"
+                                            />
+                                            <div className="ml-3">
+                                                <span className="font-bold text-slate-900 block">Cash on Delivery (COD)</span>
+                                                <span className="text-sm text-slate-500 block">Pay with cash upon delivery.</span>
+                                                {selectedRate?.accepts_cod === false && (
+                                                    <p className="text-xs text-red-600 font-bold mt-1 inline-flex items-center">
+                                                        <Info className="w-3 h-3 mr-1" />
+                                                        Not available for selected shipping method.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
 
