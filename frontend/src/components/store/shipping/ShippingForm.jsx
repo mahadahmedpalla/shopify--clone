@@ -35,8 +35,6 @@ export function ShippingForm({ storeId, rate = null, onSuccess, onCancel }) {
         included_product_ids: [],
         included_category_ids: [],
         excluded_product_ids: [],
-        included_category_ids: [],
-        excluded_product_ids: [],
         is_active: true,
         accepts_cod: true
     });
@@ -128,7 +126,6 @@ export function ShippingForm({ storeId, rate = null, onSuccess, onCancel }) {
                 amount: parseFloat(formData.amount),
                 min_order_value: hasMinOrder ? parseFloat(formData.min_order_value || 0) : null,
                 included_product_ids: formData.applies_to === 'specific_products' ? formData.included_product_ids : [],
-                included_category_ids: formData.applies_to === 'specific_categories' ? formData.included_category_ids : [],
                 included_category_ids: formData.applies_to === 'specific_categories' ? formData.included_category_ids : [],
                 excluded_product_ids: (formData.applies_to === 'all' || formData.applies_to === 'specific_categories') ? formData.excluded_product_ids : [],
                 accepts_cod: formData.accepts_cod

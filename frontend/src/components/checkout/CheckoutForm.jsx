@@ -22,7 +22,6 @@ export function CheckoutForm({
     storeSubUrl,
     settings = {},
     isEditor = false,
-    isEditor = false,
     allowedCountries = null,
     paymentMethod,
     setPaymentMethod
@@ -319,8 +318,8 @@ export function CheckoutForm({
 
                                     {/* COD Option */}
                                     <div className={`border rounded-lg overflow-hidden transition-all ${selectedRate?.accepts_cod === false
-                                            ? 'opacity-60 bg-slate-50 border-slate-200 cursor-not-allowed'
-                                            : paymentMethod === 'cod' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200 hover:border-slate-300'
+                                        ? 'opacity-60 bg-slate-50 border-slate-200 cursor-not-allowed'
+                                        : paymentMethod === 'cod' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200 hover:border-slate-300'
                                         }`}>
                                         <label className={`flex items-start p-4 ${selectedRate?.accepts_cod === false ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                                             <input
