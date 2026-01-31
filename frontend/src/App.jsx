@@ -18,6 +18,7 @@ import { DiscountsPage } from './components/store/discounts/DiscountsPage';
 import { CouponsPage } from './components/store/coupons/CouponsPage';
 import { ShippingPage } from './components/store/shipping/ShippingPage';
 import { OrdersPage } from './components/store/orders/OrdersPage';
+import { OrderSuccessPage } from './pages/OrderSuccessPage';
 // ... existing imports ...
 
 
@@ -66,6 +67,7 @@ function App() {
         <Route path="/s/:storeSubUrl/:pageSlug" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/p/:productId" element={<PublicProductPage />} />
         <Route path="/s/:storeSubUrl/checkout" element={<CheckoutPage />} />
+        <Route path="/s/:storeSubUrl/order/:orderId" element={<OrderSuccessPage />} />
 
         <Route path="/login" element={
           <AuthLayout>
