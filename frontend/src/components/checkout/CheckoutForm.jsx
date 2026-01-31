@@ -126,7 +126,7 @@ export function CheckoutForm({
                                             {countries
                                                 .filter(c => !allowedCountries || allowedCountries.length === 0 || allowedCountries.includes(c.code) || allowedCountries.includes(c.name))
                                                 .map(c => (
-                                                    <option key={c.code} value={c.name}>{c.name}</option>
+                                                    <option key={c.code} value={c.code}>{c.name}</option>
                                                 ))
                                             }
                                         </select>
