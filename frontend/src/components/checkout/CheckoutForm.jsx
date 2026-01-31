@@ -209,7 +209,9 @@ export function CheckoutForm({
                                                         {rate.estimated_days && <span className="block text-xs text-slate-500">{rate.estimated_days} business days</span>}
                                                     </div>
                                                 </div>
-                                                <span className="font-bold text-sm text-slate-900">${rate.rate.toFixed(2)}</span>
+                                                <span className="font-bold text-sm text-slate-900">
+                                                    {rate.rate === 0 ? 'Free' : `$${rate.rate.toFixed(2)}`}
+                                                </span>
                                             </label>
 
                                             {/* Additive Breakdown */}

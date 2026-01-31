@@ -54,6 +54,14 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
  * @param {Object} orderData 
  */
 export const createOrder = async (orderData) => {
+    // Sanitize Shipping Rate ID
+    let finalShippingRateId = orderData.shippingRate?.id;
+    // Check if it's a valid UUID (simple check or length)
+    // If it's a custom ID like 'combined_specific' or 'free', set to null
+    if (finalShippingRateId && (finalShippingRateId.length < 30 || !finalShippingRateId.includes('-'))) {
+        finalShippingRateId = null;
+    }
+
     // 1. Prepare payload matching schema
     const payload = {
         store_id: orderData.storeId,
@@ -69,7 +77,7 @@ export const createOrder = async (orderData) => {
         currency: orderData.totals.currency,
         subtotal: orderData.totals.subtotal,
         shipping_cost: orderData.totals.shippingCost,
-        shipping_rate_id: orderData.shippingRate?.id || null, // Primary ID or JSON of IDs? For now primary.
+        shipping_rate_id: finalShippingRateId,
         discount_total: orderData.totals.discountTotal,
         tax_total: orderData.totals.taxTotal,
         total: orderData.totals.total,
@@ -196,7 +204,14 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
         const cartTotal = cartItems.reduce((sum, i) => sum + (parseFloat(i.price) * i.quantity), 0);
 
         const validGeneralRates = generalRates.filter(r => {
-            if (r.min_order_value && cartTotal < parseFloat(r.min_order_value)) return false;
+            // Safe Check: If min_order_value is defined and greater than 0
+            // AND cartTotal is less than it, exclude.
+            if (r.min_order_value !== null && r.min_order_value !== undefined && r.min_order_value !== '') {
+                const minVal = parseFloat(r.min_order_value);
+                if (!isNaN(minVal) && minVal > 0 && cartTotal < minVal) {
+                    return false;
+                }
+            }
             return true;
         });
 

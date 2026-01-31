@@ -142,14 +142,30 @@ function CheckoutContent({ store, storeSubUrl }) {
                 const options = calculateShippingOptions(cart, rates || []);
                 setShippingRates(options);
 
-                // Auto-select if only 1 option or if previously selected is invalid
-                if (options.length === 1) {
-                    setSelectedRate(options[0]);
-                } else if (selectedRate) {
-                    // Check if selected still exists
-                    const stillValid = options.find(r => r.id === selectedRate.id);
-                    if (!stillValid) setSelectedRate(null);
-                    else setSelectedRate(stillValid); // Update with new calculation
+                // Auto-select logic
+                if (options.length > 0) {
+                    // 1. If only 1 option, select it
+                    if (options.length === 1) {
+                        setSelectedRate(options[0]);
+                    }
+                    // 2. If previously selected option is still valid, keep it
+                    else if (selectedRate) {
+                        const stillValid = options.find(r => r.id === selectedRate.id);
+                        if (stillValid) {
+                            setSelectedRate(stillValid);
+                        } else {
+                            // Previous selection invalid, select cheapest
+                            const cheapest = options.reduce((prev, curr) => prev.rate < curr.rate ? prev : curr);
+                            setSelectedRate(cheapest);
+                        }
+                    }
+                    // 3. If no selection, select cheapest (Better UX)
+                    else {
+                        const cheapest = options.reduce((prev, curr) => prev.rate < curr.rate ? prev : curr);
+                        setSelectedRate(cheapest);
+                    }
+                } else {
+                    setSelectedRate(null);
                 }
 
             } catch (err) {
