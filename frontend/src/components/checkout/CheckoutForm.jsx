@@ -55,7 +55,7 @@ export function CheckoutForm({
                     <input
                         type="text"
                         placeholder="Discount code"
-                        className={`flex-1 px-4 py-3 bg-white border ${couponError ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none`}
+                        className={`flex-1 px-4 py-3 bg-white border ${couponError ? 'border-red-500' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none uppercase placeholder:normal-case`}
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         disabled={isApplyingCoupon || isEditor}
