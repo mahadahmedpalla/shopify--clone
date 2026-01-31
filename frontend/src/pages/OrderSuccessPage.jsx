@@ -72,7 +72,7 @@ export function OrderSuccessPage() {
     // Supabase JS client auto-parses JSONB columns.
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans text-slate-900 py-8 px-4">
+        <div className="min-h-screen bg-gray-50 font-sans text-slate-900 py-12 pb-24 px-4">
             <div className="max-w-3xl mx-auto space-y-6">
 
                 {/* Header Card */}
@@ -85,7 +85,7 @@ export function OrderSuccessPage() {
                         Hi {shipping_address?.firstName || 'there'}, your order has been confirmed.
                     </p>
                     <div className="mt-4 inline-block px-4 py-1 bg-slate-100 rounded-full text-sm font-mono text-slate-600">
-                        Order #{order.id.slice(0, 8).toUpperCase()}
+                        Order #{order.id.slice(0, 8)}
                     </div>
                 </div>
 

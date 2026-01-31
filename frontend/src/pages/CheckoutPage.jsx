@@ -208,7 +208,7 @@ function CheckoutContent({ store, storeSubUrl }) {
                 items: cart,
                 totals: totals, // Use calculated totals
                 shippingRate: selectedRate,
-                paymentMethod: 'credit_card' // Mock
+                paymentMethod: paymentMethod
             };
 
             const newOrder = await createOrder(orderPayload);
