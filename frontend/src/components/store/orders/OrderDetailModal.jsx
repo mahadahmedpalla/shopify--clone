@@ -25,12 +25,23 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
 
     const [isStatusOpen, setIsStatusOpen] = React.useState(false);
     const [updating, setUpdating] = React.useState(false);
+    const [currentStatus, setCurrentStatus] = React.useState(order?.status || 'pending');
+
+    React.useEffect(() => {
+        if (order) setCurrentStatus(order.status);
+    }, [order]);
 
     const ALLOWED_STATUSES = ['completed', 'shipped', 'dispatched', 'in-progress', 'cancelled', 'refunded'];
 
     const updateStatus = async (newStatus) => {
         if (!order) return;
+
+        // Optimistic Update
+        const oldStatus = currentStatus;
+        setCurrentStatus(newStatus);
+        setIsStatusOpen(false);
         setUpdating(true);
+
         try {
             const { error } = await supabase
                 .from('orders')
@@ -39,11 +50,12 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
 
             if (error) throw error;
 
-            // Optimistic update locally or just callback
+            // Notify parent to refresh list, but UI is already updated
             if (onOrderUpdated) onOrderUpdated();
-            setIsStatusOpen(false);
         } catch (err) {
             console.error("Error updating status:", err);
+            // Revert on error
+            setCurrentStatus(oldStatus);
             alert("Failed to update status");
         } finally {
             setUpdating(false);
@@ -109,9 +121,9 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                                 <button
                                     onClick={() => setIsStatusOpen(!isStatusOpen)}
                                     disabled={updating}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border transition-all ${getStatusColor(order.status)} hover:opacity-80 active:scale-95`}
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border transition-all ${getStatusColor(currentStatus)} hover:opacity-80 active:scale-95`}
                                 >
-                                    {order.status}
+                                    {currentStatus}
                                     <ChevronDown className="w-3 h-3 opacity-60" />
                                 </button>
 
@@ -126,10 +138,10 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                                                     <button
                                                         key={status}
                                                         onClick={() => updateStatus(status)}
-                                                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${status === order.status ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700'}`}
+                                                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${status === currentStatus ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700'}`}
                                                     >
                                                         <span className="capitalize">{status}</span>
-                                                        {status === order.status && <CheckCircle className="w-4 h-4 ml-2" />}
+                                                        {status === currentStatus && <CheckCircle className="w-4 h-4 ml-2" />}
                                                     </button>
                                                 ))}
                                             </div>
@@ -139,8 +151,8 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                             </div>
 
                             {/* Print-only static status */}
-                            <span className={`hidden print:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium uppercase border ${getStatusColor(order.status)}`}>
-                                {order.status}
+                            <span className={`hidden print:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium uppercase border ${getStatusColor(currentStatus)}`}>
+                                {currentStatus}
                             </span>
                         </div>
                     </div>
@@ -329,6 +341,6 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
         , document.body);
 }
