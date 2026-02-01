@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
-import {
 import { OrderDetailModal } from './OrderDetailModal';
 import {
     Search,
