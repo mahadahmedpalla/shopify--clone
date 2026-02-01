@@ -39,7 +39,7 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
     const taxBreakdown = order.tax_breakdown || {};
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:p-0 print:absolute print:inset-0 print:block">
+        <div className="invoice-modal-print fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:p-0 print:absolute print:inset-0 print:block">
             {/* Backdrop - Hide on print */}
             <div
                 className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity print:hidden"
