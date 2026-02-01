@@ -218,12 +218,7 @@ export function CheckoutForm({
 
                                         {TaxDisplay}
 
-                                        {totals.discountTotal > 0 && (
-                                            <div className="flex justify-between text-sm text-green-600 font-medium">
-                                                <span>Discount</span>
-                                                <span>-${totals.discountTotal.toFixed(2)}</span>
-                                            </div>
-                                        )}
+
                                         <div className="flex justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200">
                                             <span>Total</span>
                                             <span className="text-xl" style={{ color: primaryColor }}>${totals.total.toFixed(2)}</span>
