@@ -31,6 +31,7 @@ export function PublicProductPage() {
     }, []);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         fetchData();
     }, [storeSubUrl, productId]);
 
