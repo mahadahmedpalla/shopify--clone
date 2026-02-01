@@ -35,3 +35,50 @@ body {
   color: var(--color-slate-900);
   -webkit-font-smoothing: antialiased;
 }
+
+/* Print Styles: Robust solution using Portals */
+@media print {
+
+  /* HIDE THE ENTIRE REACT APP */
+  #root {
+    display: none !important;
+  }
+
+  /* Just in case, hide other common containers to be safe */
+  nav,
+  header,
+  aside,
+  footer {
+    display: none !important;
+  }
+
+  /* SHOW ONLY THE INVOICE MODAL */
+  /* Since it is portaled to body, it is a sibling of #root */
+  .invoice-modal-print {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    /* Some padding for print safety */
+    z-index: 99999 !important;
+    background: white !important;
+  }
+
+  /* RESET BODY */
+  body {
+    visibility: visible !important;
+    overflow: visible !important;
+    background: white !important;
+    margin: 0 !important;
+  }
+
+  /* Hide the modal backdrop */
+  .invoice-modal-print>div:first-child {
+    /* Assuming the first child is the backdrop based on JSX structure */
+    display: none !important;
+  }
+}
