@@ -11,7 +11,9 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
     };
 
     // Parse Helpers
-    const { shipping_address, items_snapshot, payment_method, tax_breakdown } = order;
+    // Fallback if DB column is named 'items' or 'items_snapshot'
+    const items = order.items || order.items_snapshot || [];
+    const { shipping_address, payment_method, tax_breakdown } = order;
 
     // Totals
     const subtotal = order.subtotal || 0;
@@ -48,8 +50,8 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
                             </span>
                             <span>•</span>
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium uppercase ${order.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-gray-100 text-gray-800'
+                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
                                 } print:border print:border-slate-300 print:bg-transparent print:text-slate-900`}>
                                 {order.status}
                             </span>
@@ -136,7 +138,7 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-slate-200">
-                                {items_snapshot?.map((item, idx) => (
+                                {items?.map((item, idx) => (
                                     <tr key={idx}>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
