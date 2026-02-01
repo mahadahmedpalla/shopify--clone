@@ -37,93 +37,65 @@ export function PublicProductPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // 1. Fetch Store
-            const { data: storeData, error: storeError } = await supabase
-                .from('stores')
-                .select('*')
-                .eq('sub_url', storeSubUrl)
-                .single();
+            // 1. Parallel Fetch: Store & Product
+            const [storeResult, productResult] = await Promise.all([
+                supabase.from('stores').select('*').eq('sub_url', storeSubUrl).single(),
+                supabase.from('products').select(`*, product_variants (*)`).eq('id', productId).single()
+            ]);
 
-            if (storeError || !storeData) throw new Error('Store not found');
+            if (storeResult.error || !storeResult.data) throw new Error('Store not found');
+            if (productResult.error || !productResult.data) throw new Error('Product not found');
+
+            const storeData = storeResult.data;
+            const prodData = productResult.data;
+
             setStore(storeData);
-
-            // 1.5 Fetch Global Cart Settings (from 'cart' page)
-            const { data: cartPage } = await supabase.from('store_pages')
-                .select('content')
-                .eq('store_id', storeData.id)
-                .eq('slug', 'cart')
-                .single();
-
-            if (cartPage?.content) {
-                const widget = cartPage.content.find(w => w.type === 'cart_list');
-                if (widget && widget.settings) {
-                    setCartSettings(widget.settings);
-                }
-            }
-
-            // 2. Fetch Product
-            const { data: prodData, error: prodError } = await supabase
-                .from('products')
-                .select(`
-                    *,
-                    product_variants (*)
-                `)
-                .eq('id', productId)
-                .single();
-
-            if (prodError || !prodData) throw new Error('Product not found');
             setProduct(prodData);
 
-            // 2.5 Fetch Active Discounts
+            // 2. Parallel Fetch: Dependencies (Cart, Discounts, Page Content)
             const now = new Date().toISOString();
-            const { data: discountData } = await supabase
-                .from('discounts')
-                .select('*')
-                .eq('store_id', storeData.id)
-                .eq('is_active', true)
-                .lte('starts_at', now); // Started already
-            // We handle ends_at logic in JS to keep query simple or add .or(`ends_at.is.null,ends_at.gte.${now}`)
 
-            if (discountData) setDiscounts(discountData);
+            const [cartPageResult, discountResult, pdpPageResult, homePageResult] = await Promise.all([
+                // Cart Settings
+                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'cart').single(),
 
-            // 3. Fetch "Product Detail" Page
-            const { data: pdpPage } = await supabase
-                .from('store_pages')
-                .select('content')
-                .eq('store_id', storeData.id)
-                .eq('slug', 'pdp') // Using standard system slug
-                .single();
+                // Active Discounts
+                supabase.from('discounts').select('*').eq('store_id', storeData.id).eq('is_active', true).lte('starts_at', now),
 
-            if (pdpPage?.content) {
-                setPageContent(pdpPage.content);
+                // PDP Content
+                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'pdp').single(),
+
+                // Home Page (Fallback for Navbar)
+                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'home').single()
+            ]);
+
+            // Process Cart Settings
+            if (cartPageResult.data?.content) {
+                const widget = cartPageResult.data.content.find(w => w.type === 'cart_list');
+                if (widget?.settings) setCartSettings(widget.settings);
+            }
+
+            // Process Discounts
+            if (discountResult.data) setDiscounts(discountResult.data);
+
+            // Process Page Content
+            if (pdpPageResult.data?.content) {
+                setPageContent(pdpPageResult.data.content);
             } else {
-                // FALLBACK: Fetch Home to get Navbar settings for a generated default layout
-                const { data: homePage } = await supabase
-                    .from('store_pages')
-                    .select('content')
-                    .eq('store_id', storeData.id)
-                    .eq('slug', 'home')
-                    .single();
-
-                const homeNavbar = homePage?.content?.find(b => b.type === 'navbar');
-
-                // Construct Default Layout
+                // Fallback Layout
+                const homeNavbar = homePageResult.data?.content?.find(b => b.type === 'navbar');
                 setPageContent([
                     homeNavbar || {
                         type: 'navbar',
                         id: 'nav-default',
-                        settings: {
-                            bgColor: '#ffffff',
-                            textColor: '#1e293b',
-                            showStoreName: true
-                        }
+                        settings: { bgColor: '#ffffff', textColor: '#1e293b', showStoreName: true }
                     },
                     { type: 'product_detail', id: 'pd-default', settings: { showStock: true, showDescription: true } }
                 ]);
             }
 
         } catch (e) {
-            console.error(e);
+            console.error("Error fetching product data:", e);
         } finally {
             setLoading(false);
         }

@@ -56,48 +56,36 @@ export function PublicStorefront() {
             if (storeError || !storeData) throw new Error(`Store "${storeSubUrl}" not found.`);
             setStore(storeData);
 
-            // 2. Fetch Global Cart Settings (from 'cart' page)
-            // We do this immediately after getting store ID so we can pass settings to Drawer
-            const { data: cartPage } = await supabase.from('store_pages')
-                .select('content')
-                .eq('store_id', storeData.id)
-                .eq('slug', 'cart')
-                .single();
+            // 2. Parallel Fetch: Dependent Data
+            const [cartPageResult, pageResult, productsResult, categoriesResult] = await Promise.all([
+                // Cart Settings
+                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'cart').single(),
 
-            if (cartPage?.content) {
-                const widget = cartPage.content.find(w => w.type === 'cart_list');
-                if (widget && widget.settings) {
-                    setCartSettings(widget.settings);
-                }
+                // Current Page Content
+                supabase.from('store_pages').select('*').eq('store_id', storeData.id).eq('slug', activeSlug).single(),
+
+                // Products (for shared renderer)
+                supabase.from('products').select('*').eq('store_id', storeData.id).eq('is_active', true),
+
+                // Categories (for shared renderer)
+                supabase.from('product_categories').select('*').eq('store_id', storeData.id)
+            ]);
+
+            // Process Cart
+            if (cartPageResult.data?.content) {
+                const widget = cartPageResult.data.content.find(w => w.type === 'cart_list');
+                if (widget && widget.settings) setCartSettings(widget.settings);
             }
 
-            // 3. Fetch Current Page Content
-            const { data: pageData, error: pageError } = await supabase
-                .from('store_pages')
-                .select('*')
-                .eq('store_id', storeData.id)
-                .eq('slug', activeSlug)
-                .single();
+            // Process Page
+            if (pageResult.error) console.warn("Page fetch error:", pageResult.error);
+            setPage(pageResult.data);
 
-            if (pageError) {
-                console.warn("Page fetch error:", pageError);
-            }
-            setPage(pageData);
+            // Process Products
+            setProducts(productsResult.data || []);
 
-            // 4. Fetch Products (for shared renderer)
-            const { data: prodData } = await supabase
-                .from('products')
-                .select('*')
-                .eq('store_id', storeData.id)
-                .eq('is_active', true);
-            setProducts(prodData || []);
-
-            // 5. Fetch Categories (for shared renderer)
-            const { data: catData } = await supabase
-                .from('product_categories')
-                .select('*')
-                .eq('store_id', storeData.id);
-            setCategories(catData || []);
+            // Process Categories
+            setCategories(categoriesResult.data || []);
 
         } catch (err) {
             console.error("Storefront Error:", err);
