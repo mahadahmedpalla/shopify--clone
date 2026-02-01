@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Skeleton } from '../ui/Skeleton';
 import { Plus, Package, Search, Trash2, Edit2, ToggleLeft, ToggleRight, Filter, Settings2, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { CreateProductModal } from './CreateProductModal';
 import { EditProductModal } from './EditProductModal';
@@ -128,7 +129,30 @@ export function ProductsPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {loading ? (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-400">Loading inventory...</td></tr>
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center space-x-3">
+                                                <Skeleton className="h-14 w-14 rounded-lg" />
+                                                <div className="space-y-2">
+                                                    <Skeleton className="h-4 w-32" />
+                                                    <Skeleton className="h-3 w-48" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4"><Skeleton className="h-6 w-24 rounded-md" /></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-5 w-16" /></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-5 w-20" /></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end space-x-2">
+                                                <Skeleton className="h-8 w-8 rounded-md" />
+                                                <Skeleton className="h-8 w-8 rounded-md" />
+                                                <Skeleton className="h-8 w-8 rounded-md" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             ) : filteredProducts.length === 0 ? (
                                 <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-400">No products found. Add your first item!</td></tr>
                             ) : filteredProducts.map((p) => (

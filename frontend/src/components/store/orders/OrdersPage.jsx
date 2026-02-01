@@ -13,6 +13,7 @@ import {
     AlertCircle,
     MoreHorizontal
 } from 'lucide-react';
+import { Skeleton } from '../../ui/Skeleton';
 
 export function OrdersPage() {
     const { storeId } = useParams();
@@ -82,11 +83,8 @@ export function OrdersPage() {
         order.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-        </div>
-    );
+    // Loading spinner removed in favor of Skeleton UI inside the table
+    // if (loading) return (...)
 
     return (
         <div className="space-y-6">
@@ -128,7 +126,23 @@ export function OrdersPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredOrders.length > 0 ? (
+                            {loading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td className="px-6 py-4 whitespace-nowrap"><Skeleton className="h-4 w-20" /></td>
+                                        <td className="px-6 py-4 whitespace-nowrap"><Skeleton className="h-4 w-24" /></td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="space-y-2">
+                                                <Skeleton className="h-4 w-32" />
+                                                <Skeleton className="h-3 w-40" />
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap"><Skeleton className="h-6 w-24 rounded-full" /></td>
+                                        <td className="px-6 py-4 whitespace-nowrap"><Skeleton className="h-4 w-16" /></td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right"><Skeleton className="h-5 w-5 ml-auto" /></td>
+                                    </tr>
+                                ))
+                            ) : filteredOrders.length > 0 ? (
                                 filteredOrders.map((order) => (
                                     <tr
                                         key={order.id}
