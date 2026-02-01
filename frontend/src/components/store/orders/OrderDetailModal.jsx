@@ -1,10 +1,22 @@
 import React, { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Printer, Package, MapPin, CreditCard, Calendar, Mail, Phone, User, ShoppingBag } from 'lucide-react';
 
 export function OrderDetailModal({ order, isOpen, onClose }) {
     if (!isOpen || !order) return null;
 
     const modalRef = useRef(null);
+
+    // Update document title for PDF filename
+    React.useEffect(() => {
+        const originalTitle = document.title;
+        if (isOpen && order) {
+            document.title = `Invoice #${order.id.slice(0, 8)}`;
+        }
+        return () => {
+            document.title = originalTitle;
+        };
+    }, [isOpen, order]);
 
     const handlePrint = () => {
         window.print();
@@ -26,7 +38,7 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
     // Tax Breakdown Logic
     const taxBreakdown = order.tax_breakdown || {};
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 print:p-0 print:absolute print:inset-0 print:block">
             {/* Backdrop - Hide on print */}
             <div
@@ -243,5 +255,5 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
                 </div>
             </div>
         </div>
-    );
+        , document.body);
 }
