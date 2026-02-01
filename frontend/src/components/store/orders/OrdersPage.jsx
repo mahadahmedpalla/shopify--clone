@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import {
+import { OrderDetailModal } from './OrderDetailModal';
+import {
     Search,
     Filter,
-    ChevronDown,
+    ChevronRight,
     Package,
     Truck,
     CheckCircle,
@@ -18,6 +20,7 @@ export function OrdersPage() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     useEffect(() => {
         if (storeId) {
@@ -110,13 +113,17 @@ export function OrdersPage() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredOrders.length > 0 ? (
                                 filteredOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr
+                                        key={order.id}
+                                        className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                                        onClick={() => setSelectedOrder(order)}
+                                    >
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
                                             #{order.id.slice(0, 8)}
                                         </td>
@@ -137,8 +144,8 @@ export function OrdersPage() {
                                             {order.currency} {order.total}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button className="text-gray-400 hover:text-gray-600">
-                                                <MoreHorizontal className="h-5 w-5" />
+                                            <button className="text-gray-400 hover:text-indigo-600 transition-colors group-hover:translate-x-1 duration-200">
+                                                <ChevronRight className="h-5 w-5" />
                                             </button>
                                         </td>
                                     </tr>
@@ -155,6 +162,12 @@ export function OrdersPage() {
                     </table>
                 </div>
             </div>
+
+            <OrderDetailModal
+                order={selectedOrder}
+                isOpen={!!selectedOrder}
+                onClose={() => setSelectedOrder(null)}
+            />
         </div>
     );
 }
