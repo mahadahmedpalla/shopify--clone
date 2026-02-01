@@ -1,14 +1,13 @@
-import React, { lazy } from 'react';
+import React from 'react';
+import { NavbarRenderer } from './navbar/NavbarRenderer';
+import { HeroRenderer } from './hero/HeroRenderer';
 
-// Lazy Load Widgets
-const NavbarRenderer = lazy(() => import('./navbar/NavbarRenderer').then(module => ({ default: module.NavbarRenderer })));
-const HeroRenderer = lazy(() => import('./hero/HeroRenderer').then(module => ({ default: module.HeroRenderer })));
-const ProductGridRenderer = lazy(() => import('./product_grid/ProductGridRenderer').then(module => ({ default: module.ProductGridRenderer })));
-const ProductDetailRenderer = lazy(() => import('./product_detail/ProductDetailRenderer').then(module => ({ default: module.ProductDetailRenderer })));
-const ProductReviewsRenderer = lazy(() => import('./product_reviews/ProductReviewsRenderer').then(module => ({ default: module.ProductReviewsRenderer })));
-const RelatedProductsRenderer = lazy(() => import('./related_products/RelatedProductsRenderer').then(module => ({ default: module.RelatedProductsRenderer })));
-const CartListRenderer = lazy(() => import('./cart_list/CartListRenderer').then(module => ({ default: module.CartListRenderer })));
-const CheckoutRenderer = lazy(() => import('./checkout/CheckoutRenderer').then(module => ({ default: module.CheckoutRenderer })));
+import { ProductGridRenderer } from './product_grid/ProductGridRenderer';
+import { ProductDetailRenderer } from './product_detail/ProductDetailRenderer';
+import { ProductReviewsRenderer } from './product_reviews/ProductReviewsRenderer';
+import { RelatedProductsRenderer } from './related_products/RelatedProductsRenderer';
+import { CartListRenderer } from './cart_list/CartListRenderer';
+import { CheckoutRenderer } from './checkout/CheckoutRenderer';
 
 export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts }) {
     switch (type) {
