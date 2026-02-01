@@ -36,7 +36,11 @@ export function OrdersPage() {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setOrders(data || []);
+            const newOrders = data || [];
+            setOrders(newOrders);
+
+            // If an order is currently selected, update it with fresh data to reflect changes (like status updates)
+            setSelectedOrder(prev => prev ? newOrders.find(o => o.id === prev.id) || prev : null);
         } catch (err) {
             console.error("Error fetching orders:", err);
         } finally {
@@ -46,9 +50,13 @@ export function OrdersPage() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'paid': return 'bg-green-100 text-green-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800';
-            case 'shipped': return 'bg-blue-100 text-blue-800';
+            case 'completed': return 'bg-green-100 text-green-800';
+            case 'paid': return 'bg-emerald-100 text-emerald-800'; // Keep for legacy
+            case 'in-progress': return 'bg-blue-100 text-blue-800';
+            case 'pending': return 'bg-yellow-100 text-yellow-800'; // Keep for legacy
+            case 'shipped': return 'bg-purple-100 text-purple-800';
+            case 'dispatched': return 'bg-indigo-100 text-indigo-800';
+            case 'refunded': return 'bg-orange-100 text-orange-800';
             case 'cancelled': return 'bg-red-100 text-red-800';
             default: return 'bg-gray-100 text-gray-800';
         }
@@ -56,9 +64,13 @@ export function OrdersPage() {
 
     const getStatusIcon = (status) => {
         switch (status) {
+            case 'completed': return <CheckCircle className="h-4 w-4 mr-1" />;
             case 'paid': return <CheckCircle className="h-4 w-4 mr-1" />;
+            case 'in-progress': return <Clock className="h-4 w-4 mr-1" />;
             case 'pending': return <Clock className="h-4 w-4 mr-1" />;
             case 'shipped': return <Truck className="h-4 w-4 mr-1" />;
+            case 'dispatched': return <Truck className="h-4 w-4 mr-1" />;
+            case 'refunded': return <AlertCircle className="h-4 w-4 mr-1" />;
             case 'cancelled': return <AlertCircle className="h-4 w-4 mr-1" />;
             default: return null;
         }
@@ -166,6 +178,7 @@ export function OrdersPage() {
                 order={selectedOrder}
                 isOpen={!!selectedOrder}
                 onClose={() => setSelectedOrder(null)}
+                onOrderUpdated={fetchOrders}
             />
         </div>
     );

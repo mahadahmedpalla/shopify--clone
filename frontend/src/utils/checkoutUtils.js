@@ -178,7 +178,7 @@ export const createOrder = async (orderData) => {
         total: orderData.totals.total,
 
         payment_method: orderData.paymentMethod || 'manual',
-        status: 'pending'
+        status: 'in-progress'
     };
 
     const { data, error } = await supabase

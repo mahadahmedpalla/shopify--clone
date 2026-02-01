@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Printer, Package, MapPin, CreditCard, Calendar, Mail, Phone, User, ShoppingBag } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
+import { X, Printer, Package, MapPin, CreditCard, Calendar, Mail, Phone, User, ShoppingBag, ChevronDown, CheckCircle, Truck, Clock, AlertCircle } from 'lucide-react';
 
-export function OrderDetailModal({ order, isOpen, onClose }) {
+export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
     if (!isOpen || !order) return null;
 
     const modalRef = useRef(null);
@@ -20,6 +21,47 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const [isStatusOpen, setIsStatusOpen] = React.useState(false);
+    const [updating, setUpdating] = React.useState(false);
+
+    const ALLOWED_STATUSES = ['completed', 'shipped', 'dispatched', 'in-progress', 'cancelled', 'refunded'];
+
+    const updateStatus = async (newStatus) => {
+        if (!order) return;
+        setUpdating(true);
+        try {
+            const { error } = await supabase
+                .from('orders')
+                .update({ status: newStatus })
+                .eq('id', order.id);
+
+            if (error) throw error;
+
+            // Optimistic update locally or just callback
+            if (onOrderUpdated) onOrderUpdated();
+            setIsStatusOpen(false);
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Failed to update status");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'completed': return 'bg-green-100 text-green-800 border-green-200';
+            case 'paid': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            case 'in-progress': return 'bg-blue-100 text-blue-800 border-blue-200';
+            case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'shipped': return 'bg-purple-100 text-purple-800 border-purple-200';
+            case 'dispatched': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+            case 'refunded': return 'bg-orange-100 text-orange-800 border-orange-200';
+            case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+            default: return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
     };
 
     // Parse Helpers
@@ -61,10 +103,43 @@ export function OrderDetailModal({ order, isOpen, onClose }) {
                                 {new Date(order.created_at).toLocaleDateString()}
                             </span>
                             <span>•</span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium uppercase ${order.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-gray-100 text-gray-800'
-                                } print:border print:border-slate-300 print:bg-transparent print:text-slate-900`}>
+
+                            {/* Status Dropdown */}
+                            <div className="relative print:hidden">
+                                <button
+                                    onClick={() => setIsStatusOpen(!isStatusOpen)}
+                                    disabled={updating}
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border transition-all ${getStatusColor(order.status)} hover:opacity-80 active:scale-95`}
+                                >
+                                    {order.status}
+                                    <ChevronDown className="w-3 h-3 opacity-60" />
+                                </button>
+
+                                {isStatusOpen && (
+                                    <>
+                                        {/* Click outside to close */}
+                                        <div className="fixed inset-0 z-10" onClick={() => setIsStatusOpen(false)}></div>
+
+                                        <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="py-1">
+                                                {ALLOWED_STATUSES.map((status) => (
+                                                    <button
+                                                        key={status}
+                                                        onClick={() => updateStatus(status)}
+                                                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors flex items-center justify-between ${status === order.status ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700'}`}
+                                                    >
+                                                        <span className="capitalize">{status}</span>
+                                                        {status === order.status && <CheckCircle className="w-4 h-4 ml-2" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Print-only static status */}
+                            <span className={`hidden print:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium uppercase border ${getStatusColor(order.status)}`}>
                                 {order.status}
                             </span>
                         </div>
