@@ -308,6 +308,12 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                                         className="flex-1 p-2 text-sm border border-slate-200 rounded-md"
                                     />
                                 </div>
+                                <button
+                                    onClick={() => updateSetting('backgroundColor', 'transparent')}
+                                    className="w-full mt-2 py-1.5 text-xs font-medium text-slate-500 bg-slate-50 hover:bg-slate-100 hover:text-slate-700 border border-slate-200 rounded-md transition-colors"
+                                >
+                                    Set Transparent
+                                </button>
                             </div>
 
                             {/* Border */}

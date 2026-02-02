@@ -84,7 +84,7 @@ export const getWidgetDefaults = (type) => {
         },
         widthMode: 'auto',
         heightMode: 'auto',
-        backgroundColor: 'transparent',
+        backgroundColor: '#b0bbc9',
         shadow: 'none',
         children: []
     } : type === 'hero' ? {
