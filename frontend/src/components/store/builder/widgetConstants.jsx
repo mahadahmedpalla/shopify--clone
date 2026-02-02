@@ -12,7 +12,6 @@ export const WIDGET_CATEGORIES = [
             { type: 'text', icon: <Type className="h-4 w-4" />, label: 'Text Block' },
             { type: 'heading', icon: <Type className="h-5 w-5" />, label: 'Heading' },
             { type: 'image', icon: <ImageIcon className="h-4 w-4" />, label: 'Image' },
-            { type: 'button', icon: <Play className="h-4 w-4" />, label: 'Button' },
         ]
     },
     {
@@ -145,6 +144,32 @@ export const getWidgetDefaults = (type) => {
         relatedLimit: 4,
         showPrice: true,
         itemGap: 'normal'
+    } : type === 'image' ? {
+        src: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop',
+        alt: 'Product Image',
+        // Size & Fit
+        objectFit: 'contain',
+        aspectRatio: 'auto', // auto, 1/1, 4/3, 16/9, 3/4, custom
+        customRatio: 1.5,
+        widthMode: 'auto', // auto, full, custom
+        width: '100%',
+        heightMode: 'auto', // auto, fixed
+        height: '300px',
+        // Layout
+        alignment: 'center', // left, center, right
+        // Style
+        borderRadius: 0,
+        borderWidth: 0,
+        borderColor: '#000000',
+        borderStyle: 'solid',
+        shadow: 'none',
+        // Overlay
+        overlayColor: '#000000',
+        overlayOpacity: 0,
+        // Interaction
+        clickAction: 'none', // none, link, lightbox
+        linkUrl: '',
+        hoverEffect: 'none', // zoom, fade, blur, lift, overlay
     } : type === 'checkout_form' ? {
         primaryColor: '#4f46e5',
         primaryTextColor: '#ffffff',

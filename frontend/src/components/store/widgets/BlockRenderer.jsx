@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavbarRenderer } from './navbar/NavbarRenderer';
 import { HeroRenderer } from './hero/HeroRenderer';
+import { ImageRenderer } from './image/ImageRenderer';
 
 import { ProductGridRenderer } from './product_grid/ProductGridRenderer';
 import { ProductDetailRenderer } from './product_detail/ProductDetailRenderer';
@@ -33,6 +34,8 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
             return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} />;
         case 'hero':
             return <HeroRenderer settings={settings} viewMode={viewMode} />;
+        case 'image':
+            return <ImageRenderer settings={settings} viewMode={viewMode} />;
         case 'product_grid':
             return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} />;
         case 'product_reviews':

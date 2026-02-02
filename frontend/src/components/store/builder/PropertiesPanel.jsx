@@ -9,6 +9,7 @@ import { RelatedProductsProperties } from '../widgets/related_products/RelatedPr
 import { CartListProperties } from '../widgets/cart_list/CartListProperties';
 import { CheckoutProperties } from '../widgets/checkout/CheckoutProperties';
 import { ContainerProperties } from '../widgets/container/ContainerProperties';
+import { ImageProperties } from '../widgets/image/ImageProperties';
 
 export function PropertiesPanel({
     previewMode,
@@ -104,6 +105,12 @@ export function PropertiesPanel({
 
                     {selectedElement.type === 'container' ? (
                         <ContainerProperties
+                            settings={selectedElement.settings}
+                            onChange={onUpdate}
+                            viewMode={viewMode}
+                        />
+                    ) : selectedElement.type === 'image' ? (
+                        <ImageProperties
                             settings={selectedElement.settings}
                             onChange={onUpdate}
                             viewMode={viewMode}
