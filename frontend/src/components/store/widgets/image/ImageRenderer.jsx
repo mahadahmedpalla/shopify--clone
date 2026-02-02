@@ -86,6 +86,27 @@ export function ImageRenderer({ settings, viewMode = 'desktop', onClick }) {
 
     const [isLoading, setIsLoading] = useState(true);
 
+    // Optimization Helper: Generate Supabase Transformation URL
+    const getOptimizedUrl = (url, width) => {
+        if (!url || !url.includes('supabase.co')) return url; // Only optimize Supabase images
+        // standard supabase storage transformation param (requires Image Transformation enabled on project, 
+        // fallback is it just ignores params if not enabled, which is safe)
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}width=${width}&quality=80&format=webp`;
+    };
+
+    // Generate srcSet for responsive loading
+    const generateSrcSet = (url) => {
+        if (!url || !url.includes('supabase.co')) return undefined;
+        return `
+            ${getOptimizedUrl(url, 320)} 320w,
+            ${getOptimizedUrl(url, 640)} 640w,
+            ${getOptimizedUrl(url, 1024)} 1024w,
+            ${getOptimizedUrl(url, 1280)} 1280w,
+            ${getOptimizedUrl(url, 1920)} 1920w
+        `;
+    };
+
     return (
         <div style={containerStyle} onClick={onClick}>
             <div
@@ -105,8 +126,13 @@ export function ImageRenderer({ settings, viewMode = 'desktop', onClick }) {
 
                 {/* Image */}
                 <img
-                    src={settings.src}
+                    src={getOptimizedUrl(settings.src, 1280)} // Default to a reasonable desktop size
+                    srcSet={generateSrcSet(settings.src)}
+                    sizes={widthMode === 'full' ? '100vw' : settings.width?.includes('%') ? settings.width : '(max-width: 768px) 100vw, 1280px'}
                     alt={settings.alt}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="auto"
                     onLoad={() => setIsLoading(false)}
                     className={`w-full h-full block transition-opacity duration-700 ease-in-out ${hoverClass} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                     style={{
