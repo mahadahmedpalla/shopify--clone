@@ -116,6 +116,76 @@ const deleteBlockRecursive = (blocks, id) => {
     }, []);
 };
 
+const findParentIdRecursive = (blocks, childId, parentId = null) => {
+    for (const block of blocks) {
+        if (block.id === childId) return parentId;
+        if (block.settings?.children) {
+            const found = findParentIdRecursive(block.settings.children, childId, block.id);
+            if (found !== undefined) return found;
+        }
+    }
+    return undefined;
+};
+
+const insertBlockRecursive = (blocks, parentId, index, blockToInsert) => {
+    if (parentId === null) {
+        const newBlocks = [...blocks];
+        const safeIndex = (index >= 0 && index <= newBlocks.length) ? index : newBlocks.length;
+        newBlocks.splice(safeIndex, 0, blockToInsert);
+        return newBlocks;
+    }
+    return blocks.map(block => {
+        if (block.id === parentId) {
+            const children = block.settings.children ? [...block.settings.children] : [];
+            const safeIndex = (index >= 0 && index <= children.length) ? index : children.length;
+            children.splice(safeIndex, 0, blockToInsert);
+            return {
+                ...block,
+                settings: { ...block.settings, children }
+            };
+        }
+        if (block.settings?.children) {
+            return {
+                ...block,
+                settings: {
+                    ...block.settings,
+                    children: insertBlockRecursive(block.settings.children, parentId, index, blockToInsert)
+                }
+            };
+        }
+        return block;
+    });
+};
+
+const reorderChildrenRecursive = (blocks, parentId, activeId, overId) => {
+    if (parentId === null) {
+        const oldIndex = blocks.findIndex(x => x.id === activeId);
+        const newIndex = blocks.findIndex(x => x.id === overId);
+        return arrayMove(blocks, oldIndex, newIndex);
+    }
+    return blocks.map(block => {
+        if (block.id === parentId) {
+            const children = block.settings.children || [];
+            const oldIndex = children.findIndex(x => x.id === activeId);
+            const newIndex = children.findIndex(x => x.id === overId);
+            return {
+                ...block,
+                settings: { ...block.settings, children: arrayMove(children, oldIndex, newIndex) }
+            };
+        }
+        if (block.settings?.children) {
+            return {
+                ...block,
+                settings: {
+                    ...block.settings,
+                    children: reorderChildrenRecursive(block.settings.children, parentId, activeId, overId)
+                }
+            };
+        }
+        return block;
+    });
+};
+
 export function StoreBuilder() {
     const { storeId, pageId } = useParams();
     const navigate = useNavigate();
@@ -273,61 +343,64 @@ export function StoreBuilder() {
         const { active, over } = event;
         if (!over) return;
 
-        // CHECK IF DROPPING INTO A CONTAINER
+        // 1. Find the moved block
+        const activeBlock = findBlockRecursive(canvasContent, active.id);
+        if (!activeBlock) return;
+
+        // 2. Identify Drop Scenario
         const isContainerDrop = over.data?.current?.type === 'container';
 
+        // Scenario A: Dropping into a Container Drop Zone
         if (isContainerDrop) {
-            const targetContainerId = over.data?.current?.parentId;
+            const targetContainerId = over.data.current.parentId;
+            if (active.id === targetContainerId) return; // Self-drop check
 
-            // Prevent dropping a container into itself
-            if (active.id === targetContainerId) return;
+            // Find current parent
+            const sourceParentId = findParentIdRecursive(canvasContent, active.id);
 
-            // Find the active block in the root (canvasContent)
-            const activeBlockIndex = canvasContent.findIndex(c => c.id === active.id);
-            if (activeBlockIndex === -1) return; // Only support moving root items to container for now
+            // Remove from old location
+            const contentWithoutActive = deleteBlockRecursive(canvasContent, active.id);
 
-            const activeBlock = canvasContent[activeBlockIndex];
+            // Add to new container
+            // If dropping on container, we append to end (undefined index)
+            const finalContent = insertBlockRecursive(contentWithoutActive, targetContainerId, undefined, activeBlock);
 
-            // Find the target container
-            const containerIndex = canvasContent.findIndex(c => c.id === targetContainerId);
-            if (containerIndex === -1) return;
-
-            const containerBlock = canvasContent[containerIndex];
-
-            // Create new children array
-            const currentChildren = containerBlock.settings.children || [];
-
-            // Avoid duplicates
-            if (currentChildren.find(c => c.id === active.id)) return;
-
-            const newChildren = [...currentChildren, activeBlock];
-
-            // Update state: Using reduce for atomic update
-            const updatedContent = canvasContent.reduce((acc, block) => {
-                if (block.id === active.id) return acc; // Remove from root
-                if (block.id === targetContainerId) {
-                    acc.push({
-                        ...block,
-                        settings: { ...block.settings, children: newChildren }
-                    });
-                    return acc;
-                }
-                acc.push(block);
-                return acc;
-            }, []);
-
-            setCanvasContent(updatedContent);
+            setCanvasContent(finalContent);
             setDraggedWidget(null);
             return;
         }
 
-        // STANDARD SORTING (Root Level)
-        if (active.id !== over.id && canvasContent.find(c => c.id === active.id) && canvasContent.find(c => c.id === over.id)) {
-            setCanvasContent((items) => {
-                const oldIndex = items.findIndex(i => i.id === active.id);
-                const newIndex = items.findIndex(i => i.id === over.id);
-                return arrayMove(items, oldIndex, newIndex);
-            });
+        // Scenario B: Dropping onto another Sortable Block (Reordering)
+        if (active.id !== over.id) {
+            const sourceParentId = findParentIdRecursive(canvasContent, active.id);
+            const targetParentId = findParentIdRecursive(canvasContent, over.id);
+
+            // Sub-case B1: Same Parent (Sorting within list)
+            if (sourceParentId === targetParentId) {
+                const reorderedContent = reorderChildrenRecursive(canvasContent, sourceParentId, active.id, over.id);
+                setCanvasContent(reorderedContent);
+            }
+            // Sub-case B2: Moving to different Parent (via hovering over an item)
+            else {
+                // Remove from source
+                const contentWithoutActive = deleteBlockRecursive(canvasContent, active.id);
+
+                // Find index of 'over' item in target parent
+                // We need to find the target parent block to get its children array to find index
+                let targetIndex = 0;
+                if (targetParentId === null) {
+                    targetIndex = contentWithoutActive.findIndex(x => x.id === over.id);
+                } else {
+                    const targetContainer = findBlockRecursive(contentWithoutActive, targetParentId);
+                    if (targetContainer && targetContainer.settings.children) {
+                        targetIndex = targetContainer.settings.children.findIndex(x => x.id === over.id);
+                    }
+                }
+
+                // Insert at new index
+                const finalContent = insertBlockRecursive(contentWithoutActive, targetParentId, targetIndex, activeBlock);
+                setCanvasContent(finalContent);
+            }
         }
         setDraggedWidget(null);
     };
