@@ -127,6 +127,8 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
                             isSelected={selectedId === childBlock.id}
                             onClick={() => onSelect && onSelect(childBlock)}
                             onDelete={onDelete ? () => onDelete(childBlock.id) : undefined}
+                            onSelect={onSelect}
+                            onDeleteItem={onDelete}
                         />
                     ))}
                 </SortableContext>
