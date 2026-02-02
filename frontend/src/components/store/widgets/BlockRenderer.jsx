@@ -10,16 +10,55 @@ const CartListRenderer = React.lazy(() => import('./cart_list/CartListRenderer')
 const CheckoutRenderer = React.lazy(() => import('./checkout/CheckoutRenderer').then(module => ({ default: module.CheckoutRenderer })));
 const ContainerRenderer = React.lazy(() => import('./container/ContainerRenderer').then(module => ({ default: module.ContainerRenderer })));
 
-// Lightweight Fallback Component clearly indicating loading state
-const WidgetSkeleton = () => (
-    <div className="w-full h-32 bg-slate-50 animate-pulse flex items-center justify-center border border-dashed border-slate-200 rounded-lg">
-        <span className="text-slate-300 text-xs font-medium">Loading Widget...</span>
-    </div>
-);
+// Smart Fallback Component with Layout-aware Skeletons
+const WidgetSkeleton = ({ type }) => {
+    // Base classes for the skeleton animation
+    const baseClass = "w-full bg-slate-100 animate-pulse rounded-none";
+
+    // Navbar: Thin top strip
+    if (type === 'navbar') {
+        return <div className={`${baseClass} h-16 border-b border-slate-200`} />;
+    }
+
+    // Hero: Large immersive banner
+    if (type === 'hero') {
+        return <div className={`${baseClass} h-[60vh] md:h-[80vh]`} />;
+    }
+
+    // Product Grid: Grid of cards
+    if (type === 'product_grid') {
+        return (
+            <div className="p-12 space-y-8">
+                <div className="h-8 w-48 bg-slate-100 rounded-lg animate-pulse" /> {/* Title */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="space-y-3">
+                            <div className="aspect-[3/4] bg-slate-100 rounded-xl animate-pulse" />
+                            <div className="h-4 w-2/3 bg-slate-100 rounded animate-pulse" />
+                            <div className="h-4 w-1/3 bg-slate-100 rounded animate-pulse" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // Text/Heading content
+    if (type === 'heading' || type === 'rich_text') {
+        return (
+            <div className="px-12 py-12 flex justify-center">
+                <div className="h-12 w-3/4 bg-slate-100 rounded-lg animate-pulse" />
+            </div>
+        );
+    }
+
+    // Default/Generic Block (Image, etc)
+    return <div className={`${baseClass} h-64 md:h-96`} />;
+};
 
 export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId }) {
     return (
-        <React.Suspense fallback={<WidgetSkeleton />}>
+        <React.Suspense fallback={<WidgetSkeleton type={type} />}>
             {(() => {
                 switch (type) {
                     case 'container':
