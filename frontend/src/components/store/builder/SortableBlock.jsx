@@ -18,7 +18,16 @@ export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, 
         <div
             ref={setNodeRef}
             style={style}
-            onClick={(e) => { e.stopPropagation(); onClick(); }}
+            onClick={(e) => {
+                // e.preventDefault(); // Try preventing default too?
+                e.stopPropagation();
+                console.log("SortableBlock Clicked:", block.type, block.id);
+                if (onClick) {
+                    onClick();
+                } else {
+                    console.warn("SortableBlock: No onClick handler provided for", block.id);
+                }
+            }}
             className={`group relative border-2 transition-all cursor-default
                 ${isSelected ? 'border-indigo-500 ring-4 ring-indigo-50' : 'border-transparent hover:border-indigo-200'}
             `}
