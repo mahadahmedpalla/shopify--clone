@@ -66,6 +66,56 @@ class ErrorBoundary extends React.Component {
     }
 }
 
+const findBlockRecursive = (blocks, id) => {
+    for (const block of blocks) {
+        if (block.id === id) return block;
+        if (block.settings?.children) {
+            const found = findBlockRecursive(block.settings.children, id);
+            if (found) return found;
+        }
+    }
+    return null;
+};
+
+const updateBlockRecursive = (blocks, id, newSettings) => {
+    return blocks.map(block => {
+        if (block.id === id) {
+            return { ...block, settings: newSettings };
+        }
+        if (block.settings?.children) {
+            return {
+                ...block,
+                settings: {
+                    ...block.settings,
+                    children: updateBlockRecursive(block.settings.children, id, newSettings)
+                }
+            };
+        }
+        return block;
+    });
+};
+
+const deleteBlockRecursive = (blocks, id) => {
+    return blocks.reduce((acc, block) => {
+        if (block.id === id) return acc;
+
+        if (block.settings?.children) {
+            const newChildren = deleteBlockRecursive(block.settings.children, id);
+            // Optimization: Only update if children changed
+            if (newChildren !== block.settings.children) {
+                acc.push({
+                    ...block,
+                    settings: { ...block.settings, children: newChildren }
+                });
+                return acc;
+            }
+        }
+
+        acc.push(block);
+        return acc;
+    }, []);
+};
+
 export function StoreBuilder() {
     const { storeId, pageId } = useParams();
     const navigate = useNavigate();
@@ -214,7 +264,8 @@ export function StoreBuilder() {
 
     const handleDragStart = (event) => {
         const { active } = event;
-        const block = canvasContent.find(c => c.id === active.id);
+        // Use recursive find since block might be nested
+        const block = findBlockRecursive(canvasContent, active.id);
         if (block) setDraggedWidget(block);
     };
 
@@ -307,16 +358,18 @@ export function StoreBuilder() {
     };
 
     const deleteWidget = (id) => {
-        setCanvasContent(canvasContent.filter(c => c.id !== id));
+        const newContent = deleteBlockRecursive(canvasContent, id);
+        setCanvasContent(newContent);
         if (selectedElement?.id === id) setSelectedElement(null);
     };
 
     const handleUpdateSettings = (newSettings) => {
         if (!selectedElement) return;
-        const newContent = canvasContent.map(c =>
-            c.id === selectedElement.id ? { ...c, settings: newSettings } : c
-        );
+
+        const newContent = updateBlockRecursive(canvasContent, selectedElement.id, newSettings);
         setCanvasContent(newContent);
+
+        // Also update local selected element state so UI reflects changes immediately
         setSelectedElement({ ...selectedElement, settings: newSettings });
     };
 
@@ -478,6 +531,8 @@ export function StoreBuilder() {
                                                         }
                                                         isSelected={selectedElement?.id === block.id}
                                                         onClick={() => setSelectedElement(block)}
+                                                        onSelect={setSelectedElement}
+                                                        onDeleteItem={deleteWidget}
                                                         isEditor={true}
                                                     />
                                                 ))}

@@ -21,6 +21,10 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     store={store}
                     products={products}
                     categories={categories}
+                    isEditor={isEditor}
+                    onSelect={props.onSelect}
+                    onDelete={props.onDelete}
+                    selectedId={props.selectedId}
                 >
                     {/* If the block has 'children' property (nested blocks), ContainerRenderer handles it via settings.children */}
                 </ContainerRenderer>

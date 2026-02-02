@@ -1,8 +1,10 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { BlockRenderer } from '../BlockRenderer';
+import { SortableBlock } from '../../builder/SortableBlock';
 
-export function ContainerRenderer({ id, settings = {}, children, viewMode = 'desktop', store, products, categories }) {
+export function ContainerRenderer({ id, settings = {}, children, viewMode = 'desktop', store, products, categories, isEditor, onSelect, onDelete, selectedId }) {
     // Drop Zone Logic
     const { isOver, setNodeRef } = useDroppable({
         id: `container-drop-${id}`,
@@ -15,14 +17,6 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
     });
 
     // Helper to get responsive value
-    // If specific mode value exists, use it. Fallback to desktop, then default.
-    // Note: In a real CSS-in-JS or Tailwind generator, we would generate media queries.
-    // Here, since we receive 'viewMode' prop likely from the parent editor preview, we render the current viewMode style.
-    // FOR PRODUCTION SEPARATE FROM EDITOR: We should generate CSS classes like `md:flex-row`.
-    // However, the BlockRenderer usually receives `viewMode` from the context (PublicStorefront/Editor).
-    // If `viewMode` is passed, we can render the dynamic style for that mode.
-    // If this is the LIVE storefront, `viewMode` is determined by the `PublicStorefront` resize listener.
-
     const getValue = (key, fallback) => {
         if (!settings[key]) return fallback;
         if (typeof settings[key] === 'object') {
@@ -45,15 +39,15 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
     let width = getValue('width', 'auto');
     if (widthMode === 'full') width = '100%';
     if (widthMode === 'screen') width = '100vw';
-    if (widthMode === 'container') width = '100%'; // Max width logic handled by container class usually
+    if (widthMode === 'container') width = '100%';
 
     let height = getValue('height', 'auto');
     if (heightMode === 'fit') height = 'fit-content';
     if (heightMode === 'screen') height = '100vh';
 
-    // Spacing (Padding/Margin) -> Expecting object { desktop: { top: 10... } }
+    // Spacing
     const getSpacing = (type, side) => {
-        const spacingObj = settings[type]; // padding or margin
+        const spacingObj = settings[type];
         if (!spacingObj) return '0px';
         const modeObj = spacingObj[viewMode] || spacingObj['desktop'];
         if (!modeObj) return '0px';
@@ -106,11 +100,51 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
         }
     };
 
-    // Center container if max-width is set (mx-auto behavior)
     if (widthMode === 'container') {
         style.marginLeft = 'auto';
         style.marginRight = 'auto';
     }
+
+    const currentChildren = settings.children && Array.isArray(settings.children) ? settings.children : [];
+
+    const renderChildren = () => {
+        if (!currentChildren.length) {
+            return null;
+        }
+
+        if (isEditor) {
+            return (
+                <SortableContext items={currentChildren.map(c => c.id)} strategy={verticalListSortingStrategy}>
+                    {currentChildren.map(childBlock => (
+                        <SortableBlock
+                            key={childBlock.id}
+                            block={childBlock}
+                            viewMode={viewMode}
+                            store={store}
+                            products={products}
+                            categories={categories}
+                            isEditor={true}
+                            isSelected={selectedId === childBlock.id}
+                            onClick={() => onSelect && onSelect(childBlock)}
+                            onDelete={onDelete ? () => onDelete(childBlock.id) : undefined}
+                        />
+                    ))}
+                </SortableContext>
+            );
+        }
+
+        // View Mode (Public/Preview)
+        return currentChildren.map(childBlock => (
+            <BlockRenderer
+                key={childBlock.id}
+                {...childBlock}
+                viewMode={viewMode}
+                store={store}
+                products={products}
+                categories={categories}
+            />
+        ));
+    };
 
     return (
         <div
@@ -118,19 +152,7 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
             style={style}
             className={`transition-all duration-200 ${getShadowClass()} ${isOver ? 'ring-2 ring-indigo-500 bg-indigo-50/50' : ''}`}
         >
-            {/* Render Children Blocks */}
-            {settings.children && Array.isArray(settings.children) && settings.children.map(childBlock => (
-                <BlockRenderer
-                    key={childBlock.id}
-                    {...childBlock} // type, settings, etc.
-                    viewMode={viewMode}
-                    store={store}
-                    products={products}
-                    categories={categories}
-                />
-            ))}
-
-            {/* If literal children passed (rare in this architecture but good practice) */}
+            {renderChildren()}
             {children}
         </div>
     );

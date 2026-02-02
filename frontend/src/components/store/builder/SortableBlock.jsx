@@ -43,6 +43,8 @@ export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, 
                 products={products}
                 categories={categories}
                 isEditor={isEditor}
+                onSelect={props.onSelect}
+                onDelete={props.onDeleteItem}
             />
         </div>
     );
