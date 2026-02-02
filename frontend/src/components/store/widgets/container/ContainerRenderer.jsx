@@ -5,12 +5,13 @@ import { BlockRenderer } from '../BlockRenderer';
 export function ContainerRenderer({ id, settings = {}, children, viewMode = 'desktop', store, products, categories }) {
     // Drop Zone Logic
     const { isOver, setNodeRef } = useDroppable({
-        id: id,
+        id: `container-drop-${id}`,
         data: {
             type: 'container',
-            accepts: ['widget'] // Metadata for future use
+            parentId: id, // Store the original block ID
+            accepts: ['widget']
         },
-        disabled: !id // Only enable droppable if ID is present (i.e. we are in the editor)
+        disabled: !id
     });
 
     // Helper to get responsive value
@@ -38,15 +39,15 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
     const wrap = settings.wrap ? 'wrap' : 'nowrap';
 
     // Sizing
-    const widthMode = settings.widthMode || 'auto';
-    const heightMode = settings.heightMode || 'auto';
+    const widthMode = getValue('widthMode', 'auto');
+    const heightMode = getValue('heightMode', 'auto');
 
-    let width = settings.width || 'auto';
+    let width = getValue('width', 'auto');
     if (widthMode === 'full') width = '100%';
     if (widthMode === 'screen') width = '100vw';
     if (widthMode === 'container') width = '100%'; // Max width logic handled by container class usually
 
-    let height = settings.height || 'auto';
+    let height = getValue('height', 'auto');
     if (heightMode === 'fit') height = 'fit-content';
     if (heightMode === 'screen') height = '100vh';
 
@@ -71,8 +72,8 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
         // Sizing
         width: width,
         height: height,
-        minHeight: settings.minHeight ? `${settings.minHeight}px` : undefined,
-        maxWidth: settings.maxWidth ? `${settings.maxWidth}px` : (widthMode === 'container' ? '1280px' : undefined),
+        minHeight: getValue('minHeight', null) ? `${getValue('minHeight')}px` : undefined,
+        maxWidth: getValue('maxWidth', null) ? `${getValue('maxWidth')}px` : (widthMode === 'container' ? '1280px' : undefined),
 
         // Spacing
         paddingTop: getSpacing('padding', 'top'),

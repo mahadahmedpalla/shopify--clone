@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import {
     DndContext,
     closestCenter,
+    pointerWithin,
     KeyboardSensor,
     PointerSensor,
     useSensor,
@@ -224,7 +225,12 @@ export function StoreBuilder() {
         // CHECK IF DROPPING INTO A CONTAINER
         const isContainerDrop = over.data?.current?.type === 'container';
 
-        if (isContainerDrop && active.id !== over.id) {
+        if (isContainerDrop) {
+            const targetContainerId = over.data?.current?.parentId;
+
+            // Prevent dropping a container into itself
+            if (active.id === targetContainerId) return;
+
             // Find the active block in the root (canvasContent)
             const activeBlockIndex = canvasContent.findIndex(c => c.id === active.id);
             if (activeBlockIndex === -1) return; // Only support moving root items to container for now
@@ -232,35 +238,35 @@ export function StoreBuilder() {
             const activeBlock = canvasContent[activeBlockIndex];
 
             // Find the target container
-            const containerIndex = canvasContent.findIndex(c => c.id === over.id);
+            const containerIndex = canvasContent.findIndex(c => c.id === targetContainerId);
             if (containerIndex === -1) return;
 
             const containerBlock = canvasContent[containerIndex];
 
             // Create new children array
             const currentChildren = containerBlock.settings.children || [];
+
+            // Avoid duplicates
+            if (currentChildren.find(c => c.id === active.id)) return;
+
             const newChildren = [...currentChildren, activeBlock];
 
-            // Update state: Remove from root, update container
-            const newCanvasContent = [...canvasContent];
-            newCanvasContent.splice(activeBlockIndex, 1); // Remove dragged item
-
-            // Note: Since we spliced, indices might shift. But we need to update the container we found earlier.
-            // Better to map or re-find.
-            const updatedContent = newCanvasContent.map(block => {
-                if (block.id === over.id) {
-                    return {
+            // Update state: Using reduce for atomic update
+            const updatedContent = canvasContent.reduce((acc, block) => {
+                if (block.id === active.id) return acc; // Remove from root
+                if (block.id === targetContainerId) {
+                    acc.push({
                         ...block,
-                        settings: {
-                            ...block.settings,
-                            children: newChildren
-                        }
-                    };
+                        settings: { ...block.settings, children: newChildren }
+                    });
+                    return acc;
                 }
-                return block;
-            });
+                acc.push(block);
+                return acc;
+            }, []);
 
             setCanvasContent(updatedContent);
+            setDraggedWidget(null);
             return;
         }
 
@@ -433,7 +439,7 @@ export function StoreBuilder() {
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                         <CartProvider storeKey={storeId}>
                             <CartDrawer settings={activeCartSettings} />
-                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
+                            <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
                                 <div
                                     className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
                                     ${viewMode === 'desktop' ? (fitToWidth ? 'w-full' : 'w-[1280px]') : ''}

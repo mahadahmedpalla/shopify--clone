@@ -155,8 +155,8 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Width</label>
                             <select
-                                value={settings.widthMode || 'auto'}
-                                onChange={(e) => updateSetting('widthMode', e.target.value)}
+                                value={getResponsiveValue('widthMode', 'auto')}
+                                onChange={(e) => updateResponsiveSetting('widthMode', e.target.value)}
                                 className="w-full p-2 text-sm border border-slate-200 rounded-md mb-2"
                             >
                                 <option value="auto">Auto</option>
@@ -165,12 +165,12 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                                 <option value="container">Container (Max-width)</option>
                                 <option value="custom">Custom</option>
                             </select>
-                            {settings.widthMode === 'custom' && (
+                            {getResponsiveValue('widthMode', 'auto') === 'custom' && (
                                 <input
                                     type="text"
                                     placeholder="e.g. 500px or 50%"
-                                    value={settings.width || ''}
-                                    onChange={(e) => updateSetting('width', e.target.value)}
+                                    value={getResponsiveValue('width', '')}
+                                    onChange={(e) => updateResponsiveSetting('width', e.target.value)}
                                     className="w-full p-2 text-sm border border-slate-200 rounded-md"
                                 />
                             )}
@@ -179,8 +179,8 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Height</label>
                             <select
-                                value={settings.heightMode || 'auto'}
-                                onChange={(e) => updateSetting('heightMode', e.target.value)}
+                                value={getResponsiveValue('heightMode', 'auto')}
+                                onChange={(e) => updateResponsiveSetting('heightMode', e.target.value)}
                                 className="w-full p-2 text-sm border border-slate-200 rounded-md mb-2"
                             >
                                 <option value="auto">Auto</option>
@@ -188,12 +188,12 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                                 <option value="screen">Screen Height (100vh)</option>
                                 <option value="custom">Custom</option>
                             </select>
-                            {settings.heightMode === 'custom' && (
+                            {getResponsiveValue('heightMode', 'auto') === 'custom' && (
                                 <input
                                     type="text"
                                     placeholder="e.g. 400px"
-                                    value={settings.height || ''}
-                                    onChange={(e) => updateSetting('height', e.target.value)}
+                                    value={getResponsiveValue('height', '')}
+                                    onChange={(e) => updateResponsiveSetting('height', e.target.value)}
                                     className="w-full p-2 text-sm border border-slate-200 rounded-md"
                                 />
                             )}
@@ -204,8 +204,8 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Min Height</label>
                                 <input
                                     type="text"
-                                    value={settings.minHeight || ''}
-                                    onChange={(e) => updateSetting('minHeight', e.target.value)}
+                                    value={getResponsiveValue('minHeight', '')}
+                                    onChange={(e) => updateResponsiveSetting('minHeight', e.target.value)}
                                     className="w-full p-2 text-sm border border-slate-200 rounded-md"
                                     placeholder="px"
                                 />
@@ -214,8 +214,8 @@ export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }
                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Max Width</label>
                                 <input
                                     type="text"
-                                    value={settings.maxWidth || ''}
-                                    onChange={(e) => updateSetting('maxWidth', e.target.value)}
+                                    value={getResponsiveValue('maxWidth', '')}
+                                    onChange={(e) => updateResponsiveSetting('maxWidth', e.target.value)}
                                     className="w-full p-2 text-sm border border-slate-200 rounded-md"
                                     placeholder="px"
                                 />
