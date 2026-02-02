@@ -124,7 +124,20 @@ export function ImageRenderer({ settings, viewMode = 'desktop', onClick }) {
                     </div>
                 )}
 
-                {/* Image */}
+                {/* LQIP (Low Quality Image Placeholder) - Blur Up Effect */}
+                {settings.src && settings.src.includes('supabase.co') && (
+                    <img
+                        src={getOptimizedUrl(settings.src, 20)} // Tiny 20px wide version
+                        alt=""
+                        aria-hidden="true"
+                        className={`absolute inset-0 w-full h-full object-cover blur-xl scale-110 transition-opacity duration-700 ${isLoading ? 'opacity-100' : 'opacity-0'}`}
+                        style={{
+                            objectFit: settings.objectFit || 'cover',
+                        }}
+                    />
+                )}
+
+                {/* Main Image */}
                 <img
                     src={getOptimizedUrl(settings.src, 1280)} // Default to a reasonable desktop size
                     srcSet={generateSrcSet(settings.src)}
@@ -134,7 +147,7 @@ export function ImageRenderer({ settings, viewMode = 'desktop', onClick }) {
                     decoding="async"
                     fetchPriority="auto"
                     onLoad={() => setIsLoading(false)}
-                    className={`w-full h-full block transition-opacity duration-700 ease-in-out ${hoverClass} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                    className={`relative w-full h-full block transition-opacity duration-500 ease-out ${hoverClass} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
                     style={{
                         objectFit: settings.objectFit || 'cover',
                         height: '100%',
