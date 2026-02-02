@@ -8,9 +8,22 @@ import { ProductReviewsRenderer } from './product_reviews/ProductReviewsRenderer
 import { RelatedProductsRenderer } from './related_products/RelatedProductsRenderer';
 import { CartListRenderer } from './cart_list/CartListRenderer';
 import { CheckoutRenderer } from './checkout/CheckoutRenderer';
+import { ContainerRenderer } from './container/ContainerRenderer';
 
-export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts }) {
+export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children }) {
     switch (type) {
+        case 'container':
+            return (
+                <ContainerRenderer
+                    settings={settings}
+                    viewMode={viewMode}
+                    store={store}
+                    products={products}
+                    categories={categories}
+                >
+                    {/* If the block has 'children' property (nested blocks), ContainerRenderer handles it via settings.children */}
+                </ContainerRenderer>
+            );
         case 'navbar':
             return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} />;
         case 'hero':
