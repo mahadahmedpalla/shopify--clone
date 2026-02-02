@@ -106,6 +106,7 @@ export function PropertiesPanel({
                         <ContainerProperties
                             settings={selectedElement.settings}
                             onChange={onUpdate}
+                            viewMode={viewMode}
                         />
                     ) : selectedElement.type === 'navbar' ? (
                         <NavbarProperties

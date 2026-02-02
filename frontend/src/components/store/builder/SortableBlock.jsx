@@ -35,6 +35,7 @@ export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, 
             </div>
 
             <BlockRenderer
+                id={block.id}
                 type={block.type}
                 settings={block.settings}
                 viewMode={viewMode}

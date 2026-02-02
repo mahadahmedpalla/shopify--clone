@@ -1,7 +1,17 @@
 import React from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { BlockRenderer } from '../BlockRenderer';
 
-export function ContainerRenderer({ settings = {}, children, viewMode = 'desktop', store, products, categories }) {
+export function ContainerRenderer({ id, settings = {}, children, viewMode = 'desktop', store, products, categories }) {
+    // Drop Zone Logic
+    const { isOver, setNodeRef } = useDroppable({
+        id: id,
+        data: {
+            type: 'container',
+            accepts: ['widget'] // Metadata for future use
+        },
+        disabled: !id // Only enable droppable if ID is present (i.e. we are in the editor)
+    });
 
     // Helper to get responsive value
     // If specific mode value exists, use it. Fallback to desktop, then default.
@@ -103,8 +113,9 @@ export function ContainerRenderer({ settings = {}, children, viewMode = 'desktop
 
     return (
         <div
+            ref={setNodeRef}
             style={style}
-            className={`transition-all duration-200 ${getShadowClass()}`}
+            className={`transition-all duration-200 ${getShadowClass()} ${isOver ? 'ring-2 ring-indigo-500 bg-indigo-50/50' : ''}`}
         >
             {/* Render Children Blocks */}
             {settings.children && Array.isArray(settings.children) && settings.children.map(childBlock => (

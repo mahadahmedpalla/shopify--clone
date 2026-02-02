@@ -10,11 +10,12 @@ import { CartListRenderer } from './cart_list/CartListRenderer';
 import { CheckoutRenderer } from './checkout/CheckoutRenderer';
 import { ContainerRenderer } from './container/ContainerRenderer';
 
-export function BlockRenderer({ type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children }) {
+export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children }) {
     switch (type) {
         case 'container':
             return (
                 <ContainerRenderer
+                    id={id}
                     settings={settings}
                     viewMode={viewMode}
                     store={store}

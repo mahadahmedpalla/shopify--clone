@@ -221,7 +221,51 @@ export function StoreBuilder() {
         const { active, over } = event;
         if (!over) return;
 
-        if (active.id !== over.id && canvasContent.find(c => c.id === active.id)) {
+        // CHECK IF DROPPING INTO A CONTAINER
+        const isContainerDrop = over.data?.current?.type === 'container';
+
+        if (isContainerDrop && active.id !== over.id) {
+            // Find the active block in the root (canvasContent)
+            const activeBlockIndex = canvasContent.findIndex(c => c.id === active.id);
+            if (activeBlockIndex === -1) return; // Only support moving root items to container for now
+
+            const activeBlock = canvasContent[activeBlockIndex];
+
+            // Find the target container
+            const containerIndex = canvasContent.findIndex(c => c.id === over.id);
+            if (containerIndex === -1) return;
+
+            const containerBlock = canvasContent[containerIndex];
+
+            // Create new children array
+            const currentChildren = containerBlock.settings.children || [];
+            const newChildren = [...currentChildren, activeBlock];
+
+            // Update state: Remove from root, update container
+            const newCanvasContent = [...canvasContent];
+            newCanvasContent.splice(activeBlockIndex, 1); // Remove dragged item
+
+            // Note: Since we spliced, indices might shift. But we need to update the container we found earlier.
+            // Better to map or re-find.
+            const updatedContent = newCanvasContent.map(block => {
+                if (block.id === over.id) {
+                    return {
+                        ...block,
+                        settings: {
+                            ...block.settings,
+                            children: newChildren
+                        }
+                    };
+                }
+                return block;
+            });
+
+            setCanvasContent(updatedContent);
+            return;
+        }
+
+        // STANDARD SORTING (Root Level)
+        if (active.id !== over.id && canvasContent.find(c => c.id === active.id) && canvasContent.find(c => c.id === over.id)) {
             setCanvasContent((items) => {
                 const oldIndex = items.findIndex(i => i.id === active.id);
                 const newIndex = items.findIndex(i => i.id === over.id);

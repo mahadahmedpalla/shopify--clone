@@ -6,9 +6,8 @@ import {
     Box
 } from 'lucide-react';
 
-export function ContainerProperties({ settings, onChange }) {
+export function ContainerProperties({ settings, onChange, viewMode = 'desktop' }) {
     const [activeTab, setActiveTab] = useState('layout'); // layout, sizing, spacing, style
-    const [viewMode, setViewMode] = useState('desktop'); // desktop, tablet, mobile
 
     const updateSetting = (key, value) => {
         onChange({ ...settings, [key]: value });
@@ -29,22 +28,12 @@ export function ContainerProperties({ settings, onChange }) {
 
     return (
         <div className="space-y-6">
-            {/* View Mode Switcher */}
-            <div className="flex items-center justify-center p-1 bg-slate-100 rounded-lg">
-                {[
-                    { id: 'mobile', icon: Smartphone },
-                    { id: 'tablet', icon: Tablet },
-                    { id: 'desktop', icon: Monitor }
-                ].map(mode => (
-                    <button
-                        key={mode.id}
-                        onClick={() => setViewMode(mode.id)}
-                        className={`flex-1 flex items-center justify-center py-1.5 rounded-md transition-all ${viewMode === mode.id ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        <mode.icon className="w-4 h-4" />
-                    </button>
-                ))}
+            {/* View Mode Indicator (Passive) */}
+            <div className="flex items-center justify-center p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-indigo-700 text-xs font-bold uppercase tracking-widest gap-2">
+                {viewMode === 'mobile' && <Smartphone className="w-4 h-4" />}
+                {viewMode === 'tablet' && <Tablet className="w-4 h-4" />}
+                {viewMode === 'desktop' && <Monitor className="w-4 h-4" />}
+                Editing {viewMode} Layout
             </div>
 
             {/* Tabs */}
@@ -59,8 +48,8 @@ export function ContainerProperties({ settings, onChange }) {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-1 py-3 text-xs font-medium border-b-2 transition-colors flex flex-col items-center gap-1 ${activeTab === tab.id
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-700'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
