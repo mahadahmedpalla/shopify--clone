@@ -23,7 +23,6 @@ export function PropertiesPanel({
     onSaveCustom,
     storeId
 }) {
-    console.log('[PropertiesPanel] storeId:', storeId);
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [presetName, setPresetName] = useState('');
 

@@ -10,7 +10,7 @@ import {
 export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
     const { storeId: paramStoreId } = useParams();
     const activeStoreId = storeId || paramStoreId;
-    console.log('[HeroProperties] storeId:', storeId, 'paramStoreId:', paramStoreId);
+
     const update = (key, val) => {
         if (viewMode === 'desktop') {
             onUpdate({ ...settings, [key]: val });
