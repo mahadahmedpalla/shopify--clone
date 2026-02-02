@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Settings2, Save } from 'lucide-react';
 import { NavbarProperties } from '../widgets/navbar/NavbarProperties';
 import { HeroProperties } from '../widgets/hero/HeroProperties';
+import { HeroSlideshowProperties } from '../widgets/hero/HeroSlideshowProperties';
 import { ProductGridProperties } from '../widgets/product_grid/ProductGridProperties';
 import { ProductDetailProperties } from '../widgets/product_detail/ProductDetailProperties';
 import { ProductReviewsProperties } from '../widgets/product_reviews/ProductReviewsProperties';
@@ -131,6 +132,12 @@ export function PropertiesPanel({
                         <HeroProperties
                             settings={selectedElement.settings}
                             viewMode={viewMode}
+                            onUpdate={onUpdate}
+                            storeId={storeId}
+                        />
+                    ) : selectedElement.type === 'hero_slideshow' ? (
+                        <HeroSlideshowProperties
+                            settings={selectedElement.settings}
                             onUpdate={onUpdate}
                             storeId={storeId}
                         />

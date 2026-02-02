@@ -1,6 +1,7 @@
 import React from 'react';
 const NavbarRenderer = React.lazy(() => import('./navbar/NavbarRenderer').then(module => ({ default: module.NavbarRenderer })));
 const HeroRenderer = React.lazy(() => import('./hero/HeroRenderer').then(module => ({ default: module.HeroRenderer })));
+const HeroSlideshowRenderer = React.lazy(() => import('./hero/HeroSlideshowRenderer').then(module => ({ default: module.HeroSlideshowRenderer })));
 const ImageRenderer = React.lazy(() => import('./image/ImageRenderer').then(module => ({ default: module.ImageRenderer })));
 const ProductGridRenderer = React.lazy(() => import('./product_grid/ProductGridRenderer').then(module => ({ default: module.ProductGridRenderer })));
 const ProductDetailRenderer = React.lazy(() => import('./product_detail/ProductDetailRenderer').then(module => ({ default: module.ProductDetailRenderer })));
@@ -82,6 +83,8 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                         return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} />;
                     case 'hero':
                         return <HeroRenderer settings={settings} viewMode={viewMode} />;
+                    case 'hero_slideshow':
+                        return <HeroSlideshowRenderer settings={settings} viewMode={viewMode} />;
                     case 'image':
                         return <ImageRenderer settings={settings} viewMode={viewMode} />;
                     case 'product_grid':

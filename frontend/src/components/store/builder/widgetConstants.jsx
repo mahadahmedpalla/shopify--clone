@@ -19,6 +19,7 @@ export const WIDGET_CATEGORIES = [
         widgets: [
             { type: 'container', icon: <Layout className="h-4 w-4" />, label: 'Container' },
             { type: 'hero', icon: <Layout className="h-4 w-4" />, label: 'Hero Banner' },
+            { type: 'hero_slideshow', icon: <Play className="h-4 w-4" />, label: 'Hero Slideshow' },
             { type: 'section', icon: <Layout className="h-4 w-4" />, label: 'Section' },
             { type: 'spacer', icon: <Box className="h-4 w-4" />, label: 'Spacer' },
         ]
@@ -121,6 +122,24 @@ export const getWidgetDefaults = (type) => {
         secondaryBtnTextColor: '#ffffff',
         mobileHeight: '400px',
         mobileAlignment: 'center'
+    } : type === 'hero_slideshow' ? {
+        slides: [
+            { id: 1, title: 'Summer Collection', subtitle: 'New Arrivals are here', btnText: 'Shop Summer', image: '' },
+            { id: 2, title: 'Exclusive Deals', subtitle: 'Up to 50% off', btnText: 'View Deals', image: '' }
+        ],
+        showArrows: true,
+        showDots: true,
+        autoplay: true,
+        autoplayDuration: 5000,
+        heightMode: 'full',
+        overlayColor: '#000000',
+        overlayOpacity: 0.3,
+        overlayColorGlobal: true,
+        headingSize: '64px',
+        headingColor: '#ffffff',
+        btnBgColor: '#ffffff',
+        btnTextColor: '#000000',
+        btnBorderRadius: '99px'
     } : type === 'product_grid' ? {
         title: 'Featured Collection',
         categoryId: 'all',
