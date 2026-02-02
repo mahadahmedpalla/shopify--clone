@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import {
     Image as ImageIcon, Maximize, Smartphone, Monitor, Tablet,
     AlignLeft, AlignCenter, AlignRight,
@@ -7,6 +8,8 @@ import {
 import { supabase } from '../../../../lib/supabase';
 
 export function ImageProperties({ settings, onChange, viewMode = 'desktop', storeId }) {
+    const { storeId: paramStoreId } = useParams();
+    const activeStoreId = storeId || paramStoreId;
     const [activeTab, setActiveTab] = useState('content'); // content, sizing, style, interaction
     const [uploading, setUploading] = useState(false);
 
