@@ -125,10 +125,7 @@ export function ContainerRenderer({ id, settings = {}, children, viewMode = 'des
                             categories={categories}
                             isEditor={true}
                             isSelected={selectedId === childBlock.id}
-                            onClick={() => {
-                                console.log("ContainerRenderer: Child Clicked", childBlock.id);
-                                if (onSelect) onSelect(childBlock);
-                            }}
+                            onClick={() => onSelect && onSelect(childBlock)}
                             onDelete={onDelete ? () => onDelete(childBlock.id) : undefined}
                             onSelect={onSelect}
                             onDeleteItem={onDelete}
