@@ -8,6 +8,7 @@ import { ProductReviewsProperties } from '../widgets/product_reviews/ProductRevi
 import { RelatedProductsProperties } from '../widgets/related_products/RelatedProductsProperties';
 import { CartListProperties } from '../widgets/cart_list/CartListProperties';
 import { CheckoutProperties } from '../widgets/checkout/CheckoutProperties';
+import { ContainerProperties } from '../widgets/container/ContainerProperties';
 
 export function PropertiesPanel({
     previewMode,
@@ -101,7 +102,12 @@ export function PropertiesPanel({
                         <p className="text-xs font-bold text-slate-800">{selectedElement.type.replace('_', ' ')}</p>
                     </div>
 
-                    {selectedElement.type === 'navbar' ? (
+                    {selectedElement.type === 'container' ? (
+                        <ContainerProperties
+                            settings={selectedElement.settings}
+                            onChange={onUpdate}
+                        />
+                    ) : selectedElement.type === 'navbar' ? (
                         <NavbarProperties
                             settings={selectedElement.settings}
                             viewMode={viewMode}

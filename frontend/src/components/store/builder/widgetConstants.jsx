@@ -18,6 +18,7 @@ export const WIDGET_CATEGORIES = [
     {
         name: 'Layout',
         widgets: [
+            { type: 'container', icon: <Layout className="h-4 w-4" />, label: 'Container' },
             { type: 'hero', icon: <Layout className="h-4 w-4" />, label: 'Hero Banner' },
             { type: 'section', icon: <Layout className="h-4 w-4" />, label: 'Section' },
             { type: 'spacer', icon: <Box className="h-4 w-4" />, label: 'Spacer' },
@@ -66,6 +67,26 @@ export const getWidgetDefaults = (type) => {
             { id: 'm1', label: 'Home', type: 'page', value: 'home' },
             { id: 'm2', label: 'Shop', type: 'page', value: 'shop' }
         ]
+    } : type === 'container' ? {
+        direction: { desktop: 'column', tablet: 'column', mobile: 'column' },
+        alignItems: { desktop: 'stretch', tablet: 'stretch', mobile: 'stretch' },
+        justifyContent: { desktop: 'start', tablet: 'start', mobile: 'start' },
+        gap: { desktop: 16, tablet: 16, mobile: 12 },
+        padding: {
+            desktop: { top: 20, right: 20, bottom: 20, left: 20 },
+            tablet: { top: 16, right: 16, bottom: 16, left: 16 },
+            mobile: { top: 12, right: 12, bottom: 12, left: 12 }
+        },
+        margin: {
+            desktop: { top: 0, right: 0, bottom: 0, left: 0 },
+            tablet: { top: 0, right: 0, bottom: 0, left: 0 },
+            mobile: { top: 0, right: 0, bottom: 0, left: 0 }
+        },
+        widthMode: 'auto',
+        heightMode: 'auto',
+        backgroundColor: 'transparent',
+        shadow: 'none',
+        children: []
     } : type === 'hero' ? {
         title: 'Elevate Your Style',
         subtitle: 'Discover our premium winter collection.',
