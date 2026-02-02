@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
 import { BlockRenderer } from '../widgets/BlockRenderer';
 
-export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, products, categories, isEditor }) {
+export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, store, products, categories, isEditor, onSelect, onDeleteItem }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
 
     const style = {
@@ -42,9 +42,8 @@ export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, 
                 store={store}
                 products={products}
                 categories={categories}
-                isEditor={isEditor}
-                onSelect={props.onSelect}
-                onDelete={props.onDeleteItem}
+                onSelect={onSelect}
+                onDelete={onDeleteItem}
             />
         </div>
     );

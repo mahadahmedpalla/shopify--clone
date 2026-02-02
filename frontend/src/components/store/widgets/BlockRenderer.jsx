@@ -10,7 +10,7 @@ import { CartListRenderer } from './cart_list/CartListRenderer';
 import { CheckoutRenderer } from './checkout/CheckoutRenderer';
 import { ContainerRenderer } from './container/ContainerRenderer';
 
-export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children }) {
+export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId }) {
     switch (type) {
         case 'container':
             return (
@@ -22,9 +22,9 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     products={products}
                     categories={categories}
                     isEditor={isEditor}
-                    onSelect={props.onSelect}
-                    onDelete={props.onDelete}
-                    selectedId={props.selectedId}
+                    onSelect={onSelect}
+                    onDelete={onDelete}
+                    selectedId={selectedId}
                 >
                     {/* If the block has 'children' property (nested blocks), ContainerRenderer handles it via settings.children */}
                 </ContainerRenderer>
