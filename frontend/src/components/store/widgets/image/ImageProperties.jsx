@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
 
-export function ImageProperties({ settings, onChange, viewMode = 'desktop' }) {
+export function ImageProperties({ settings, onChange, viewMode = 'desktop', storeId }) {
     const [activeTab, setActiveTab] = useState('content'); // content, sizing, style, interaction
     const [uploading, setUploading] = useState(false);
 
@@ -34,7 +34,9 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop' }) {
 
             const fileExt = file.name.split('.').pop();
             const fileName = `${Math.random()}.${fileExt}`;
-            const filePath = `widget-images/${fileName}`;
+            // Use standardized store-id isolation: storeId/filename
+            const folder = activeStoreId ? `${activeStoreId}/widget-images` : `widget-images`;
+            const filePath = `${folder}/${fileName}`;
 
             let { error: uploadError } = await supabase.storage
                 .from('store-images')
@@ -156,8 +158,8 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop' }) {
                                         key={ratio}
                                         onClick={() => updateResponsiveSetting('aspectRatio', ratio)}
                                         className={`px-2 py-1.5 text-xs border rounded-md capitalize ${getResponsiveValue('aspectRatio', 'auto') === ratio
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-bold'
-                                                : 'border-slate-200 text-slate-600'
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-bold'
+                                            : 'border-slate-200 text-slate-600'
                                             }`}
                                     >
                                         {ratio}
@@ -202,8 +204,8 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop' }) {
                                         key={mode}
                                         onClick={() => updateResponsiveSetting('widthMode', mode)}
                                         className={`px-2 py-1.5 text-xs border rounded-md capitalize ${getResponsiveValue('widthMode', 'auto') === mode
-                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-bold'
-                                                : 'border-slate-200 text-slate-600'
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-bold'
+                                            : 'border-slate-200 text-slate-600'
                                             }`}
                                     >
                                         {mode}
@@ -234,8 +236,8 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop' }) {
                                         key={opt.val}
                                         onClick={() => updateResponsiveSetting('alignment', opt.val)}
                                         className={`flex-1 flex items-center justify-center py-1.5 rounded transition-all ${getResponsiveValue('alignment', 'center') === opt.val
-                                                ? 'bg-white shadow-sm text-indigo-600'
-                                                : 'text-slate-500'
+                                            ? 'bg-white shadow-sm text-indigo-600'
+                                            : 'text-slate-500'
                                             }`}
                                     >
                                         <opt.icon className="w-4 h-4" />

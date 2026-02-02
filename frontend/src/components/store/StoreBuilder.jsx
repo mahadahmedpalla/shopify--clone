@@ -188,6 +188,7 @@ const reorderChildrenRecursive = (blocks, parentId, activeId, overId) => {
 
 export function StoreBuilder() {
     const { storeId, pageId } = useParams();
+    console.log('[StoreBuilder] storeId:', storeId);
     const navigate = useNavigate();
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -627,6 +628,7 @@ export function StoreBuilder() {
                         viewMode={viewMode}
                         storePages={storePages}
                         onSaveCustom={handleSaveCustomWidget}
+                        storeId={storeId}
                     />
                 </div>
             </div>

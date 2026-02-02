@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../../../../lib/supabase';
 import { ColorInput } from '../Shared';
 import {
@@ -6,7 +7,10 @@ import {
     ArrowUp, ArrowDown, Move, Smartphone, Tablet
 } from 'lucide-react';
 
-export function HeroProperties({ settings, onUpdate, viewMode }) {
+export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
+    const { storeId: paramStoreId } = useParams();
+    const activeStoreId = storeId || paramStoreId;
+    console.log('[HeroProperties] storeId:', storeId, 'paramStoreId:', paramStoreId);
     const update = (key, val) => {
         if (viewMode === 'desktop') {
             onUpdate({ ...settings, [key]: val });
@@ -78,7 +82,8 @@ export function HeroProperties({ settings, onUpdate, viewMode }) {
 
                                     const fileExt = file.name.split('.').pop();
                                     const fileName = `${Math.random()}.${fileExt}`;
-                                    const filePath = `${fileName}`;
+                                    // Use standardized store-id isolation: storeId/filename
+                                    const filePath = storeId ? `${storeId}/${fileName}` : `${fileName}`;
 
                                     const { error } = await supabase.storage
                                         .from('store-assets')

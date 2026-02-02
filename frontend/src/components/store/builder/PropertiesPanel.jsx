@@ -20,8 +20,10 @@ export function PropertiesPanel({
     categories,
     viewMode,
     storePages,
-    onSaveCustom
+    onSaveCustom,
+    storeId
 }) {
+    console.log('[PropertiesPanel] storeId:', storeId);
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [presetName, setPresetName] = useState('');
 
@@ -114,6 +116,7 @@ export function PropertiesPanel({
                             settings={selectedElement.settings}
                             onChange={onUpdate}
                             viewMode={viewMode}
+                            storeId={storeId}
                         />
                     ) : selectedElement.type === 'navbar' ? (
                         <NavbarProperties
@@ -123,12 +126,14 @@ export function PropertiesPanel({
                             products={products}
                             storePages={storePages}
                             onUpdate={onUpdate}
+                            storeId={storeId}
                         />
                     ) : selectedElement.type === 'hero' ? (
                         <HeroProperties
                             settings={selectedElement.settings}
                             viewMode={viewMode}
                             onUpdate={onUpdate}
+                            storeId={storeId}
                         />
                     ) : selectedElement.type === 'product_grid' ? (
                         <ProductGridProperties

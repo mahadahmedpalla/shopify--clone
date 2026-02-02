@@ -23,7 +23,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-export function NavbarProperties({ settings, onUpdate, categories, products, storePages, viewMode }) {
+export function NavbarProperties({ settings, onUpdate, categories, products, storePages, viewMode, storeId }) {
     const update = (key, val) => {
         if (viewMode === 'desktop') {
             onUpdate({ ...settings, [key]: val });
@@ -245,7 +245,8 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
 
                                     const fileExt = file.name.split('.').pop();
                                     const fileName = `${Math.random()}.${fileExt}`;
-                                    const filePath = `${fileName}`;
+                                    // Use standardized store-id isolation: storeId/filename
+                                    const filePath = storeId ? `${storeId}/${fileName}` : `${fileName}`;
 
                                     const { error } = await supabase.storage
                                         .from('store-assets')
