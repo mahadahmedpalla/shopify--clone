@@ -79,12 +79,20 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         return colsMap[columns] || 'grid-cols-4';
     };
 
+    const getOptimizedUrl = (url, width) => {
+        if (!url || !url.includes('supabase.co')) return url;
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}width=${width}&quality=80&format=webp`;
+    };
+
     return (
         <div className="p-12 space-y-8 bg-white">
+            {/* ... Header ... */}
             <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
                 {!enablePagination && <span className="text-sm font-bold text-indigo-600 cursor-pointer hover:underline">View All</span>}
             </div>
+
             {finalProducts.length === 0 ? (
                 <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
                     <p className="text-slate-400 font-medium">No products found in this collection.</p>
@@ -104,8 +112,17 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                     {...wrapperProps}
                                 >
                                     <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden relative">
+                                        {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
                                         {product.images?.[0] ? (
-                                            <img src={product.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={product.name} />
+                                            <img
+                                                src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
+                                                loading="lazy"
+                                                decoding="async"
+                                                width="500"
+                                                height="667" // Approximate 3:4 ratio
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                alt={product.name}
+                                            />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-slate-300">
                                                 <Box className="h-8 w-8" />

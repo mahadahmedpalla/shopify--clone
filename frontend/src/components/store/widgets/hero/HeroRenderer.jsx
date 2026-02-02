@@ -19,6 +19,13 @@ export function HeroRenderer({ settings, viewMode }) {
 
     const bgPosition = rVal('backgroundPosition', settings.backgroundPosition || 'center');
 
+    // Optimization Helper
+    const getOptimizedUrl = (url, width) => {
+        if (!url || !url.includes('supabase.co')) return url;
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}width=${width}&quality=80&format=webp`;
+    };
+
     return (
         <div
             className={`relative overflow-hidden w-full flex flex-col ${isBanner ? 'bg-white' : ''}`}
@@ -35,12 +42,32 @@ export function HeroRenderer({ settings, viewMode }) {
                     alignItems: vAlign
                 }}
             >
+                {/* Background Image with Optimization */}
                 {bgImage && (
-                    <img
-                        src={bgImage}
-                        className={`absolute inset-0 w-full h-full object-cover object-${bgPosition}`}
-                        alt="Hero Background"
-                    />
+                    <>
+                        {/* 1. Tiny Blurred Placeholder (LQIP) */}
+                        <img
+                            src={getOptimizedUrl(bgImage, 20)}
+                            className={`absolute inset-0 w-full h-full object-cover object-${bgPosition} blur-2xl scale-110`}
+                            alt=""
+                            aria-hidden="true"
+                        />
+
+                        {/* 2. Main High-Res Image */}
+                        <img
+                            src={getOptimizedUrl(bgImage, 1920)}
+                            srcSet={`
+                                ${getOptimizedUrl(bgImage, 640)} 640w,
+                                ${getOptimizedUrl(bgImage, 1024)} 1024w,
+                                ${getOptimizedUrl(bgImage, 1500)} 1500w,
+                                ${getOptimizedUrl(bgImage, 1920)} 1920w
+                            `}
+                            className={`absolute inset-0 w-full h-full object-cover object-${bgPosition} transition-opacity duration-500`}
+                            alt="Hero Background"
+                            loading="eager" // Hero is LCP, load immediately
+                            fetchPriority="high" // Prioritize this resource
+                        />
+                    </>
                 )}
 
                 {!isBanner && (
