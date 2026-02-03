@@ -255,13 +255,17 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                 <>
                     <button
                         onClick={prevSlide}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-slate-900 transition-all opacity-0 group-hover:opacity-100"
+                        className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-slate-900 transition-all 
+                            ${(viewMode === 'mobile' || viewMode === 'tablet') ? 'opacity-100' : 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100'}
+                        `}
                     >
                         <ChevronLeft className="h-6 w-6" />
                     </button>
                     <button
                         onClick={nextSlide}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-slate-900 transition-all opacity-0 group-hover:opacity-100"
+                        className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white hover:text-slate-900 transition-all 
+                            ${(viewMode === 'mobile' || viewMode === 'tablet') ? 'opacity-100' : 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100'}
+                        `}
                     >
                         <ChevronRight className="h-6 w-6" />
                     </button>
