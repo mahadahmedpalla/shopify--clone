@@ -154,8 +154,12 @@ export const createOrder = async (orderData) => {
         finalShippingRateId = null;
     }
 
+    // Generate UUID client-side
+    const orderId = self.crypto.randomUUID();
+
     // 1. Prepare payload matching schema
     const payload = {
+        id: orderId, // Manually set ID
         store_id: orderData.storeId,
         customer_email: orderData.customer.email,
         customer_name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName}`,
@@ -182,14 +186,15 @@ export const createOrder = async (orderData) => {
         status: 'in-progress'
     };
 
-    const { data, error } = await supabase
+    // Remove .select() to avoid RLS violation for guest users (public role can insert but not select)
+    const { error } = await supabase
         .from('orders')
-        .insert(payload)
-        .select()
-        .single();
+        .insert(payload);
 
     if (error) throw error;
-    return data;
+
+    // Return mock object with the ID we generated, enough for redirection
+    return { id: orderId, ...payload };
 };
 
 /**
