@@ -37,6 +37,28 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
         setCurrentSlide((prev) => (prev === 0 ? count - 1 : prev - 1));
     };
 
+    // Responsive Helper for Slide Objects
+    const getSlideRespValue = (slide, key, mode, defaultVal) => {
+        // Check for mode-specific override first (prop_mobile, prop_tablet)
+        // If not found, fall back to desktop (prop)
+        // Mode hierarchy: Mobile -> Tablet -> Desktop
+        // But for simply rendering, if viewMode is Mobile, we look for prop_mobile, if not check prop.
+
+        let val;
+
+        if (mode === 'mobile') {
+            val = slide[`${key}_mobile`];
+            if (val !== undefined && val !== '') return val;
+            // Maybe fallback to tablet? Usually we just fallback to desktop.
+        } else if (mode === 'tablet') {
+            val = slide[`${key}_tablet`];
+            if (val !== undefined && val !== '') return val;
+        }
+
+        // Desktop / Default fallback
+        return slide[key] !== undefined && slide[key] !== '' ? slide[key] : defaultVal;
+    };
+
     // Layout
     const rVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
     const heightMode = rVal('heightMode', settings.heightMode || 'full');
@@ -60,24 +82,42 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
             {slides.map((slide, index) => {
                 const isActive = index === currentSlide;
 
-                // Styles (Per Slide with Defaults fallback)
-                const hAlign = slide.hAlignment || 'center';
-                const vAlign = slide.vAlignment || 'center';
+                // Styles (Per Slide with Defaults fallback + Responsive)
+                const sVal = (key, def) => getSlideRespValue(slide, key, viewMode, def);
+
+                const hAlign = sVal('hAlignment', 'center');
+                const vAlign = sVal('vAlignment', 'center');
 
                 // Typography
-                const headingFont = slide.headingFontFamily || 'Inter, sans-serif';
-                const subheadingFont = slide.subheadingFontFamily || 'Inter, sans-serif';
-                const headingColor = slide.headingColor || '#ffffff';
-                const subheadingColor = slide.subheadingColor || '#e2e8f0';
-                const headingSize = slide.headingSize || '48px';
-                const subheadingSize = slide.subheadingSize || '18px';
+                const headingFont = sVal('headingFontFamily', 'Inter, sans-serif');
+                const subheadingFont = sVal('subheadingFontFamily', 'Inter, sans-serif');
+                const headingColor = sVal('headingColor', '#ffffff');
+                const subheadingColor = sVal('subheadingColor', '#e2e8f0');
+                const headingSize = sVal('headingSize', '48px');
+                const subheadingSize = sVal('subheadingSize', '18px');
 
-                // Button Defaults (Legacy Support + Per Slide)
-                // If slide has new 'buttons' array, use it. If not, use legacy btnText/btnLink
+                // Image Override
+                const slideImage = sVal('image', slide.image);
+
+                // Text Override (User requested "slide image can be changed or deleted... all the other properties can be altered")
+                const slideTitle = sVal('title', slide.title);
+                const slideSubtitle = sVal('subtitle', slide.subtitle);
+
+                // Button Defaults (Legacy Support + Per Slide + Responsive)
                 let buttons = slide.buttons || [];
                 if (buttons.length === 0 && slide.btnText) {
                     buttons = [{ id: 'legacy', text: slide.btnText, link: slide.btnLink, variant: 'primary' }];
                 }
+
+                // Button Styles
+                const btnPaddingX = sVal('btnPaddingX', '32px');
+                const btnPaddingY = sVal('btnPaddingY', '16px');
+                const btnBorderRadius = sVal('btnBorderRadius', '9999px');
+                const btnFontSize = sVal('btnFontSize', '16px');
+                const btnMarginTop = sVal('btnMarginTop', '24px');
+                const btnBgColor = sVal('btnBgColor', '#ffffff');
+                const btnTextColor = sVal('btnTextColor', '#000000');
+                const secondaryBtnTextColor = sVal('secondaryBtnTextColor', '#ffffff');
 
                 return (
                     <div
@@ -87,11 +127,11 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                         `}
                     >
                         {/* Background Image */}
-                        {slide.image && (
+                        {slideImage && (
                             <>
                                 {/* LQIP (Blur-up) */}
                                 <img
-                                    src={getOptimizedUrl(slide.image, 20)}
+                                    src={getOptimizedUrl(slideImage, 20)}
                                     alt=""
                                     aria-hidden="true"
                                     className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110"
@@ -99,16 +139,15 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
 
                                 {/* Main Image */}
                                 <img
-                                    src={getOptimizedUrl(slide.image, 1920)}
+                                    src={getOptimizedUrl(slideImage, 1920)}
                                     srcSet={`
-                                        ${getOptimizedUrl(slide.image, 640)} 640w,
-                                        ${getOptimizedUrl(slide.image, 1024)} 1024w,
-                                        ${getOptimizedUrl(slide.image, 1500)} 1500w,
-                                        ${getOptimizedUrl(slide.image, 1920)} 1920w
+                                        ${getOptimizedUrl(slideImage, 640)} 640w,
+                                        ${getOptimizedUrl(slideImage, 1024)} 1024w,
+                                        ${getOptimizedUrl(slideImage, 1500)} 1500w,
+                                        ${getOptimizedUrl(slideImage, 1920)} 1920w
                                     `}
-                                    alt={slide.title}
+                                    alt={slideTitle}
                                     className="absolute inset-0 w-full h-full object-cover"
-                                    // CRITICAL PERF: Lazy load everything EXCEPT the first slide (or current if we started elsewhere)
                                     loading={index === 0 ? "eager" : "lazy"}
                                     fetchPriority={index === 0 ? "high" : "auto"}
                                     decoding="async"
@@ -130,11 +169,12 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                             className={`absolute inset-0 flex p-12 z-20 transition-all duration-700 ${isActive ? 'translate-y-0 opacity-100 delay-300' : 'translate-y-10 opacity-0'}`}
                             style={{
                                 justifyContent: hAlign,
-                                alignItems: vAlign
+                                alignItems: vAlign,
+                                // Responsive padding maybe? Fixed at p-12 for now.
                             }}
                         >
                             <div className={`max-w-4xl space-y-6 ${hAlign === 'center' ? 'text-center' : hAlign === 'flex-end' ? 'text-right' : 'text-left'}`}>
-                                {slide.title && (
+                                {slideTitle && (
                                     <h2
                                         style={{
                                             fontFamily: headingFont,
@@ -144,10 +184,10 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                         }}
                                         className="font-extrabold tracking-tight"
                                     >
-                                        {slide.title}
+                                        {slideTitle}
                                     </h2>
                                 )}
-                                {slide.subtitle && (
+                                {slideSubtitle && (
                                     <p
                                         style={{
                                             fontFamily: subheadingFont,
@@ -156,7 +196,7 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                         }}
                                         className="font-medium opacity-90"
                                     >
-                                        {slide.subtitle}
+                                        {slideSubtitle}
                                     </p>
                                 )}
 
@@ -164,11 +204,10 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                 {buttons.length > 0 && (
                                     <div className={`pt-4 flex flex-wrap gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
                                         {buttons.map((btn, btnIdx) => {
-                                            // Determine styles based on variant
                                             const isPrimary = !btn.variant || btn.variant === 'primary';
-                                            const bgColor = isPrimary ? (slide.btnBgColor || '#ffffff') : 'transparent';
-                                            const textColor = isPrimary ? (slide.btnTextColor || '#000000') : (slide.secondaryBtnTextColor || '#ffffff');
-                                            const border = isPrimary ? 'none' : `2px solid ${slide.secondaryBtnTextColor || '#ffffff'}`;
+                                            const bgColor = isPrimary ? btnBgColor : 'transparent';
+                                            const textColor = isPrimary ? btnTextColor : secondaryBtnTextColor;
+                                            const border = isPrimary ? 'none' : `2px solid ${secondaryBtnTextColor}`;
 
                                             return (
                                                 <Button
@@ -177,10 +216,10 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                                         backgroundColor: bgColor,
                                                         color: textColor,
                                                         border: border,
-                                                        padding: `${slide.btnPaddingY || '16px'} ${slide.btnPaddingX || '32px'}`,
-                                                        borderRadius: slide.btnBorderRadius || '9999px',
-                                                        fontSize: slide.btnFontSize || '16px',
-                                                        marginTop: slide.btnMarginTop || '24px'
+                                                        padding: `${btnPaddingY} ${btnPaddingX}`,
+                                                        borderRadius: btnBorderRadius,
+                                                        fontSize: btnFontSize,
+                                                        marginTop: btnMarginTop
                                                     }}
                                                     className="shadow-xl transition-transform hover:scale-105 font-bold"
                                                 >

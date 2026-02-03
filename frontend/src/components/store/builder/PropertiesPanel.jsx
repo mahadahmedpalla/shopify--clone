@@ -140,6 +140,7 @@ export function PropertiesPanel({
                             settings={selectedElement.settings}
                             onUpdate={onUpdate}
                             storeId={storeId}
+                            viewMode={viewMode}
                         />
                     ) : selectedElement.type === 'product_grid' ? (
                         <ProductGridProperties

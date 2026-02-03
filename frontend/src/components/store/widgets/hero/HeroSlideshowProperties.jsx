@@ -8,7 +8,7 @@ import {
 import { supabase } from '../../../../lib/supabase';
 import { ColorInput } from '../Shared';
 
-export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
+export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop' }) {
     const { storeId: paramStoreId } = useParams();
     const activeStoreId = storeId || paramStoreId;
     const [activeTab, setActiveTab] = useState('slides'); // slides, settings, style
@@ -21,9 +21,30 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
         onUpdate({ ...settings, ...updatedSettings });
     };
 
+    // Responsive Helpers
+    const getResponsiveKey = (key) => {
+        if (viewMode === 'desktop') return key;
+        return `${key}_${viewMode}`;
+    };
+
+    const getSlideValue = (slide, key) => {
+        const respKey = getResponsiveKey(key);
+        return slide[respKey];
+    };
+
+    // Fallback getter for placeholders to show inheritance
+    const getSlideInheritedValue = (slide, key) => {
+        // Simple fallback chain: mobile -> tablet -> desktop (simplified, usually inherit from desktop)
+        // If we are editing mobile, and value is unset, the renderer will use desktop.
+        // So placeholder should show desktop value.
+        if (viewMode === 'desktop') return '';
+        return slide[key];
+    };
+
     const handleSlideUpdate = (index, key, value) => {
         const newSlides = [...slides];
-        newSlides[index] = { ...newSlides[index], [key]: value };
+        const targetKey = getResponsiveKey(key);
+        newSlides[index] = { ...newSlides[index], [targetKey]: value };
         handleUpdate({ slides: newSlides });
     };
 
@@ -76,6 +97,7 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
         }
 
         const { data } = supabase.storage.from('store-assets').getPublicUrl(filePath);
+        // Uses the responsive key logic to upload per-device image if needed
         handleSlideUpdate(slideIndex, 'image', data.publicUrl);
     };
 
@@ -83,6 +105,8 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
     const updateButton = (slideIndex, btnIndex, key, value) => {
         const newSlides = [...slides];
         const buttons = [...(newSlides[slideIndex].buttons || [])];
+        // Buttons content (text/link) is global for now as per usual pattern, 
+        // unless specified otherwise. We'll keep content global, styling responsive.
         buttons[btnIndex] = { ...buttons[btnIndex], [key]: value };
         newSlides[slideIndex].buttons = buttons;
         handleUpdate({ slides: newSlides });
@@ -107,6 +131,14 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
 
     return (
         <div className="space-y-6">
+            {/* View Mode Indicator */}
+            {viewMode !== 'desktop' && (
+                <div className="bg-indigo-50 p-2 rounded text-xs font-bold text-indigo-700 flex items-center gap-2 border border-indigo-100">
+                    {viewMode === 'mobile' ? <Smartphone className="h-3 w-3" /> : <Tablet className="h-3 w-3" />}
+                    <span>Editing for {viewMode.charAt(0).toUpperCase() + viewMode.slice(1)}</span>
+                </div>
+            )}
+
             {/* Tabs */}
             <div className="flex p-1 bg-slate-100 rounded-lg">
                 {['slides', 'settings', 'style'].map(tab => (
@@ -140,8 +172,8 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="h-8 w-12 bg-slate-200 rounded overflow-hidden flex-shrink-0 border border-slate-300 relative">
-                                            {slide.image ? (
-                                                <img src={slide.image} className="w-full h-full object-cover" />
+                                            {getSlideValue(slide, 'image') || slide.image ? (
+                                                <img src={getSlideValue(slide, 'image') || slide.image} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-slate-400"><Image className="h-4 w-4" /></div>
                                             )}
@@ -159,14 +191,16 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                                     <div className="p-3 space-y-4 border-t border-slate-200 animate-in slide-in-from-top-2 duration-200">
                                         {/* Image Upload */}
                                         <div>
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Slide Image</label>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                                                Slide Image {viewMode !== 'desktop' && '(Override)'}
+                                            </label>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
-                                                    value={slide.image || ''}
+                                                    value={getSlideValue(slide, 'image') || ''}
                                                     onChange={(e) => handleSlideUpdate(index, 'image', e.target.value)}
                                                     className="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
-                                                    placeholder="https://..."
+                                                    placeholder={getSlideInheritedValue(slide, 'image') || "https://..."}
                                                 />
                                                 <label className="cursor-pointer p-1.5 bg-slate-100 rounded border border-slate-200 hover:bg-slate-200">
                                                     <Image className="h-4 w-4 text-slate-500" />
@@ -181,18 +215,20 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading</label>
                                                 <input
                                                     type="text"
-                                                    value={slide.title || ''}
+                                                    value={getSlideValue(slide, 'title') || ''}
                                                     onChange={(e) => handleSlideUpdate(index, 'title', e.target.value)}
                                                     className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
+                                                    placeholder={getSlideInheritedValue(slide, 'title')}
                                                 />
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Subheading</label>
                                                 <input
                                                     type="text"
-                                                    value={slide.subtitle || ''}
+                                                    value={getSlideValue(slide, 'subtitle') || ''}
                                                     onChange={(e) => handleSlideUpdate(index, 'subtitle', e.target.value)}
                                                     className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
+                                                    placeholder={getSlideInheritedValue(slide, 'subtitle')}
                                                 />
                                             </div>
                                         </div>
@@ -201,7 +237,7 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                                         <div>
                                             <div className="flex justify-between items-center mb-2">
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block">Buttons (Max 3)</label>
-                                                {(slide.buttons?.length || 0) < 3 && (
+                                                {(slide.buttons?.length || 0) < 3 && viewMode === 'desktop' && (
                                                     <button onClick={() => addButton(index)} className="text-[10px] font-bold text-indigo-600 hover:underline">+ Add</button>
                                                 )}
                                             </div>
@@ -216,11 +252,13 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                                                                     value={btn.text}
                                                                     onChange={(e) => updateButton(index, btnIdx, 'text', e.target.value)}
                                                                     className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                                                    disabled={viewMode !== 'desktop'} // Disable structural changes in mobile
                                                                 />
                                                                 <select
                                                                     value={btn.variant}
                                                                     onChange={(e) => updateButton(index, btnIdx, 'variant', e.target.value)}
                                                                     className="px-2 py-1 bg-white border border-slate-200 rounded text-xs w-24"
+                                                                    disabled={viewMode !== 'desktop'}
                                                                 >
                                                                     <option value="primary">Primary</option>
                                                                     <option value="secondary">Secondary</option>
@@ -233,11 +271,14 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                                                                 value={btn.link}
                                                                 onChange={(e) => updateButton(index, btnIdx, 'link', e.target.value)}
                                                                 className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                                                disabled={viewMode !== 'desktop'}
                                                             />
                                                         </div>
-                                                        <button onClick={() => removeButton(index, btnIdx)} className="p-1 text-slate-400 hover:text-red-500 mt-1">
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </button>
+                                                        {viewMode === 'desktop' && (
+                                                            <button onClick={() => removeButton(index, btnIdx)} className="p-1 text-slate-400 hover:text-red-500 mt-1">
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 ))}
                                                 {(!slide.buttons || slide.buttons.length === 0) && (
@@ -320,120 +361,126 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId }) {
                 <div className="space-y-4">
                     <p className="text-[10px] text-slate-500 uppercase font-bold text-center mb-2">Per-Slide Styling</p>
                     <div className="space-y-2">
-                        {slides.map((slide, index) => (
-                            <div key={slide.id || index} className="border border-slate-200 rounded-lg overflow-hidden bg-white">
-                                <div
-                                    className="p-3 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-colors"
-                                    onClick={() => setExpandedStyleSlide(expandedStyleSlide === index ? -1 : index)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-6 w-10 bg-slate-200 rounded overflow-hidden flex-shrink-0 border border-slate-300 relative">
-                                            {slide.image && <img src={slide.image} className="w-full h-full object-cover" />}
+                        {slides.map((slide, index) => {
+                            // Display Logic: Show active override or fallback to inherited for UI state check
+                            const hAlign = getSlideValue(slide, 'hAlignment') || slide.hAlignment;
+                            const vAlign = getSlideValue(slide, 'vAlignment') || slide.vAlignment;
+
+                            return (
+                                <div key={slide.id || index} className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                                    <div
+                                        className="p-3 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-colors"
+                                        onClick={() => setExpandedStyleSlide(expandedStyleSlide === index ? -1 : index)}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-6 w-10 bg-slate-200 rounded overflow-hidden flex-shrink-0 border border-slate-300 relative">
+                                                {slide.image && <img src={slide.image} className="w-full h-full object-cover" />}
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-700 truncate max-w-[120px]">#{index + 1} {slide.title || 'Untitled'}</span>
                                         </div>
-                                        <span className="text-xs font-bold text-slate-700 truncate max-w-[120px]">#{index + 1} {slide.title || 'Untitled'}</span>
+                                        <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${expandedStyleSlide === index ? 'rotate-180' : ''}`} />
                                     </div>
-                                    <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${expandedStyleSlide === index ? 'rotate-180' : ''}`} />
+
+                                    {expandedStyleSlide === index && (
+                                        <div className="p-3 space-y-6 border-t border-slate-200 animate-in slide-in-from-top-2 duration-200">
+
+                                            {/* 1. Layout / Alignment */}
+                                            <section className="space-y-3">
+                                                <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Alignment {viewMode !== 'desktop' && '(Override)'}</h5>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Horizontal</label>
+                                                        <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
+                                                            <button onClick={() => handleSlideUpdate(index, 'hAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${hAlign === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><AlignLeft className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleSlideUpdate(index, 'hAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${!hAlign || hAlign === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><AlignCenter className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleSlideUpdate(index, 'hAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${hAlign === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><AlignRight className="h-4 w-4" /></button>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Vertical</label>
+                                                        <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
+                                                            <button onClick={() => handleSlideUpdate(index, 'vAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${vAlign === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><ArrowUp className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleSlideUpdate(index, 'vAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${!vAlign || vAlign === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><Move className="h-4 w-4" /></button>
+                                                            <button onClick={() => handleSlideUpdate(index, 'vAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${vAlign === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><ArrowDown className="h-4 w-4" /></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </section>
+
+                                            {/* 2. Typography */}
+                                            <section className="space-y-3 pt-3 border-t border-slate-100">
+                                                <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Typography</h5>
+
+                                                {/* Heading */}
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Heading</label>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'headingSize') || '48')} className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'headingSize') || '') || ''} onChange={(e) => handleSlideUpdate(index, 'headingSize', e.target.value + 'px')} />
+                                                        <ColorInput value={getSlideValue(slide, 'headingColor') || getSlideInheritedValue(slide, 'headingColor') || '#ffffff'} onChange={(v) => handleSlideUpdate(index, 'headingColor', v)} />
+                                                    </div>
+                                                    <select
+                                                        className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                                                        value={getSlideValue(slide, 'headingFontFamily') || getSlideInheritedValue(slide, 'headingFontFamily') || 'Inter, sans-serif'}
+                                                        onChange={(e) => handleSlideUpdate(index, 'headingFontFamily', e.target.value)}
+                                                    >
+                                                        <option value="Inter, sans-serif">Inter</option>
+                                                        <option value="'Outfit', sans-serif">Outfit</option>
+                                                        <option value="'Playfair Display', serif">Playfair Display</option>
+                                                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Subheading */}
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Subheading</label>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'subheadingSize') || '18')} className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'subheadingSize') || '') || ''} onChange={(e) => handleSlideUpdate(index, 'subheadingSize', e.target.value + 'px')} />
+                                                        <ColorInput value={getSlideValue(slide, 'subheadingColor') || getSlideInheritedValue(slide, 'subheadingColor') || '#e2e8f0'} onChange={(v) => handleSlideUpdate(index, 'subheadingColor', v)} />
+                                                    </div>
+                                                    <select
+                                                        className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
+                                                        value={getSlideValue(slide, 'subheadingFontFamily') || getSlideInheritedValue(slide, 'subheadingFontFamily') || 'Inter, sans-serif'}
+                                                        onChange={(e) => handleSlideUpdate(index, 'subheadingFontFamily', e.target.value)}
+                                                    >
+                                                        <option value="Inter, sans-serif">Inter</option>
+                                                        <option value="'Outfit', sans-serif">Outfit</option>
+                                                        <option value="'Playfair Display', serif">Playfair Display</option>
+                                                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                                                    </select>
+                                                </div>
+                                            </section>
+
+                                            {/* 3. Button Config */}
+                                            <section className="space-y-3 pt-3 border-t border-slate-100">
+                                                <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Button Styling</h5>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <ColorInput label="Primary Bg" value={getSlideValue(slide, 'btnBgColor') || getSlideInheritedValue(slide, 'btnBgColor') || '#ffffff'} onChange={v => handleSlideUpdate(index, 'btnBgColor', v)} />
+                                                    <ColorInput label="Primary Text" value={getSlideValue(slide, 'btnTextColor') || getSlideInheritedValue(slide, 'btnTextColor') || '#000000'} onChange={v => handleSlideUpdate(index, 'btnTextColor', v)} />
+                                                    <ColorInput label="Secondary Text" value={getSlideValue(slide, 'secondaryBtnTextColor') || getSlideInheritedValue(slide, 'secondaryBtnTextColor') || '#ffffff'} onChange={v => handleSlideUpdate(index, 'secondaryBtnTextColor', v)} />
+                                                    <div className="col-span-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Structure</label>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'btnPaddingX') || '32')} title="Padding X" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'btnPaddingX') || '') || ''} onChange={e => handleSlideUpdate(index, 'btnPaddingX', e.target.value + 'px')} />
+                                                            <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'btnPaddingY') || '16')} title="Padding Y" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'btnPaddingY') || '') || ''} onChange={e => handleSlideUpdate(index, 'btnPaddingY', e.target.value + 'px')} />
+                                                            <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'btnBorderRadius') || '99')} title="Border Radius" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'btnBorderRadius') || '') || ''} onChange={e => handleSlideUpdate(index, 'btnBorderRadius', e.target.value + 'px')} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-span-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Size (px)</label>
+                                                        <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'btnFontSize') || '16')} className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'btnFontSize') || '') || ''} onChange={e => handleSlideUpdate(index, 'btnFontSize', e.target.value + 'px')} />
+                                                    </div>
+                                                    <div className="col-span-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Margin Top (px)</label>
+                                                        <input type="number" placeholder={parseInt(getSlideInheritedValue(slide, 'btnMarginTop') || '24')} className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(getSlideValue(slide, 'btnMarginTop') || '') || ''} onChange={e => handleSlideUpdate(index, 'btnMarginTop', e.target.value + 'px')} />
+                                                    </div>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    )}
                                 </div>
-
-                                {expandedStyleSlide === index && (
-                                    <div className="p-3 space-y-6 border-t border-slate-200 animate-in slide-in-from-top-2 duration-200">
-
-                                        {/* 1. Layout / Alignment */}
-                                        <section className="space-y-3">
-                                            <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Alignment</h5>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Horizontal</label>
-                                                    <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
-                                                        <button onClick={() => handleSlideUpdate(index, 'hAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${slide.hAlignment === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><AlignLeft className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleSlideUpdate(index, 'hAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${!slide.hAlignment || slide.hAlignment === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><AlignCenter className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleSlideUpdate(index, 'hAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${slide.hAlignment === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><AlignRight className="h-4 w-4" /></button>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Vertical</label>
-                                                    <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-100">
-                                                        <button onClick={() => handleSlideUpdate(index, 'vAlignment', 'flex-start')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${slide.vAlignment === 'flex-start' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><ArrowUp className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleSlideUpdate(index, 'vAlignment', 'center')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${!slide.vAlignment || slide.vAlignment === 'center' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><Move className="h-4 w-4" /></button>
-                                                        <button onClick={() => handleSlideUpdate(index, 'vAlignment', 'flex-end')} className={`flex-1 p-1.5 rounded-md flex justify-center transition-colors ${slide.vAlignment === 'flex-end' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400'}`}><ArrowDown className="h-4 w-4" /></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        {/* 2. Typography */}
-                                        <section className="space-y-3 pt-3 border-t border-slate-100">
-                                            <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Typography</h5>
-
-                                            {/* Heading */}
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Heading</label>
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <input type="number" placeholder="48px" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.headingSize || '48')} onChange={(e) => handleSlideUpdate(index, 'headingSize', e.target.value + 'px')} />
-                                                    <ColorInput value={slide.headingColor || '#ffffff'} onChange={(v) => handleSlideUpdate(index, 'headingColor', v)} />
-                                                </div>
-                                                <select
-                                                    className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                                                    value={slide.headingFontFamily || 'Inter, sans-serif'}
-                                                    onChange={(e) => handleSlideUpdate(index, 'headingFontFamily', e.target.value)}
-                                                >
-                                                    <option value="Inter, sans-serif">Inter</option>
-                                                    <option value="'Outfit', sans-serif">Outfit</option>
-                                                    <option value="'Playfair Display', serif">Playfair Display</option>
-                                                    <option value="'Montserrat', sans-serif">Montserrat</option>
-                                                </select>
-                                            </div>
-
-                                            {/* Subheading */}
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Subheading</label>
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <input type="number" placeholder="18px" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.subheadingSize || '18')} onChange={(e) => handleSlideUpdate(index, 'subheadingSize', e.target.value + 'px')} />
-                                                    <ColorInput value={slide.subheadingColor || '#e2e8f0'} onChange={(v) => handleSlideUpdate(index, 'subheadingColor', v)} />
-                                                </div>
-                                                <select
-                                                    className="w-full px-2 py-1 bg-slate-50 border rounded text-xs"
-                                                    value={slide.subheadingFontFamily || 'Inter, sans-serif'}
-                                                    onChange={(e) => handleSlideUpdate(index, 'subheadingFontFamily', e.target.value)}
-                                                >
-                                                    <option value="Inter, sans-serif">Inter</option>
-                                                    <option value="'Outfit', sans-serif">Outfit</option>
-                                                    <option value="'Playfair Display', serif">Playfair Display</option>
-                                                    <option value="'Montserrat', sans-serif">Montserrat</option>
-                                                </select>
-                                            </div>
-                                        </section>
-
-                                        {/* 3. Button Config */}
-                                        <section className="space-y-3 pt-3 border-t border-slate-100">
-                                            <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Button Styling</h5>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <ColorInput label="Primary Bg" value={slide.btnBgColor || '#ffffff'} onChange={v => handleSlideUpdate(index, 'btnBgColor', v)} />
-                                                <ColorInput label="Primary Text" value={slide.btnTextColor || '#000000'} onChange={v => handleSlideUpdate(index, 'btnTextColor', v)} />
-                                                <ColorInput label="Secondary Text" value={slide.secondaryBtnTextColor || '#ffffff'} onChange={v => handleSlideUpdate(index, 'secondaryBtnTextColor', v)} />
-                                                <div className="col-span-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Structure</label>
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                        <input type="number" placeholder="Pad X" title="Padding X" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.btnPaddingX || '32')} onChange={e => handleSlideUpdate(index, 'btnPaddingX', e.target.value + 'px')} />
-                                                        <input type="number" placeholder="Pad Y" title="Padding Y" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.btnPaddingY || '16')} onChange={e => handleSlideUpdate(index, 'btnPaddingY', e.target.value + 'px')} />
-                                                        <input type="number" placeholder="Radius" title="Border Radius" className="px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.btnBorderRadius || '99')} onChange={e => handleSlideUpdate(index, 'btnBorderRadius', e.target.value + 'px')} />
-                                                    </div>
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Size (px)</label>
-                                                    <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.btnFontSize || '16')} onChange={e => handleSlideUpdate(index, 'btnFontSize', e.target.value + 'px')} />
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Margin Top (px)</label>
-                                                    <input type="number" className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={parseInt(slide.btnMarginTop || '24')} onChange={e => handleSlideUpdate(index, 'btnMarginTop', e.target.value + 'px')} />
-                                                </div>
-                                            </div>
-                                        </section>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </div>
             )}
