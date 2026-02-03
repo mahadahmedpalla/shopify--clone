@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
-import { Card } from '../../ui/Card';
 import { X, Globe, Search, CheckCircle2, Circle } from 'lucide-react';
 import { countries } from '../../../lib/countries';
 
@@ -71,7 +70,7 @@ export function AllowedCountriesModal({ storeId, initialAllowed, onSuccess, onCa
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-in fade-in">
-            <Card className="w-full max-w-lg max-h-[85vh] flex flex-col bg-white p-0 shadow-2xl rounded-2xl">
+            <div className="w-full max-w-lg max-h-[85vh] flex flex-col bg-white shadow-2xl rounded-2xl overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100 flex-shrink-0">
                     <div>
@@ -166,7 +165,7 @@ export function AllowedCountriesModal({ storeId, initialAllowed, onSuccess, onCa
                         </Button>
                     </div>
                 </div>
-            </Card>
+            </div>
         </div>
     );
 }
