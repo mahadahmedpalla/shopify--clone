@@ -99,9 +99,22 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                 // Image Override
                 const slideImage = sVal('image', slide.image);
 
-                // Text Override (User requested "slide image can be changed or deleted... all the other properties can be altered")
+                // Text Override Override
                 const slideTitle = sVal('title', slide.title);
                 const slideSubtitle = sVal('subtitle', slide.subtitle);
+
+                // Overlay Overrides
+                const overlayColor = sVal('overlayColor', settings.overlayColor || '#000000');
+                const rawOpacity = sVal('overlayOpacity', undefined); // Check slide specific first
+                let finalOpacity;
+
+                if (rawOpacity !== undefined) {
+                    finalOpacity = parseInt(rawOpacity) / 100;
+                } else {
+                    // Fallback to global settings (handle potential 0-100 or 0-1 legacy)
+                    const globalOpacity = settings.overlayOpacity !== undefined ? settings.overlayOpacity : 0.4;
+                    finalOpacity = globalOpacity > 1 ? globalOpacity / 100 : globalOpacity;
+                }
 
                 // Button Defaults (Legacy Support + Per Slide + Responsive)
                 let buttons = slide.buttons || [];
@@ -159,8 +172,8 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                         <div
                             className="absolute inset-0"
                             style={{
-                                backgroundColor: settings.overlayColor || '#000000',
-                                opacity: settings.overlayOpacity || 0.4
+                                backgroundColor: overlayColor,
+                                opacity: finalOpacity
                             }}
                         />
 
@@ -180,7 +193,8 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                             fontFamily: headingFont,
                                             color: headingColor,
                                             fontSize: headingSize,
-                                            lineHeight: 1.1
+                                            lineHeight: 1.1,
+                                            whiteSpace: 'pre-wrap'
                                         }}
                                         className="font-extrabold tracking-tight"
                                     >
@@ -192,7 +206,8 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                         style={{
                                             fontFamily: subheadingFont,
                                             color: subheadingColor,
-                                            fontSize: subheadingSize
+                                            fontSize: subheadingSize,
+                                            whiteSpace: 'pre-wrap'
                                         }}
                                         className="font-medium opacity-90"
                                     >

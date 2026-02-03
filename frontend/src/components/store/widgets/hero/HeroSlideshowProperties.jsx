@@ -209,26 +209,26 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                                             </div>
                                         </div>
 
-                                        {/* Texts */}
+                                        {/* Texts - Changed to Textarea for Preformatted Text Support */}
                                         <div className="grid grid-cols-1 gap-3">
                                             <div>
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading</label>
-                                                <input
-                                                    type="text"
+                                                <textarea
                                                     value={getSlideValue(slide, 'title') || ''}
                                                     onChange={(e) => handleSlideUpdate(index, 'title', e.target.value)}
-                                                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
+                                                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs min-h-[60px]"
                                                     placeholder={getSlideInheritedValue(slide, 'title')}
+                                                    rows={2}
                                                 />
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Subheading</label>
-                                                <input
-                                                    type="text"
+                                                <textarea
                                                     value={getSlideValue(slide, 'subtitle') || ''}
                                                     onChange={(e) => handleSlideUpdate(index, 'subtitle', e.target.value)}
-                                                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
+                                                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs min-h-[60px]"
                                                     placeholder={getSlideInheritedValue(slide, 'subtitle')}
+                                                    rows={2}
                                                 />
                                             </div>
                                         </div>
@@ -476,6 +476,35 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                                                     </div>
                                                 </div>
                                             </section>
+
+                                            {/* 4. Overlay Config */}
+                                            <section className="space-y-3 pt-3 border-t border-slate-100">
+                                                <h5 className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Overlay {viewMode !== 'desktop' && '(Override)'}</h5>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <ColorInput
+                                                        label="Overlay Color"
+                                                        value={getSlideValue(slide, 'overlayColor') || getSlideInheritedValue(slide, 'overlayColor') || '#000000'}
+                                                        onChange={(v) => handleSlideUpdate(index, 'overlayColor', v)}
+                                                    />
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Opacity (%)</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="range"
+                                                                min="0"
+                                                                max="100"
+                                                                value={parseInt(getSlideValue(slide, 'overlayOpacity') || getSlideInheritedValue(slide, 'overlayOpacity') || '40')}
+                                                                onChange={(e) => handleSlideUpdate(index, 'overlayOpacity', e.target.value)}
+                                                                className="flex-1"
+                                                            />
+                                                            <span className="text-xs font-mono text-slate-600 w-8 text-right">
+                                                                {getSlideValue(slide, 'overlayOpacity') || getSlideInheritedValue(slide, 'overlayOpacity') || '40'}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </section>
+
                                         </div>
                                     )}
                                 </div>
