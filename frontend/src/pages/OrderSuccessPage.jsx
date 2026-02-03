@@ -7,6 +7,7 @@ export function OrderSuccessPage() {
     const { storeSubUrl, orderId } = useParams();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [store, setStore] = useState(null);
 
     useEffect(() => {
@@ -49,11 +50,11 @@ export function OrderSuccessPage() {
                 if (fetchError) throw fetchError;
                 if (!orderData) throw new Error("Order not found");
 
-                if (error) throw error;
                 setOrder(orderData);
 
             } catch (err) {
                 console.error("Error loading order:", err);
+                setError(err);
             } finally {
                 setLoading(false);
             }
@@ -76,6 +77,15 @@ export function OrderSuccessPage() {
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Order Not Found</h1>
                     <p className="text-slate-500 mb-6">We couldn't find the order you're looking for.</p>
+
+                    {/* Debug Info */}
+                    <div className="bg-red-50 p-4 rounded text-left text-xs text-red-600 mb-4 max-w-md mx-auto overflow-auto">
+                        <p className="font-bold">Debug Info:</p>
+                        <p>ID: {orderId}</p>
+                        <p>Token: {new URLSearchParams(window.location.search).get('token')}</p>
+                        {error && <p>Error: {error.message || JSON.stringify(error)}</p>}
+                    </div>
+
                     <Link
                         to={`/s/${storeSubUrl}`}
                         className="inline-flex items-center text-indigo-600 font-bold hover:underline"
@@ -87,7 +97,7 @@ export function OrderSuccessPage() {
         );
     }
 
-    const { shipping_address, items_snapshot, payment_method, subtotal, shipping_cost, total, discount_total, tax_total } = order;
+    const { shipping_address, items, payment_method, subtotal, shipping_cost, total, discount_total, tax_total } = order;
 
     // Map flat DB columns to the structure expected by the UI
     const totals = {
@@ -130,7 +140,7 @@ export function OrderSuccessPage() {
                                 <h2 className="font-bold text-lg">Order Summary</h2>
                             </div>
                             <div className="divide-y divide-slate-50">
-                                {items_snapshot && items_snapshot.map((item, idx) => (
+                                {items && items.map((item, idx) => (
                                     <div key={idx} className="p-6 flex items-center gap-4">
                                         <div className="w-16 h-16 bg-slate-50 rounded-lg flex items-center justify-center overflow-hidden border border-slate-100 shrink-0">
                                             {item.image ? (
