@@ -185,6 +185,7 @@ export function CheckoutForm({
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-bold text-slate-800 text-sm truncate">{item.name}</h4>
                                                     {item.variantTitle && <p className="text-xs text-slate-500 truncate">{item.variantTitle}</p>}
+                                                    <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
                                                 </div>
                                                 <p className="font-bold text-slate-700 text-sm whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</p>
                                             </div>
@@ -511,7 +512,7 @@ export function CheckoutForm({
                                 </div>
 
                                 {/* Coupon Section (Payment Phase) */}
-                                <div className="pt-6">
+                                <div className="pt-6 lg:hidden">
                                     <h3 className="text-sm font-medium mb-2 text-slate-700">Discount Code</h3>
                                     {CouponSection}
                                 </div>
@@ -552,6 +553,7 @@ export function CheckoutForm({
                                 <div className="flex-1">
                                     <h4 className="font-bold text-slate-800 text-sm">{item.name}</h4>
                                     {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
+                                    <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
                                 </div>
                                 <p className="font-bold text-slate-700 text-sm">${(item.price * item.quantity).toFixed(2)}</p>
                             </div>
