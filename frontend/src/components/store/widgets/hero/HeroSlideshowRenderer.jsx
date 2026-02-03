@@ -11,7 +11,7 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
     const slides = settings.slides || [];
     const count = slides.length;
 
-    // Performance: Optimization Helpers (Reused from HeroRenderer)
+    // Performance: Optimization Helpers
     const getOptimizedUrl = (url, width) => {
         if (!url || !url.includes('supabase.co')) return url;
         const separator = url.includes('?') ? '&' : '?';
@@ -60,10 +60,24 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
             {slides.map((slide, index) => {
                 const isActive = index === currentSlide;
 
-                // PERFORMANCE: Render Strategy
-                // Only render if active, or next/prev (for smooth transitions), or if we want to preload.
-                // Actually, for a slideshow, it's best to keep them in DOM but hide them to allow transitions.
-                // We use `loading="lazy"` for non-active images to save bandwidth.
+                // Styles (Per Slide with Defaults fallback)
+                const hAlign = slide.hAlignment || 'center';
+                const vAlign = slide.vAlignment || 'center';
+
+                // Typography
+                const headingFont = slide.headingFontFamily || 'Inter, sans-serif';
+                const subheadingFont = slide.subheadingFontFamily || 'Inter, sans-serif';
+                const headingColor = slide.headingColor || '#ffffff';
+                const subheadingColor = slide.subheadingColor || '#e2e8f0';
+                const headingSize = slide.headingSize || '48px';
+                const subheadingSize = slide.subheadingSize || '18px';
+
+                // Button Defaults (Legacy Support + Per Slide)
+                // If slide has new 'buttons' array, use it. If not, use legacy btnText/btnLink
+                let buttons = slide.buttons || [];
+                if (buttons.length === 0 && slide.btnText) {
+                    buttons = [{ id: 'legacy', text: slide.btnText, link: slide.btnLink, variant: 'primary' }];
+                }
 
                 return (
                     <div
@@ -112,23 +126,68 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                         />
 
                         {/* Content */}
-                        <div className="absolute inset-0 flex items-center justify-center p-12 z-20">
-                            <div className="text-center max-w-4xl space-y-6 animate-in slide-in-from-bottom duration-700 fade-in fill-mode-forwards">
+                        <div
+                            className={`absolute inset-0 flex p-12 z-20 transition-all duration-700 ${isActive ? 'translate-y-0 opacity-100 delay-300' : 'translate-y-10 opacity-0'}`}
+                            style={{
+                                justifyContent: hAlign,
+                                alignItems: vAlign
+                            }}
+                        >
+                            <div className={`max-w-4xl space-y-6 ${hAlign === 'center' ? 'text-center' : hAlign === 'flex-end' ? 'text-right' : 'text-left'}`}>
                                 {slide.title && (
-                                    <h2 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
+                                    <h2
+                                        style={{
+                                            fontFamily: headingFont,
+                                            color: headingColor,
+                                            fontSize: headingSize,
+                                            lineHeight: 1.1
+                                        }}
+                                        className="font-extrabold tracking-tight"
+                                    >
                                         {slide.title}
                                     </h2>
                                 )}
                                 {slide.subtitle && (
-                                    <p className="text-lg md:text-xl text-white/90 font-medium">
+                                    <p
+                                        style={{
+                                            fontFamily: subheadingFont,
+                                            color: subheadingColor,
+                                            fontSize: subheadingSize
+                                        }}
+                                        className="font-medium opacity-90"
+                                    >
                                         {slide.subtitle}
                                     </p>
                                 )}
-                                {slide.btnText && (
-                                    <div className="pt-4">
-                                        <Button className="bg-white text-slate-900 hover:bg-slate-100 border-none px-8 py-3 rounded-full text-lg font-bold shadow-xl transition-transform hover:scale-105">
-                                            {slide.btnText}
-                                        </Button>
+
+                                {/* Render Buttons */}
+                                {buttons.length > 0 && (
+                                    <div className={`pt-4 flex flex-wrap gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
+                                        {buttons.map((btn, btnIdx) => {
+                                            // Determine styles based on variant
+                                            const isPrimary = !btn.variant || btn.variant === 'primary';
+                                            const bgColor = isPrimary ? (slide.btnBgColor || '#ffffff') : 'transparent';
+                                            const textColor = isPrimary ? (slide.btnTextColor || '#000000') : (slide.secondaryBtnTextColor || '#ffffff');
+                                            const border = isPrimary ? 'none' : `2px solid ${slide.secondaryBtnTextColor || '#ffffff'}`;
+
+                                            return (
+                                                <Button
+                                                    key={btn.id || btnIdx}
+                                                    style={{
+                                                        backgroundColor: bgColor,
+                                                        color: textColor,
+                                                        border: border,
+                                                        padding: `${slide.btnPaddingY || '16px'} ${slide.btnPaddingX || '32px'}`,
+                                                        borderRadius: slide.btnBorderRadius || '9999px',
+                                                        fontSize: slide.btnFontSize || '16px',
+                                                        marginTop: slide.btnMarginTop || '24px'
+                                                    }}
+                                                    className="shadow-xl transition-transform hover:scale-105 font-bold"
+                                                >
+                                                    {btn.text}
+                                                </Button>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
