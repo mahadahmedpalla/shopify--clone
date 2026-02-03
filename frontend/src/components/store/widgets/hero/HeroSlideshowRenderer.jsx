@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../../../ui/Button';
 import { getResponsiveValue } from '../Shared';
+import { useLocation } from 'react-router-dom';
 
-export function HeroSlideshowRenderer({ settings, viewMode }) {
+export function HeroSlideshowRenderer({ settings, viewMode, isEditor }) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
     const timeoutRef = useRef(null);
+    const location = useLocation();
 
     const slides = settings.slides || [];
     const count = slides.length;
@@ -39,17 +41,11 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
 
     // Responsive Helper for Slide Objects
     const getSlideRespValue = (slide, key, mode, defaultVal) => {
-        // Check for mode-specific override first (prop_mobile, prop_tablet)
-        // If not found, fall back to desktop (prop)
-        // Mode hierarchy: Mobile -> Tablet -> Desktop
-        // But for simply rendering, if viewMode is Mobile, we look for prop_mobile, if not check prop.
-
         let val;
 
         if (mode === 'mobile') {
             val = slide[`${key}_mobile`];
             if (val !== undefined && val !== '') return val;
-            // Maybe fallback to tablet? Usually we just fallback to desktop.
         } else if (mode === 'tablet') {
             val = slide[`${key}_tablet`];
             if (val !== undefined && val !== '') return val;
@@ -82,7 +78,7 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
             {slides.map((slide, index) => {
                 const isActive = index === currentSlide;
 
-                // Styles (Per Slide with Defaults fallback + Responsive)
+                // Styles 
                 const sVal = (key, def) => getSlideRespValue(slide, key, viewMode, def);
 
                 const hAlign = sVal('hAlignment', 'center');
@@ -96,10 +92,8 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                 const headingSize = sVal('headingSize', '48px');
                 const subheadingSize = sVal('subheadingSize', '18px');
 
-                // Image Override
+                // Content Overrides
                 const slideImage = sVal('image', slide.image);
-
-                // Text Override Override
                 const slideTitle = sVal('title', slide.title);
                 const slideSubtitle = sVal('subtitle', slide.subtitle);
 
@@ -111,15 +105,14 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                 if (rawOpacity !== undefined) {
                     finalOpacity = parseInt(rawOpacity) / 100;
                 } else {
-                    // Fallback to global settings (handle potential 0-100 or 0-1 legacy)
                     const globalOpacity = settings.overlayOpacity !== undefined ? settings.overlayOpacity : 0.4;
                     finalOpacity = globalOpacity > 1 ? globalOpacity / 100 : globalOpacity;
                 }
 
-                // Button Defaults (Legacy Support + Per Slide + Responsive)
+                // Button Defaults 
                 let buttons = slide.buttons || [];
                 if (buttons.length === 0 && slide.btnText) {
-                    buttons = [{ id: 'legacy', text: slide.btnText, link: slide.btnLink, variant: 'primary' }];
+                    buttons = [{ id: 'legacy', text: slide.btnText, link: slide.btnLink, variant: 'primary', linkType: 'url' }];
                 }
 
                 // Button Styles
@@ -142,14 +135,13 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                         {/* Background Image */}
                         {slideImage && (
                             <>
-                                {/* LQIP (Blur-up) */}
+                                {/* LQIP */}
                                 <img
                                     src={getOptimizedUrl(slideImage, 20)}
                                     alt=""
                                     aria-hidden="true"
                                     className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110"
                                 />
-
                                 {/* Main Image */}
                                 <img
                                     src={getOptimizedUrl(slideImage, 1920)}
@@ -163,7 +155,6 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                     className="absolute inset-0 w-full h-full object-cover"
                                     loading={index === 0 ? "eager" : "lazy"}
                                     fetchPriority={index === 0 ? "high" : "auto"}
-                                    decoding="async"
                                 />
                             </>
                         )}
@@ -183,7 +174,7 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                             style={{
                                 justifyContent: hAlign,
                                 alignItems: vAlign,
-                                // Responsive padding maybe? Fixed at p-12 for now.
+                                whiteSpace: 'pre-wrap'
                             }}
                         >
                             <div className={`max-w-4xl space-y-6 ${hAlign === 'center' ? 'text-center' : hAlign === 'flex-end' ? 'text-right' : 'text-left'}`}>
@@ -224,22 +215,55 @@ export function HeroSlideshowRenderer({ settings, viewMode }) {
                                             const textColor = isPrimary ? btnTextColor : secondaryBtnTextColor;
                                             const border = isPrimary ? 'none' : `2px solid ${secondaryBtnTextColor}`;
 
+                                            // Determine HREF
+                                            // Construct safe internal link: /store/:storeId/:pageSlug
+                                            // We assume location is like /store/123/home or /store/123/customize
+                                            // If in editor (customize), we don't want to actually navigate usually, but href should be valid.
+
+                                            let href = btn.link || '#';
+                                            let target = '_blank';
+
+                                            if (btn.linkType === 'page' && btn.targetPage) {
+                                                const pathParts = location.pathname.split('/');
+                                                // ['','store','123','customize'] or ['','store','123','home']
+                                                // The store root is usually parts[0,1,2] -> /store/123
+
+                                                const storeRoot = pathParts.slice(0, 3).join('/');
+                                                href = `${storeRoot}/${btn.targetPage}`;
+                                                target = '_self';
+                                            } else {
+                                                // External URL
+                                                target = '_blank';
+                                                href = btn.link;
+                                            }
+
                                             return (
-                                                <Button
+                                                <a
                                                     key={btn.id || btnIdx}
-                                                    style={{
-                                                        backgroundColor: bgColor,
-                                                        color: textColor,
-                                                        border: border,
-                                                        padding: `${btnPaddingY} ${btnPaddingX}`,
-                                                        borderRadius: btnBorderRadius,
-                                                        fontSize: btnFontSize,
-                                                        marginTop: btnMarginTop
+                                                    href={href}
+                                                    onClick={(e) => {
+                                                        if (isEditor) e.preventDefault();
                                                     }}
-                                                    className="shadow-xl transition-transform hover:scale-105 font-bold"
+                                                    target={target}
+                                                    rel="noopener noreferrer"
+                                                    className="no-underline block"
                                                 >
-                                                    {btn.text}
-                                                </Button>
+                                                    <Button
+                                                        as="span" // Render as span inside anchor to be valid HTML
+                                                        style={{
+                                                            backgroundColor: bgColor,
+                                                            color: textColor,
+                                                            border: border,
+                                                            padding: `${btnPaddingY} ${btnPaddingX}`,
+                                                            borderRadius: btnBorderRadius,
+                                                            fontSize: btnFontSize,
+                                                            marginTop: btnMarginTop,
+                                                        }}
+                                                        className="shadow-xl transition-transform hover:scale-105 font-bold cursor-pointer inline-block"
+                                                    >
+                                                        {btn.text}
+                                                    </Button>
+                                                </a>
                                             );
                                         })}
                                     </div>

@@ -8,7 +8,7 @@ import {
 import { supabase } from '../../../../lib/supabase';
 import { ColorInput } from '../Shared';
 
-export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop' }) {
+export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop', storePages = [] }) {
     const { storeId: paramStoreId } = useParams();
     const activeStoreId = storeId || paramStoreId;
     const [activeTab, setActiveTab] = useState('slides'); // slides, settings, style
@@ -55,7 +55,7 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
             image: '',
             title: 'New Slide',
             subtitle: 'Slide Description',
-            buttons: [{ id: Date.now(), text: 'Shop Now', link: '#', variant: 'primary' }],
+            buttons: [{ id: Date.now(), text: 'Shop Now', link: '#', variant: 'primary', linkType: 'url' }],
             // Defaults for style
             hAlignment: 'center',
             vAlignment: 'center',
@@ -116,7 +116,7 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
         const newSlides = [...slides];
         const buttons = [...(newSlides[slideIndex].buttons || [])];
         if (buttons.length >= 3) return;
-        buttons.push({ id: Date.now(), text: 'New Button', link: '#', variant: buttons.length === 0 ? 'primary' : 'secondary' });
+        buttons.push({ id: Date.now(), text: 'New Button', link: '#', variant: buttons.length === 0 ? 'primary' : 'secondary', linkType: 'url' });
         newSlides[slideIndex].buttons = buttons;
         handleUpdate({ slides: newSlides });
     };
@@ -241,43 +241,86 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                                                     <button onClick={() => addButton(index)} className="text-[10px] font-bold text-indigo-600 hover:underline">+ Add</button>
                                                 )}
                                             </div>
-                                            <div className="space-y-2">
+
+                                            <div className="space-y-4 pt-1">
                                                 {(slide.buttons || []).map((btn, btnIdx) => (
-                                                    <div key={btn.id || btnIdx} className="flex gap-2 items-start bg-slate-50 p-2 rounded border border-slate-100">
-                                                        <div className="flex-1 space-y-2">
-                                                            <div className="flex gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder="Label"
-                                                                    value={btn.text}
-                                                                    onChange={(e) => updateButton(index, btnIdx, 'text', e.target.value)}
-                                                                    className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                                                                    disabled={viewMode !== 'desktop'} // Disable structural changes in mobile
-                                                                />
-                                                                <select
-                                                                    value={btn.variant}
-                                                                    onChange={(e) => updateButton(index, btnIdx, 'variant', e.target.value)}
-                                                                    className="px-2 py-1 bg-white border border-slate-200 rounded text-xs w-24"
-                                                                    disabled={viewMode !== 'desktop'}
-                                                                >
-                                                                    <option value="primary">Primary</option>
-                                                                    <option value="secondary">Secondary</option>
-                                                                    <option value="outline">Outline</option>
-                                                                </select>
-                                                            </div>
+                                                    <div key={btn.id || btnIdx} className="bg-slate-50 p-3 rounded border border-slate-200 space-y-3">
+                                                        {/* Top Row: Label & Variant & Delete */}
+                                                        <div className="flex gap-2 items-center">
                                                             <input
                                                                 type="text"
-                                                                placeholder="Link URL"
-                                                                value={btn.link}
-                                                                onChange={(e) => updateButton(index, btnIdx, 'link', e.target.value)}
-                                                                className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                                                placeholder="Label"
+                                                                value={btn.text}
+                                                                onChange={(e) => updateButton(index, btnIdx, 'text', e.target.value)}
+                                                                className="flex-1 px-2 py-1 bg-white border border-slate-200 rounded text-xs font-bold"
                                                                 disabled={viewMode !== 'desktop'}
                                                             />
+                                                            <select
+                                                                value={btn.variant}
+                                                                onChange={(e) => updateButton(index, btnIdx, 'variant', e.target.value)}
+                                                                className="px-2 py-1 bg-white border border-slate-200 rounded text-xs w-20"
+                                                                disabled={viewMode !== 'desktop'}
+                                                            >
+                                                                <option value="primary">Fill</option>
+                                                                <option value="secondary">Light</option>
+                                                                <option value="outline">Outline</option>
+                                                            </select>
+                                                            {viewMode === 'desktop' && (
+                                                                <button onClick={() => removeButton(index, btnIdx)} className="p-1 text-slate-400 hover:text-red-500">
+                                                                    <Trash2 className="h-3 w-3" />
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                        {viewMode === 'desktop' && (
-                                                            <button onClick={() => removeButton(index, btnIdx)} className="p-1 text-slate-400 hover:text-red-500 mt-1">
-                                                                <Trash2 className="h-3 w-3" />
-                                                            </button>
+
+                                                        {/* Link Type Selection */}
+                                                        <div className="flex gap-4 text-xs">
+                                                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`linkType-${index}-${btnIdx}`}
+                                                                    checked={!btn.linkType || btn.linkType === 'url'}
+                                                                    onChange={() => updateButton(index, btnIdx, 'linkType', 'url')}
+                                                                    className="text-indigo-600 focus:ring-indigo-500 h-3 w-3"
+                                                                />
+                                                                <span className="text-slate-600">External URL</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`linkType-${index}-${btnIdx}`}
+                                                                    checked={btn.linkType === 'page'}
+                                                                    onChange={() => updateButton(index, btnIdx, 'linkType', 'page')}
+                                                                    className="text-indigo-600 focus:ring-indigo-500 h-3 w-3"
+                                                                />
+                                                                <span className="text-slate-600">Store Page</span>
+                                                            </label>
+                                                        </div>
+
+                                                        {/* Link Input (Conditional) */}
+                                                        {(!btn.linkType || btn.linkType === 'url') ? (
+                                                            <input
+                                                                type="text"
+                                                                placeholder="https://google.com"
+                                                                value={btn.link || ''}
+                                                                onChange={(e) => updateButton(index, btnIdx, 'link', e.target.value)}
+                                                                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-600"
+                                                                disabled={viewMode !== 'desktop'}
+                                                            />
+                                                        ) : (
+                                                            <select
+                                                                value={btn.targetPage || ''}
+                                                                onChange={(e) => updateButton(index, btnIdx, 'targetPage', e.target.value)}
+                                                                className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-700"
+                                                                disabled={viewMode !== 'desktop'}
+                                                            >
+                                                                <option value="">-- Select Page --</option>
+                                                                <option value="home">Home Page</option>
+                                                                <option value="cart">Cart Page</option>
+                                                                <option value="checkout">Checkout Page</option>
+                                                                {(storePages || []).map(p => (
+                                                                    <option key={p.id} value={p.slug}>{p.name}</option>
+                                                                ))}
+                                                            </select>
                                                         )}
                                                     </div>
                                                 ))}

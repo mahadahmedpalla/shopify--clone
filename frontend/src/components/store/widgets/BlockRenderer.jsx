@@ -84,7 +84,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'hero':
                         return <HeroRenderer settings={settings} viewMode={viewMode} />;
                     case 'hero_slideshow':
-                        return <HeroSlideshowRenderer settings={settings} viewMode={viewMode} />;
+                        return <HeroSlideshowRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'image':
                         return <ImageRenderer settings={settings} viewMode={viewMode} />;
                     case 'product_grid':
