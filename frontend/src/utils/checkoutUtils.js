@@ -154,12 +154,14 @@ export const createOrder = async (orderData) => {
         finalShippingRateId = null;
     }
 
-    // Generate UUID client-side
+    // Generate UUIDs client-side
     const orderId = self.crypto.randomUUID();
+    const successToken = self.crypto.randomUUID(); // Secure token for guest access
 
     // 1. Prepare payload matching schema
     const payload = {
         id: orderId, // Manually set ID
+        success_token: successToken, // Save token to DB
         store_id: orderData.storeId,
         customer_email: orderData.customer.email,
         customer_name: `${orderData.shippingAddress.firstName} ${orderData.shippingAddress.lastName}`,
@@ -194,7 +196,8 @@ export const createOrder = async (orderData) => {
     if (error) throw error;
 
     // Return mock object with the ID we generated, enough for redirection
-    return { id: orderId, ...payload };
+    // Ensure successToken is exposed as camelCase property for frontend convenience
+    return { id: orderId, successToken, ...payload };
 };
 
 /**
