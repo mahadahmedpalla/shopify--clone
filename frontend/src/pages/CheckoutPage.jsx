@@ -407,7 +407,7 @@ function CheckoutContent({ store, storeSubUrl }) {
             clearCart();
 
             // Redirect to success page
-            window.location.href = `/s/${storeSubUrl}/order/${newOrder.id}`;
+            window.location.href = `/s/${storeSubUrl}/order/${newOrder.id}?token=${newOrder.successToken}`;
         } catch (error) {
             console.error("Order Failed:", error);
             alert("Failed to place order. Please try again.");

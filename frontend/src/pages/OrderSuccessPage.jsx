@@ -22,11 +22,32 @@ export function OrderSuccessPage() {
                 if (storeData) setStore(storeData);
 
                 // 2. Fetch Order
-                const { data: orderData, error } = await supabase
-                    .from('orders')
-                    .select('*')
-                    .eq('id', orderId)
-                    .single();
+                const token = new URLSearchParams(window.location.search).get('token');
+
+                let orderData;
+                let fetchError;
+
+                if (token) {
+                    // Use Secure RPC for guests
+                    const { data, error } = await supabase.rpc('get_order_by_token', {
+                        p_id: orderId,
+                        p_token: token
+                    }).single();
+                    orderData = data;
+                    fetchError = error;
+                } else {
+                    // Fallback for store owners (Standard RLS)
+                    const { data, error } = await supabase
+                        .from('orders')
+                        .select('*')
+                        .eq('id', orderId)
+                        .single();
+                    orderData = data;
+                    fetchError = error;
+                }
+
+                if (fetchError) throw fetchError;
+                if (!orderData) throw new Error("Order not found");
 
                 if (error) throw error;
                 setOrder(orderData);
