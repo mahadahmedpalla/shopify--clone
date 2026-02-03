@@ -12,6 +12,7 @@ export const validateAddress = (address) => {
     if (!address.address1?.trim()) errors.address1 = "Address is required";
     if (!address.city?.trim()) errors.city = "City is required";
     if (!address.zip?.trim()) errors.zip = "Postal code is required";
+    if (!address.country?.trim()) errors.country = "Country is required";
     // basic email validation if passed
     if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
         errors.email = "Invalid email address";

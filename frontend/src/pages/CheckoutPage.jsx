@@ -177,6 +177,27 @@ function CheckoutContent({ store, storeSubUrl }) {
         fetchDiscounts();
     }, [store.id]);
 
+    // Set Default Country if not set
+    useEffect(() => {
+        if (!customerInfo.country && allowedCountries) {
+            // Default to first allowed country, or US if allowed, or just first one
+            // If allowedCountries is null (all allowed), default to US
+            let defaultCountry = 'US';
+            if (allowedCountries && allowedCountries.length > 0) {
+                // specific list
+                if (allowedCountries.includes('US')) {
+                    defaultCountry = 'US';
+                } else {
+                    defaultCountry = allowedCountries[0];
+                }
+            }
+            setCustomerInfo(prev => ({ ...prev, country: defaultCountry }));
+        } else if (!customerInfo.country && !allowedCountries) {
+            // Null allowedCountries means ALL are allowed. Default to US.
+            setCustomerInfo(prev => ({ ...prev, country: 'US' }));
+        }
+    }, [allowedCountries]);
+
     // Fetch Store Taxes
     useEffect(() => {
         const fetchTaxes = async () => {
