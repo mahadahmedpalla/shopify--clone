@@ -1,10 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import { Card } from '../../ui/Card';
-import { Store, Globe, Server, Activity, Copy, Check, Database, RefreshCw, Clock, AlertTriangle, Wallet } from 'lucide-react';
-import { getStoreTotalStorage } from '../../../lib/storageHelper';
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
+import { Modal } from '../../ui/Modal';
+// ... (existing imports)
+
+export function StoreSettingsPage() {
+    // ... (existing state)
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+
+    // ... (existing useEffects)
+
+    const handlePurchaseStorage = () => {
+        setIsPurchaseModalOpen(true);
+    };
+
+    const confirmPurchase = async () => {
+        const PLAN_COST = 45;
+        const PLAN_ADD_MB = 3000; // 3GB
+
+        setPurchasing(true);
+        try {
+            const { data, error } = await supabase.rpc('purchase_storage_plan', {
+                p_store_id: store.id,
+                p_cost_credits: PLAN_COST,
+                p_storage_add_mb: PLAN_ADD_MB
+            });
+
+            if (error) throw error;
+            if (data === false) throw new Error('Purchase failed via RPC (Insufficient funds?)');
+
+            // Success! Update local state
+            setCredits(prev => prev - PLAN_COST);
+            setStorageLimit(prev => prev + PLAN_ADD_MB);
+            setIsPurchaseModalOpen(false); // Close modal
+            alert('Storage plan purchased successfully!'); // Optional: Replace with Toast if available
+
+        } catch (err) {
+            console.error(err);
+            alert('Purchase failed: ' + err.message);
+        } finally {
+            setPurchasing(false);
+        }
+    };
+
+    // ... (rest of render)
+
+    // Purchase Modal Content Logic
+    const PLAN_COST = 45;
+    const canAfford = credits >= PLAN_COST;
+
+    return (
+        <div className="space-y-6">
+            {/* ... Existing UI ... */}
+
+            {/* ... End of existing UI, insert Modal here ... */}
+            <Modal
+                isOpen={isPurchaseModalOpen}
+                onClose={() => setIsPurchaseModalOpen(false)}
+                title={canAfford ? "Confirm Purchase" : "Insufficient Credits"}
+            >
+                <div className="space-y-4">
+                    {!canAfford ? (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <AlertTriangle className="h-5 w-5 text-red-400" />
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-red-700">
+                                        You have <span className="font-bold">{credits} credits</span>, but this plan requires <span className="font-bold">{PLAN_COST} credits</span>.
+                                    </p>
+                                    <p className="text-sm text-red-700 mt-1">
+                                        Please top up your account to continue.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <Database className="h-5 w-5 text-indigo-400" />
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-indigo-700">
+                                        You are about to purchase <strong>3GB Additional Storage</strong>.
+                                    </p>
+                                    <p className="text-sm text-indigo-700 mt-1">
+                                        Cost: <strong>{PLAN_COST} Credits</strong>
+                                    </p>
+                                    <p className="text-sm text-indigo-700">
+                                        Remaining Balance: <strong>{credits - PLAN_COST} Credits</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
+                        <Button variant="secondary" onClick={() => setIsPurchaseModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        {canAfford && (
+                            <Button
+                                onClick={confirmPurchase}
+                                isLoading={purchasing}
+                            >
+                                Confirm Purchase
+                            </Button>
+                        )}
+                        {!canAfford && (
+                            <Button
+                                onClick={() => { setIsPurchaseModalOpen(false); /* Maybe navigate to billing? */ }}
+                            >
+                                Get More Credits
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </Modal>
+        </div>
+    );
+}
 
 export function StoreSettingsPage() {
     const { store } = useOutletContext();
@@ -17,6 +133,7 @@ export function StoreSettingsPage() {
     const [credits, setCredits] = useState(0);
     const [calculating, setCalculating] = useState(false);
     const [purchasing, setPurchasing] = useState(false);
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
     // Cooldown is now simple local state, no need for persistence as calculation is valid operation
     const [cooldown, setCooldown] = useState(0);
@@ -96,16 +213,13 @@ export function StoreSettingsPage() {
         }
     };
 
-    const handlePurchaseStorage = async () => {
+    const handlePurchaseStorage = () => {
+        setIsPurchaseModalOpen(true);
+    };
+
+    const confirmPurchase = async () => {
         const PLAN_COST = 45;
         const PLAN_ADD_MB = 3000; // 3GB
-
-        if (credits < PLAN_COST) {
-            alert(`Insufficient credits. You need ${PLAN_COST} credits.`);
-            return;
-        }
-
-        if (!confirm(`Purchase 3GB extra storage for ${PLAN_COST} credits?`)) return;
 
         setPurchasing(true);
         try {
@@ -121,6 +235,7 @@ export function StoreSettingsPage() {
             // Success! Update local state
             setCredits(prev => prev - PLAN_COST);
             setStorageLimit(prev => prev + PLAN_ADD_MB);
+            setIsPurchaseModalOpen(false);
             alert('Storage plan purchased successfully!');
 
         } catch (err) {
