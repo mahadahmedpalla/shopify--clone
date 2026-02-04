@@ -20,6 +20,7 @@ import { TaxesPage } from './components/store/taxes/TaxesPage';
 import { ShippingPage } from './components/store/shipping/ShippingPage';
 import { OrdersPage } from './components/store/orders/OrdersPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
+import { StoreSettingsPage } from './components/store/settings/StoreSettingsPage';
 // ... existing imports ...
 
 
@@ -101,7 +102,7 @@ function App() {
             <Route path="tax" element={<TaxesPage />} />
             <Route path="shipping" element={<ShippingPage />} />
             <Route path="customize" element={<CustomizeDashboard />} />
-            <Route path="settings" element={<div className="p-8 text-center text-slate-400 font-medium">Store Settings Coming Soon</div>} />
+            <Route path="settings" element={<StoreSettingsPage />} />
           </Route>
 
           {/* Full Screen Builder Route */}

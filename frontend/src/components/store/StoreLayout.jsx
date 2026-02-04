@@ -159,7 +159,7 @@ export function StoreLayout() {
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-8">
                     <div className="max-w-6xl mx-auto">
-                        <Outlet />
+                        <Outlet context={{ store, refreshStore: fetchStore }} />
                     </div>
                 </div>
             </main>
