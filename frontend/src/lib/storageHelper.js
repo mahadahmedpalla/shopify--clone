@@ -160,9 +160,12 @@ export const getStoreTotalStorage = async (storeId) => {
 export const syncStoreStorage = async (storeId) => {
     const totalBytes = await getStoreTotalStorage(storeId);
 
+    // Convert to MBs for storage
+    const totalMBs = totalBytes / (1024 * 1024);
+
     const { error } = await supabase
         .from('stores')
-        .update({ storage_used: totalBytes })
+        .update({ storage_used: totalMBs })
         .eq('id', storeId);
 
     if (error) {
@@ -177,18 +180,17 @@ export const syncStoreStorage = async (storeId) => {
  * Checks if the store has enough space for a new file.
  * @param {string} storeId 
  * @param {number} newFileSize in bytes
- * @param {number} currentDbUsage (Optional) Current usage from DB. If not provided, it will be fetched.
+ * @param {number} currentDbUsage (Optional) Current usage from DB (in MBs now). If not provided, it will be fetched.
  * @returns {Promise<boolean>} true if allowed
  * @throws {Error} if storage limit exceeded
  */
 export const validateStorageAllowance = async (storeId, newFileSize, currentDbUsage = null) => {
     const MAX_STORAGE_MB = 30;
-    const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
 
-    let usage = currentDbUsage;
+    let usageMB = currentDbUsage;
 
     // If not provided, fetch fresh from DB
-    if (usage === null || usage === undefined) {
+    if (usageMB === null || usageMB === undefined) {
         const { data, error } = await supabase
             .from('stores')
             .select('storage_used')
@@ -196,17 +198,18 @@ export const validateStorageAllowance = async (storeId, newFileSize, currentDbUs
             .single();
 
         if (error || !data) {
-            // Fallback to 0 if we can't read, but log warning. 
-            // We don't want to block upload purely on read error unless critical.
-            console.warn('Could not fetch storage_usage for validation', error);
-            usage = 0;
+            console.warn('Could not fetch storage_used for validation', error);
+            usageMB = 0;
         } else {
-            usage = data.storage_used || 0;
+            usageMB = data.storage_used || 0;
         }
     }
 
-    if (usage + newFileSize > MAX_STORAGE_BYTES) {
-        throw new Error(`Storage Limit Exceeded. You have used ${(usage / (1024 * 1024)).toFixed(1)}MB of ${MAX_STORAGE_MB}MB. Cannot upload ${(newFileSize / (1024 * 1024)).toFixed(2)}MB file.`);
+    // Convert new file size to MBs for comparison
+    const newFileSizeMB = newFileSize / (1024 * 1024);
+
+    if (usageMB + newFileSizeMB > MAX_STORAGE_MB) {
+        throw new Error(`Storage Limit Exceeded. You have used ${Number(usageMB).toFixed(2)}MB of ${MAX_STORAGE_MB}MB. Cannot upload ${newFileSizeMB.toFixed(2)}MB file.`);
     }
 
     return true;
