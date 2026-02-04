@@ -6,6 +6,7 @@ import { supabase } from './supabase';
  * 
  * @param {string} bucket - The name of the storage bucket.
  * @param {string} folderPath - The path to the folder (should end with '/').
+ * @param {string} storeId - (Optional) Store ID to track storage decrement.
  */
 export const deleteFolderRecursive = async (bucket, folderPath, storeId = null) => {
     try {
@@ -151,39 +152,90 @@ export const getStoreTotalStorage = async (storeId) => {
 };
 
 /**
+ * Syncs the total storage usage of a store to the database.
+ * This is a "heavy" operation that scans all files and updates the DB.
+ * @param {string} storeId
+ * @returns {Promise<number>} The calculated total bytes
+ */
+export const syncStoreStorage = async (storeId) => {
+    const totalBytes = await getStoreTotalStorage(storeId);
+
+    const { error } = await supabase
+        .from('stores')
+        .update({ storage_used: totalBytes })
+        .eq('id', storeId);
+
+    if (error) {
+        console.error('Failed to sync storage usage:', error);
+        throw error;
+    }
+
+    return totalBytes;
+};
+
+/**
  * Checks if the store has enough space for a new file.
- * Uses cached localStorage value to be lightweight and zero-DB.
  * @param {string} storeId 
  * @param {number} newFileSize in bytes
- * @returns {boolean} true if allowed
+ * @param {number} currentDbUsage (Optional) Current usage from DB. If not provided, it will be fetched.
+ * @returns {Promise<boolean>} true if allowed
  * @throws {Error} if storage limit exceeded
  */
-export const validateStorageAllowance = (storeId, newFileSize) => {
+export const validateStorageAllowance = async (storeId, newFileSize, currentDbUsage = null) => {
     const MAX_STORAGE_MB = 30;
     const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
 
-    // Get cached usage or default to 0 (optimistic)
-    // If user has never visited settings to calculate, we assume 0 to avoid blocking them unnecessarily 
-    // until they do a proper check or we implement background checks.
-    const savedUsage = localStorage.getItem(`storage_usage_${storeId}`);
-    const currentUsage = savedUsage ? parseInt(savedUsage, 10) : 0;
+    let usage = currentDbUsage;
 
-    if (currentUsage + newFileSize > MAX_STORAGE_BYTES) {
-        throw new Error(`Storage Limit Exceeded. You have used ${(currentUsage / (1024 * 1024)).toFixed(1)}MB of ${MAX_STORAGE_MB}MB. Cannot upload ${(newFileSize / (1024 * 1024)).toFixed(2)}MB file.`);
+    // If not provided, fetch fresh from DB
+    if (usage === null || usage === undefined) {
+        const { data, error } = await supabase
+            .from('stores')
+            .select('storage_used')
+            .eq('id', storeId)
+            .single();
+
+        if (error || !data) {
+            // Fallback to 0 if we can't read, but log warning. 
+            // We don't want to block upload purely on read error unless critical.
+            console.warn('Could not fetch storage_usage for validation', error);
+            usage = 0;
+        } else {
+            usage = data.storage_used || 0;
+        }
+    }
+
+    if (usage + newFileSize > MAX_STORAGE_BYTES) {
+        throw new Error(`Storage Limit Exceeded. You have used ${(usage / (1024 * 1024)).toFixed(1)}MB of ${MAX_STORAGE_MB}MB. Cannot upload ${(newFileSize / (1024 * 1024)).toFixed(2)}MB file.`);
     }
 
     return true;
 };
 
 /**
- * Optimistically updates the local storage cache after a successful upload.
+ * Increment storage usage in DB via RPC.
  * @param {string} storeId 
- * @param {number} newFileSize in bytes
+ * @param {number} bytes 
  */
-export const updateLocalStorageUsage = (storeId, newFileSize) => {
-    const savedUsage = localStorage.getItem(`storage_usage_${storeId}`);
-    const currentUsage = savedUsage ? parseInt(savedUsage, 10) : 0;
-    const newUsage = currentUsage + newFileSize;
+export const trackStorageUpload = async (storeId, bytes) => {
+    if (!bytes || bytes <= 0) return;
 
-    localStorage.setItem(`storage_usage_${storeId}`, newUsage.toString());
+    const { error } = await supabase
+        .rpc('increment_storage', { row_id: storeId, amount: bytes });
+
+    if (error) console.error('Failed to track storage upload:', error);
+};
+
+/**
+ * Decrement storage usage in DB via RPC.
+ * @param {string} storeId 
+ * @param {number} bytes 
+ */
+export const trackStorageDelete = async (storeId, bytes) => {
+    if (!bytes || bytes <= 0) return;
+
+    const { error } = await supabase
+        .rpc('decrement_storage', { row_id: storeId, amount: bytes });
+
+    if (error) console.error('Failed to track storage delete:', error);
 };
