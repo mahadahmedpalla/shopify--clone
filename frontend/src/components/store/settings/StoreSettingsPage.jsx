@@ -284,7 +284,7 @@ export function StoreSettingsPage() {
                                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Used Space</p>
                                     <p className="text-2xl font-bold text-slate-900 mt-1">
-                                        {storageUsage !== null ? formatBytes(storageUsage) : '---'}
+                                        {formatMB(storageUsage)}
                                     </p>
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
