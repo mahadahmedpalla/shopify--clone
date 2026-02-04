@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Card } from '../../ui/Card';
-import { Store, Globe, Server, Activity, Copy, Check, Database, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
+import { Store, Globe, Server, Activity, Copy, Check, Database, RefreshCw, Clock, AlertTriangle, Wallet } from 'lucide-react';
 import { getStoreTotalStorage } from '../../../lib/storageHelper';
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
@@ -13,34 +13,46 @@ export function StoreSettingsPage() {
 
     // Storage State
     const [storageUsage, setStorageUsage] = useState(null); // Value in MBs
+    const [storageLimit, setStorageLimit] = useState(30); // Default 30 MB
+    const [credits, setCredits] = useState(0);
     const [calculating, setCalculating] = useState(false);
+    const [purchasing, setPurchasing] = useState(false);
 
     // Cooldown is now simple local state, no need for persistence as calculation is valid operation
     const [cooldown, setCooldown] = useState(0);
 
-    const MAX_STORAGE_MB = 30;
-
     useEffect(() => {
-        // Fetch current storage usage from DB (which is now stored in MBs)
-        const fetchStorageUsage = async () => {
+        // Fetch current storage usage, limit, and owner credits
+        const fetchData = async () => {
             if (!store?.id) return;
             try {
-                const { data, error } = await supabase
+                // 1. Fetch Store Data (Usage & Limit)
+                const { data: storeData, error: storeError } = await supabase
                     .from('stores')
-                    .select('storage_used')
+                    .select('storage_used, storage_limit, owner_id')
                     .eq('id', store.id)
                     .single();
 
-                if (data) {
-                    // DB has numeric(10,4), so it comes as number or string. Ensure number.
-                    setStorageUsage(Number(data.storage_used || 0));
+                if (storeData) {
+                    setStorageUsage(Number(storeData.storage_used || 0));
+                    setStorageLimit(Number(storeData.storage_limit || 30));
+
+                    // 2. Fetch Owner Credits
+                    if (storeData.owner_id) {
+                        const { data: ownerData } = await supabase
+                            .from('store_owners')
+                            .select('credits')
+                            .eq('id', storeData.owner_id)
+                            .single();
+                        if (ownerData) setCredits(ownerData.credits || 0);
+                    }
                 }
             } catch (err) {
-                console.error('Error fetching storage usage:', err);
+                console.error('Error fetching storage stats:', err);
             }
         };
 
-        fetchStorageUsage();
+        fetchData();
     }, [store?.id]);
 
     useEffect(() => {
@@ -84,6 +96,41 @@ export function StoreSettingsPage() {
         }
     };
 
+    const handlePurchaseStorage = async () => {
+        const PLAN_COST = 45;
+        const PLAN_ADD_MB = 3000; // 3GB
+
+        if (credits < PLAN_COST) {
+            alert(`Insufficient credits. You need ${PLAN_COST} credits.`);
+            return;
+        }
+
+        if (!confirm(`Purchase 3GB extra storage for ${PLAN_COST} credits?`)) return;
+
+        setPurchasing(true);
+        try {
+            const { data, error } = await supabase.rpc('purchase_storage_plan', {
+                p_store_id: store.id,
+                p_cost_credits: PLAN_COST,
+                p_storage_add_mb: PLAN_ADD_MB
+            });
+
+            if (error) throw error;
+            if (data === false) throw new Error('Purchase failed via RPC (Insufficient funds?)');
+
+            // Success! Update local state
+            setCredits(prev => prev - PLAN_COST);
+            setStorageLimit(prev => prev + PLAN_ADD_MB);
+            alert('Storage plan purchased successfully!');
+
+        } catch (err) {
+            console.error(err);
+            alert('Purchase failed: ' + err.message);
+        } finally {
+            setPurchasing(false);
+        }
+    };
+
     // Helper to display MBs neatly
     const formatMB = (val) => {
         if (val === null || val === undefined) return '---';
@@ -91,7 +138,7 @@ export function StoreSettingsPage() {
     };
 
     // Calculate percentage based on MBs
-    const usagePercent = storageUsage !== null ? Math.min(100, (storageUsage / MAX_STORAGE_MB) * 100) : 0;
+    const usagePercent = storageUsage !== null ? Math.min(100, (storageUsage / storageLimit) * 100) : 0;
     const isCritical = usagePercent >= 100;
 
     return (
@@ -284,7 +331,7 @@ export function StoreSettingsPage() {
                                 </div>
                                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Limit</p>
-                                    <p className="text-2xl font-bold text-slate-900 mt-1">{MAX_STORAGE_MB} MB</p>
+                                    <p className="text-2xl font-bold text-slate-900 mt-1">{formatMB(storageLimit)}</p>
                                 </div>
                             </div>
 
@@ -302,6 +349,39 @@ export function StoreSettingsPage() {
                                     ></div>
                                 </div>
                             </div>
+
+                            {/* Upgrade Plan Section */}
+                            <div className="mt-8 pt-8 border-t border-slate-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-base font-bold text-slate-900">Upgrade Plan</h4>
+                                    <div className="flex items-center bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                                        <Wallet className="h-4 w-4 text-indigo-600 mr-2" />
+                                        <span className="text-sm font-semibold text-indigo-700">{credits} Credits Available</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl p-5 text-white relative overflow-hidden shadow-lg">
+                                    <div className="relative z-10 flex justify-between items-center">
+                                        <div>
+                                            <p className="text-indigo-200 text-xs uppercase font-bold tracking-wider mb-1">Storage Boost</p>
+                                            <h5 className="text-2xl font-bold">+3 GB Storage</h5>
+                                            <p className="text-indigo-100 text-sm mt-1 opacity-90">Expand your store's capacity instantly.</p>
+                                        </div>
+                                        <Button
+                                            onClick={handlePurchaseStorage}
+                                            isLoading={purchasing}
+                                            className="bg-white text-indigo-700 hover:bg-slate-50 border-none px-6"
+                                        >
+                                            Buy for 45 Credits
+                                        </Button>
+                                    </div>
+
+                                    {/* Decorative circles */}
+                                    <div className="absolute top-0 right-0 -transtale-y-1/2 translate-x-1/2 w-48 h-48 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
+                                    <div className="absolute bottom-0 left-0 transtale-y-1/2 -translate-x-1/2 w-32 h-32 bg-indigo-400 opacity-20 rounded-full blur-xl pointer-events-none"></div>
+                                </div>
+                            </div>
+
 
                             {/* Warning */}
                             {isCritical && (

@@ -185,31 +185,40 @@ export const syncStoreStorage = async (storeId) => {
  * @throws {Error} if storage limit exceeded
  */
 export const validateStorageAllowance = async (storeId, newFileSize, currentDbUsage = null) => {
-    const MAX_STORAGE_MB = 30;
-
     let usageMB = currentDbUsage;
+    let limitMB = 30; // Default fallback
 
-    // If not provided, fetch fresh from DB
+    // Need to fetch both limit and usage if not provided, or just limit
+    // We'll fetch both to be safe and simple unless provided
     if (usageMB === null || usageMB === undefined) {
         const { data, error } = await supabase
             .from('stores')
-            .select('storage_used')
+            .select('storage_used, storage_limit')
             .eq('id', storeId)
             .single();
 
         if (error || !data) {
-            console.warn('Could not fetch storage_used for validation', error);
+            console.warn('Could not fetch storage info for validation', error);
             usageMB = 0;
         } else {
             usageMB = data.storage_used || 0;
+            if (data.storage_limit) limitMB = data.storage_limit;
         }
+    } else {
+        // Just fetch limit
+        const { data, error } = await supabase
+            .from('stores')
+            .select('storage_limit')
+            .eq('id', storeId)
+            .single();
+        if (data && data.storage_limit) limitMB = data.storage_limit;
     }
 
     // Convert new file size to MBs for comparison
     const newFileSizeMB = newFileSize / (1024 * 1024);
 
-    if (usageMB + newFileSizeMB > MAX_STORAGE_MB) {
-        throw new Error(`Storage Limit Exceeded. You have used ${Number(usageMB).toFixed(2)}MB of ${MAX_STORAGE_MB}MB. Cannot upload ${newFileSizeMB.toFixed(2)}MB file.`);
+    if (usageMB + newFileSizeMB > limitMB) {
+        throw new Error(`Storage Limit Exceeded. You have used ${Number(usageMB).toFixed(2)}MB of ${limitMB}MB. Cannot upload ${newFileSizeMB.toFixed(2)}MB file.`);
     }
 
     return true;
