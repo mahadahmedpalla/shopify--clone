@@ -33,6 +33,7 @@ export function DeleteStoreModal({ isOpen, onClose, onSuccess, store }) {
             // Note: 'categories' uses a 'thumbnails/' prefix structure.
             const cleanupTargets = [
                 { bucket: 'products', path: `products/${store.id}/` },
+                { bucket: 'products', path: `products/variants/${store.id}/` },
                 { bucket: 'store-images', path: `${store.id}/` },
                 { bucket: 'store-assets', path: `${store.id}/` },
                 { bucket: 'categories', path: `thumbnails/${store.id}/` }
