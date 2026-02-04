@@ -6,6 +6,7 @@ import {
     MousePointer, PaintBucket, Upload, Link as LinkIcon
 } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
+import { deleteStoreFiles } from '../../../../lib/storageHelper';
 
 export function ImageProperties({ settings, onChange, viewMode = 'desktop', storeId }) {
     const { storeId: paramStoreId } = useParams();
@@ -63,6 +64,23 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
         }
     };
 
+    const handleDeleteImage = async () => {
+        const imageUrl = settings.src;
+        if (!imageUrl) return;
+
+        if (!confirm('Are you sure you want to delete this image? This will remove it from storage permanently.')) return;
+
+        try {
+            // Delete from storage bucket
+            await deleteStoreFiles('store-images', [imageUrl], activeStoreId);
+            // Clear from settings
+            updateSetting('src', '');
+        } catch (err) {
+            console.error('Error deleting image:', err);
+            alert('Failed to delete image from storage.');
+        }
+    };
+
     return (
         <div className="space-y-6">
             {/* View Mode Indicator */}
@@ -99,7 +117,17 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
                 {activeTab === 'content' && (
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Image Source</label>
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex justify-between items-center">
+                                Image Source
+                                {settings.src && (
+                                    <button
+                                        onClick={handleDeleteImage}
+                                        className="text-red-500 hover:text-red-600 text-[10px] font-bold uppercase flex items-center gap-1"
+                                    >
+                                        Delete Image
+                                    </button>
+                                )}
+                            </label>
 
                             {/* Upload Button */}
                             <div className="relative group">
@@ -107,6 +135,8 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                         {uploading ? (
                                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                                        ) : settings.src ? (
+                                            <img src={settings.src} className="h-28 object-contain" alt="Preview" />
                                         ) : (
                                             <>
                                                 <Upload className="w-8 h-8 mb-2 text-slate-400" />
