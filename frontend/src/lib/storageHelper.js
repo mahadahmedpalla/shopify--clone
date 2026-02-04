@@ -68,3 +68,71 @@ export const deleteFolderRecursive = async (bucket, folderPath) => {
         console.error(`Recursive delete failed for ${bucket}/${folderPath}`, err);
     }
 };
+
+/**
+ * Recursively gets the total size in bytes of files in a folder.
+ */
+export const getFolderSize = async (bucket, folderPath) => {
+    let totalSize = 0;
+    try {
+        let hasMore = true;
+        let offset = 0;
+        const LIMIT = 100;
+
+        // Supabase storage list doesn't support offset directly, but we can loop
+        // Note: For deep recursion, we list, sum files, and recurse folders.
+        // To be simpler and safer, we use the same recursive patterns as delete.
+
+        const { data, error } = await supabase.storage
+            .from(bucket)
+            .list(folderPath, { limit: 100 });
+
+        if (error) throw error;
+        if (!data) return 0;
+
+        const foldersToRecurse = [];
+
+        for (const item of data) {
+            if (item.id === null) {
+                // Folder
+                foldersToRecurse.push(item.name);
+            } else {
+                // File - add size (metadata.size is in bytes)
+                totalSize += (item.metadata?.size || 0);
+            }
+        }
+
+        // Recurse subfolders
+        for (const subfolder of foldersToRecurse) {
+            totalSize += await getFolderSize(bucket, `${folderPath}${subfolder}/`);
+        }
+
+    } catch (err) {
+        console.warn(`Error getting size for ${bucket}/${folderPath}`, err);
+    }
+    return totalSize;
+};
+
+/**
+ * Calculates total storage used by a store across all known buckets.
+ * @param {string} storeId 
+ * @returns {Promise<number>} Total bytes used
+ */
+export const getStoreTotalStorage = async (storeId) => {
+    const targets = [
+        { bucket: 'products', path: `products/${storeId}/` },
+        { bucket: 'products', path: `products/variants/${storeId}/` },
+        { bucket: 'store-images', path: `${storeId}/` },
+        { bucket: 'store-assets', path: `${storeId}/` },
+        { bucket: 'categories', path: `thumbnails/${storeId}/` }
+    ];
+
+    let totalBytes = 0;
+
+    // Process sequentially to be gentle on connection
+    for (const target of targets) {
+        totalBytes += await getFolderSize(target.bucket, target.path);
+    }
+
+    return totalBytes;
+};

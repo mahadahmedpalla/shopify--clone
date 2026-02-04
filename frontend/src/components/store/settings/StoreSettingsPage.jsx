@@ -1,12 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Card } from '../../ui/Card';
-import { Store, Globe, Server, Activity, Copy, Check } from 'lucide-react';
+import { Store, Globe, Server, Activity, Copy, Check, Database, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
+import { getStoreTotalStorage } from '../../../lib/storageHelper';
+import { Button } from '../../ui/Button';
 
 export function StoreSettingsPage() {
     const { store } = useOutletContext();
     const [activeTab, setActiveTab] = useState('store');
     const [copiedId, setCopiedId] = useState(false);
+
+    // Storage State
+    const [storageUsage, setStorageUsage] = useState(null); // Bytes
+    const [calculating, setCalculating] = useState(false);
+    const [cooldown, setCooldown] = useState(0);
+
+    const MAX_STORAGE_MB = 30;
+    const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
+
+    useEffect(() => {
+        // Check local storage for cooldown
+        const savedCooldown = localStorage.getItem(`storage_cooldown_${store?.id}`);
+        if (savedCooldown) {
+            const expireTime = parseInt(savedCooldown, 10);
+            const now = Date.now();
+            const remaining = Math.ceil((expireTime - now) / 1000);
+
+            if (remaining > 0) {
+                setCooldown(remaining);
+            } else {
+                localStorage.removeItem(`storage_cooldown_${store?.id}`);
+            }
+        }
+    }, [store?.id]);
+
+    useEffect(() => {
+        let timer;
+        if (cooldown > 0) {
+            timer = setInterval(() => {
+                setCooldown(prev => {
+                    if (prev <= 1) {
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [cooldown]);
 
     const copyStoreId = () => {
         if (store?.id) {
@@ -16,7 +57,37 @@ export function StoreSettingsPage() {
         }
     };
 
+    const handleRefreshStorage = async () => {
+        if (cooldown > 0 || calculating) return;
+
+        setCalculating(true);
+        try {
+            const bytes = await getStoreTotalStorage(store.id);
+            setStorageUsage(bytes);
+
+            // Set cooldown (60s)
+            const expireTime = Date.now() + (60 * 1000);
+            localStorage.setItem(`storage_cooldown_${store.id}`, expireTime.toString());
+            setCooldown(60);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setCalculating(false);
+        }
+    };
+
+    const formatBytes = (bytes) => {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
     if (!store) return <div className="p-8 text-center">Loading settings...</div>;
+
+    const usagePercent = storageUsage !== null ? Math.min(100, (storageUsage / MAX_STORAGE_BYTES) * 100) : 0;
+    const isCritical = usagePercent >= 90;
 
     return (
         <div className="space-y-6">
@@ -31,21 +102,45 @@ export function StoreSettingsPage() {
                     <button
                         onClick={() => setActiveTab('store')}
                         className={`
-                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center
                             ${activeTab === 'store'
                                 ? 'border-indigo-500 text-indigo-600'
                                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
                         `}
                     >
+                        <Store className="h-4 w-4 mr-2" />
                         Store Details
                     </button>
-                    {/* Add more tabs here later */}
+                    <button
+                        onClick={() => setActiveTab('renewal')}
+                        className={`
+                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center
+                            ${activeTab === 'renewal'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
+                        `}
+                    >
+                        <Clock className="h-4 w-4 mr-2" />
+                        Store Renewal
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('storage')}
+                        className={`
+                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center
+                            ${activeTab === 'storage'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
+                        `}
+                    >
+                        <Database className="h-4 w-4 mr-2" />
+                        Storage
+                    </button>
                 </nav>
             </div>
 
             {/* Store Details Tab */}
             {activeTab === 'store' && (
-                <div className="max-w-3xl space-y-6">
+                <div className="max-w-3xl space-y-6 animate-in slide-in-from-left-4 duration-300">
                     <Card className="p-6 space-y-6">
                         <div className="flex items-center gap-2 mb-4">
                             <Store className="h-5 w-5 text-indigo-600" />
@@ -132,6 +227,93 @@ export function StoreSettingsPage() {
                                         </p>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* Store Renewal Tab */}
+            {activeTab === 'renewal' && (
+                <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300">
+                    <Card className="p-12 text-center">
+                        <Clock className="mx-auto h-12 w-12 text-slate-300" />
+                        <h3 className="mt-2 text-sm font-medium text-slate-900">Renewal Settings</h3>
+                        <p className="mt-1 text-sm text-slate-500">Subscription and renewal management.</p>
+                        <p className="mt-4 text-xs font-mono text-slate-400 bg-slate-100 inline-block px-2 py-1 rounded">Feature Coming Soon</p>
+                    </Card>
+                </div>
+            )}
+
+            {/* Storage Tab */}
+            {activeTab === 'storage' && (
+                <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300 space-y-6">
+                    <Card className="p-6">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-2">
+                                <Database className="h-5 w-5 text-indigo-600" />
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">Storage Usage</h3>
+                                    <p className="text-xs text-slate-500">Monitor your store's media consumption.</p>
+                                </div>
+                            </div>
+                            <Button
+                                onClick={handleRefreshStorage}
+                                isLoading={calculating}
+                                disabled={cooldown > 0}
+                                variant={cooldown > 0 ? "secondary" : "primary"}
+                            >
+                                <RefreshCw className={`h-4 w-4 mr-2 ${calculating ? 'animate-spin' : ''}`} />
+                                {cooldown > 0 ? `Wait ${cooldown}s...` : 'Calculate Usage'}
+                            </Button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Stats */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Used Space</p>
+                                    <p className="text-2xl font-bold text-slate-900 mt-1">
+                                        {storageUsage !== null ? formatBytes(storageUsage) : '---'}
+                                    </p>
+                                </div>
+                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Limit</p>
+                                    <p className="text-2xl font-bold text-slate-900 mt-1">{MAX_STORAGE_MB} MB</p>
+                                </div>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm font-medium">
+                                    <span className={isCritical ? 'text-red-600' : 'text-slate-700'}>
+                                        {storageUsage !== null ? `${usagePercent.toFixed(1)}% Used` : 'Click Calculate to view usage'}
+                                    </span>
+                                </div>
+                                <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ease-out ${isCritical ? 'bg-red-500' : 'bg-indigo-600'}`}
+                                        style={{ width: `${usagePercent}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            {/* Warning */}
+                            {isCritical && (
+                                <div className="flex items-start p-4 bg-red-50 border border-red-100 rounded-lg">
+                                    <AlertTriangle className="h-5 w-5 text-red-600 mr-3 flex-shrink-0" />
+                                    <div>
+                                        <h4 className="text-sm font-bold text-red-800">Storage Limit Reached</h4>
+                                        <p className="text-xs text-red-700 mt-1">
+                                            You are running low on storage. You cannot upload new products or media until you free up space.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Info */}
+                            <div className="text-xs text-slate-400 italic">
+                                * Usage includes product images, variant images, store assets, and category thumbnails.
                             </div>
                         </div>
                     </Card>
