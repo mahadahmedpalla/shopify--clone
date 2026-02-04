@@ -57,7 +57,7 @@ export function RegisterForm() {
                             id: authData.user.id,
                             email: formData.email,
                             full_name: formData.fullName,
-                            credits: 100 // Initial credits
+                            credits: 0 // Initial credits
                         }
                     ]);
 
