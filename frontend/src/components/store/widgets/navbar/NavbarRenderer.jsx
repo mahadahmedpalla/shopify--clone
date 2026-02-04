@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, ChevronRight } from 'lucide-react';
 import { getResponsiveValue } from '../Shared';
 import { useCart } from '../../../../context/CartContext';
@@ -17,6 +18,38 @@ export function NavbarRenderer({ settings, viewMode, store }) {
     const { setIsOpen: openCart, cartCount } = context;
 
     const rVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
+    const navigate = useNavigate();
+
+    const handleNavigate = (item) => {
+        if (!item) return;
+
+        // Close mobile menu if open
+        setMobileMenuOpen(false);
+
+        // Logic based on item type
+        // Assuming item structure has { type, value, url }
+        // types: 'category', 'product', 'page', 'external'
+
+        if (item.type === 'external' || (item.url && item.url.startsWith('http'))) {
+            window.location.href = item.url;
+            return;
+        }
+
+        if (item.type === 'category') {
+            navigate(`/category/${item.value}`);
+        } else if (item.type === 'product') {
+            navigate(`/product/${item.value}`);
+        } else if (item.type === 'page') {
+            // Basic pages like 'about', 'contact'
+            navigate(`/${item.value}`);
+        } else if (item.url) {
+            // Fallback for internal relative links
+            navigate(item.url);
+        } else {
+            // Default fallback if just a label?
+            console.warn('Unknown menu item navigation', item);
+        }
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -81,7 +114,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                     }}
                 >
                     {/* Logo & Store Name */}
-                    <div className="flex items-center" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }}>
+                    <div className="flex items-center cursor-pointer" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }} onClick={() => navigate('/')}>
                         <div className="flex items-center">
                             {rVal('logoUrl', settings.logoUrl) ? (
                                 <img src={rVal('logoUrl', settings.logoUrl)} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
@@ -111,6 +144,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                         {menuItems.map(item => (
                             <span
                                 key={item.id}
+                                onClick={() => handleNavigate(item)}
                                 className="cursor-pointer hover:opacity-75 transition-opacity flex items-center uppercase tracking-tight"
                                 style={{
                                     color: rVal('textColor', settings.textColor),
@@ -172,7 +206,11 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                     </div>
                     <div className="flex flex-col space-y-6 overflow-y-auto">
                         {menuItems.map(item => (
-                            <div key={item.id} className="text-xl border-b border-slate-100 pb-4 flex items-center justify-between group cursor-pointer hover:pl-2 transition-all">
+                            <div
+                                key={item.id}
+                                onClick={() => handleNavigate(item)}
+                                className="text-xl border-b border-slate-100 pb-4 flex items-center justify-between group cursor-pointer hover:pl-2 transition-all"
+                            >
                                 <span style={{
                                     fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
                                     fontWeight: rVal('fontWeight', settings.fontWeight) || '700',
