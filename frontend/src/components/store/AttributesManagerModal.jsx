@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { X, Settings2, Plus, Trash2, Wand2, Package, Check, ChevronRight, ChevronLeft, Image as ImageIcon, Copy } from 'lucide-react';
+import { validateStorageAllowance, updateLocalStorageUsage } from '../../lib/storageHelper';
 
 const COMMON_ATTRIBUTES = ['Size', 'Color', 'Material', 'Style', 'Fit', 'Fabric'];
 
@@ -405,6 +406,10 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                                 if (files.length > 0) {
                                                                     setLoading(true);
                                                                     try {
+                                                                        // Check Storage Allowance
+                                                                        const totalSize = files.reduce((acc, f) => acc + f.size, 0);
+                                                                        validateStorageAllowance(storeId, totalSize);
+
                                                                         const newUrls = [];
                                                                         for (const file of files) {
                                                                             const fileExt = file.name.split('.').pop();
@@ -413,10 +418,15 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                                             await supabase.storage.from('products').upload(filePath, file);
                                                                             const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(filePath);
                                                                             newUrls.push(publicUrl);
+
+                                                                            // Update Storage
+                                                                            updateLocalStorageUsage(storeId, file.size);
                                                                         }
                                                                         const newV = [...variants];
                                                                         newV[vIdx].image_urls = [...(newV[vIdx].image_urls || []), ...newUrls];
                                                                         setVariants(newV);
+                                                                    } catch (err) {
+                                                                        alert(err.message); // Simple alert since this is deep in UI
                                                                     } finally {
                                                                         setLoading(false);
                                                                     }

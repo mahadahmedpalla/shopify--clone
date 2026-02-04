@@ -136,3 +136,41 @@ export const getStoreTotalStorage = async (storeId) => {
 
     return totalBytes;
 };
+
+/**
+ * Checks if the store has enough space for a new file.
+ * Uses cached localStorage value to be lightweight and zero-DB.
+ * @param {string} storeId 
+ * @param {number} newFileSize in bytes
+ * @returns {boolean} true if allowed
+ * @throws {Error} if storage limit exceeded
+ */
+export const validateStorageAllowance = (storeId, newFileSize) => {
+    const MAX_STORAGE_MB = 30;
+    const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
+
+    // Get cached usage or default to 0 (optimistic)
+    // If user has never visited settings to calculate, we assume 0 to avoid blocking them unnecessarily 
+    // until they do a proper check or we implement background checks.
+    const savedUsage = localStorage.getItem(`storage_usage_${storeId}`);
+    const currentUsage = savedUsage ? parseInt(savedUsage, 10) : 0;
+
+    if (currentUsage + newFileSize > MAX_STORAGE_BYTES) {
+        throw new Error(`Storage Limit Exceeded. You have used ${(currentUsage / (1024 * 1024)).toFixed(1)}MB of ${MAX_STORAGE_MB}MB. Cannot upload ${(newFileSize / (1024 * 1024)).toFixed(2)}MB file.`);
+    }
+
+    return true;
+};
+
+/**
+ * Optimistically updates the local storage cache after a successful upload.
+ * @param {string} storeId 
+ * @param {number} newFileSize in bytes
+ */
+export const updateLocalStorageUsage = (storeId, newFileSize) => {
+    const savedUsage = localStorage.getItem(`storage_usage_${storeId}`);
+    const currentUsage = savedUsage ? parseInt(savedUsage, 10) : 0;
+    const newUsage = currentUsage + newFileSize;
+
+    localStorage.setItem(`storage_usage_${storeId}`, newUsage.toString());
+};

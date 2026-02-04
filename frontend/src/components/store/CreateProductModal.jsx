@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { X, Package, Upload, Camera, LayoutGrid } from 'lucide-react';
+import { validateStorageAllowance, updateLocalStorageUsage } from '../../lib/storageHelper';
 
 export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, categories }) {
     const [loading, setLoading] = useState(false);
@@ -49,6 +50,12 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
         try {
             const uploadedUrls = [];
 
+            // 0. Check Storage Allowance (Lightweight)
+            const totalUploadSize = imageFiles.reduce((acc, file) => acc + file.size, 0);
+            if (totalUploadSize > 0) {
+                validateStorageAllowance(storeId, totalUploadSize);
+            }
+
             // 1. Upload All Images to Supabase Storage
             for (const file of imageFiles) {
                 const fileExt = file.name.split('.').pop();
@@ -66,6 +73,9 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                     .getPublicUrl(filePath);
 
                 uploadedUrls.push(publicUrl);
+
+                // Update local storage usage optimistically
+                updateLocalStorageUsage(storeId, file.size);
             }
 
             // 2. Insert into Database
