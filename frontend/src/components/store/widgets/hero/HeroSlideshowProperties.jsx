@@ -352,6 +352,14 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                                 <span>Show Dots</span>
                                 <input type="checkbox" checked={settings.showDots} onChange={(e) => handleUpdate({ showDots: e.target.checked })} />
                             </label>
+                            <label className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs font-medium cursor-pointer">
+                                <span>Show Text</span>
+                                <input type="checkbox" checked={settings.showText !== false} onChange={(e) => handleUpdate({ showText: e.target.checked })} />
+                            </label>
+                            <label className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs font-medium cursor-pointer">
+                                <span>Show Buttons</span>
+                                <input type="checkbox" checked={settings.showButtons !== false} onChange={(e) => handleUpdate({ showButtons: e.target.checked })} />
+                            </label>
                         </div>
                     </div>
 

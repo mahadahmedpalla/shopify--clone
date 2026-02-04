@@ -178,36 +178,40 @@ export function HeroSlideshowRenderer({ settings, viewMode, isEditor }) {
                             }}
                         >
                             <div className={`max-w-4xl space-y-6 ${hAlign === 'center' ? 'text-center' : hAlign === 'flex-end' ? 'text-right' : 'text-left'}`}>
-                                {slideTitle && (
-                                    <h2
-                                        style={{
-                                            fontFamily: headingFont,
-                                            color: headingColor,
-                                            fontSize: headingSize,
-                                            lineHeight: 1.1,
-                                            whiteSpace: 'pre-wrap'
-                                        }}
-                                        className="font-extrabold tracking-tight"
-                                    >
-                                        {slideTitle}
-                                    </h2>
-                                )}
-                                {slideSubtitle && (
-                                    <p
-                                        style={{
-                                            fontFamily: subheadingFont,
-                                            color: subheadingColor,
-                                            fontSize: subheadingSize,
-                                            whiteSpace: 'pre-wrap'
-                                        }}
-                                        className="font-medium opacity-90"
-                                    >
-                                        {slideSubtitle}
-                                    </p>
+                                {settings.showText !== false && (
+                                    <>
+                                        {slideTitle && (
+                                            <h2
+                                                style={{
+                                                    fontFamily: headingFont,
+                                                    color: headingColor,
+                                                    fontSize: headingSize,
+                                                    lineHeight: 1.1,
+                                                    whiteSpace: 'pre-wrap'
+                                                }}
+                                                className="font-extrabold tracking-tight"
+                                            >
+                                                {slideTitle}
+                                            </h2>
+                                        )}
+                                        {slideSubtitle && (
+                                            <p
+                                                style={{
+                                                    fontFamily: subheadingFont,
+                                                    color: subheadingColor,
+                                                    fontSize: subheadingSize,
+                                                    whiteSpace: 'pre-wrap'
+                                                }}
+                                                className="font-medium opacity-90"
+                                            >
+                                                {slideSubtitle}
+                                            </p>
+                                        )}
+                                    </>
                                 )}
 
                                 {/* Render Buttons */}
-                                {buttons.length > 0 && (
+                                {settings.showButtons !== false && buttons.length > 0 && (
                                     <div className={`pt-4 flex flex-wrap gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
                                         {buttons.map((btn, btnIdx) => {
                                             const isPrimary = !btn.variant || btn.variant === 'primary';
