@@ -63,6 +63,34 @@ export function CreateStoreModal({ isOpen, onClose, onSuccess, userId }) {
         setError(null);
 
         try {
+            // 0. Ensure user profile exists (Fix for missing store_owners record)
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("You must be logged in to create a store.");
+
+            const { data: profile } = await supabase
+                .from('store_owners')
+                .select('id')
+                .eq('id', user.id)
+                .single();
+
+            if (!profile) {
+                // Profile missing, create it now
+                console.log("Profile missing, creating...", user);
+                const { error: createProfileError } = await supabase
+                    .from('store_owners')
+                    .insert([{
+                        id: user.id,
+                        email: user.email,
+                        full_name: user.user_metadata?.full_name || 'Store Owner',
+                        credits: 100
+                    }]);
+
+                if (createProfileError) {
+                    console.error("Failed to auto-create profile:", createProfileError);
+                    throw new Error("Failed to initialize your account profile. Please contact support.");
+                }
+            }
+
             // 1. Check if sub-url is unique
             const { data: existing } = await supabase
                 .from('stores')
@@ -75,34 +103,17 @@ export function CreateStoreModal({ isOpen, onClose, onSuccess, userId }) {
             }
 
             // 2. Create store
-            // Note: We are hashing password on client for this MVP step, 
-            // ideally this endpoint should be a backend API to handle hashing securely.
-            // For now we will store as plain text hash-placeholder or basic hash to demonstrate flow
-            // pending backend endpoint connection. 
-            // Actually, plan says "Implement backend authentication endpoints".
-            // We should ideally call our backend API to create store to handle password hashing securely.
-            // But to stick to Supabase direct integration for MVP speed where possible:
-            // We will perform a simple hash or just store it for now (Aware of security implication, for prototype only)
-            // OR better: Let's call the backend API we are about to build!
-
-            // Let's rely on Supabase direct for now as per "leverage supabase" prompt, 
-            // but purely client-side password handling is bad. 
-            // I'll assume we will use the backend API for store creation to match the plan "POST /api/stores".
-            // BUT, I haven't built the backend yet. 
-            // Let's implement this to call Supabase directly for now to unblock frontend verify, 
-            // and we can migrate to API later or just do a simple hash here.
-
             const { error: insertError } = await supabase
                 .from('stores')
                 .insert([{
-                    owner_id: userId,
+                    owner_id: user.id,
                     name: formData.name,
                     category_id: formData.category_id,
                     sub_url: formData.sub_url,
                     description: formData.description,
                     email: formData.email,
                     access_username: formData.access_username,
-                    access_password_hash: formData.access_password, // TODO: Hash this!
+                    access_password_hash: formData.access_password, // TODO: Hash this properly in backend!
                     is_active: true
                 }]);
 
@@ -110,6 +121,7 @@ export function CreateStoreModal({ isOpen, onClose, onSuccess, userId }) {
 
             onSuccess();
         } catch (err) {
+            console.error("Store creation error:", err);
             setError(err.message);
         } finally {
             setLoading(false);
