@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { deleteStoreFiles } from '../../lib/storageHelper';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -45,6 +46,38 @@ export function CategoriesPage() {
 
     const handleDeleteCategory = async (id) => {
         if (!confirm('Are you sure you want to delete this category? All sub-categories will also be deleted.')) return;
+
+        try {
+            // 1. Identify all categories that will be deleted (Target + Descendants)
+            // Since we already have the full list in `categories` state, we can traverse it efficiently.
+            const toDeleteIds = new Set([id]);
+            const toDeleteImages = [];
+
+            // Helper to recurse
+            const findDescendants = (parentId) => {
+                const children = categories.filter(c => c.parent_id === parentId);
+                children.forEach(child => {
+                    toDeleteIds.add(child.id);
+                    findDescendants(child.id);
+                });
+            };
+            findDescendants(id);
+
+            // Collect images
+            categories.forEach(c => {
+                if (toDeleteIds.has(c.id) && c.image_url) {
+                    toDeleteImages.push(c.image_url);
+                }
+            });
+
+            // 2. Delete images from storage
+            if (toDeleteImages.length > 0) {
+                await deleteStoreFiles('categories', toDeleteImages, storeId);
+            }
+
+        } catch (err) {
+            console.error('Error cleaning up category images:', err);
+        }
 
         const { error } = await supabase
             .from('product_categories')

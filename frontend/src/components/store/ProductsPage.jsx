@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { deleteStoreFiles } from '../../lib/storageHelper';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Skeleton } from '../ui/Skeleton';
@@ -71,6 +72,36 @@ export function ProductsPage() {
 
     const handleDeleteProduct = async (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
+
+        try {
+            // 1. Fetch media to clean up (Product Images AND Variant Images)
+            const { data: productData } = await supabase
+                .from('products')
+                .select('image_urls, product_variants(image_urls)')
+                .eq('id', id)
+                .single();
+
+            if (productData) {
+                // Collect Product Images
+                const productImages = productData.image_urls || [];
+                if (productImages.length > 0) {
+                    await deleteStoreFiles('products', productImages, storeId);
+                }
+
+                // Collect Variant Images (flatten array)
+                const variantImages = productData.product_variants
+                    ?.flatMap(v => v.image_urls || [])
+                    .filter(Boolean) || [];
+
+                if (variantImages.length > 0) {
+                    await deleteStoreFiles('products', variantImages, storeId);
+                }
+            }
+        } catch (err) {
+            console.error('Error cleaning up media:', err);
+            // Continue with deletion anyway
+        }
+
         const { error } = await supabase.from('products').delete().eq('id', id);
         if (error) alert('Error: ' + error.message);
         else fetchData();
@@ -78,6 +109,22 @@ export function ProductsPage() {
 
     const handleDeleteVariant = async (id) => {
         if (!confirm('Are you sure you want to delete this variation?')) return;
+
+        try {
+            // 1. Fetch media to clean up
+            const { data: variantData } = await supabase
+                .from('product_variants')
+                .select('image_urls')
+                .eq('id', id)
+                .single();
+
+            if (variantData && variantData.image_urls?.length > 0) {
+                await deleteStoreFiles('products', variantData.image_urls, storeId);
+            }
+        } catch (err) {
+            console.error('Error cleaning up variant media:', err);
+        }
+
         const { error } = await supabase.from('product_variants').delete().eq('id', id);
         if (error) alert('Error: ' + error.message);
         else fetchData();

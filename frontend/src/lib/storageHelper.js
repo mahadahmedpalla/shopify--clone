@@ -234,6 +234,11 @@ export const trackStorageUpload = async (storeId, bytes) => {
  * @param {string} storeId 
  * @param {number} bytes 
  */
+/**
+ * Decrement storage usage in DB via RPC.
+ * @param {string} storeId 
+ * @param {number} bytes 
+ */
 export const trackStorageDelete = async (storeId, bytes) => {
     if (!bytes || bytes <= 0) return;
 
@@ -241,4 +246,93 @@ export const trackStorageDelete = async (storeId, bytes) => {
         .rpc('decrement_storage', { row_id: storeId, amount: bytes });
 
     if (error) console.error('Failed to track storage delete:', error);
+};
+
+/**
+ * Extracts the relative storage path from a full Supabase Public URL.
+ * @param {string} url - The full URL.
+ * @param {string} bucket - The bucket name.
+ * @returns {string|null} The relative path or null if invalid.
+ */
+export const extractPathFromUrl = (url, bucket) => {
+    if (!url) return null;
+    try {
+        // Handle full URL
+        if (url.startsWith('http')) {
+            const split = url.split(`/storage/v1/object/public/${bucket}/`);
+            if (split.length > 1) return decodeURIComponent(split[1]);
+        }
+        // Handle if it's already a relative path or close to it
+        return url;
+    } catch (e) {
+        console.error('Error extracting path from URL:', url, e);
+        return null;
+    }
+};
+
+/**
+ * Deletes a list of files (by URL or Path) from storage and updates the tracking.
+ * @param {string} bucket - The storage bucket.
+ * @param {string[]} urlsOrPaths - Array of full URLs or relative paths.
+ * @param {string} storeId - (Optional) Store ID to track storage decrement.
+ */
+export const deleteStoreFiles = async (bucket, urlsOrPaths, storeId = null) => {
+    if (!urlsOrPaths || urlsOrPaths.length === 0) return;
+
+    const paths = urlsOrPaths.map(u => extractPathFromUrl(u, bucket)).filter(Boolean);
+    if (paths.length === 0) return;
+
+    try {
+        // 1. Calculate size if tracking is needed
+        let totalSize = 0;
+        if (storeId) {
+            // We need to fetch metadata for these files to know their size.
+            // Sadly Supabase doesn't have a "batch get metadata" for specific files easily without listing.
+            // Optimization: If paths are in the same folder, list that folder.
+            // But they might be scattered.
+            // We will do a parallel metadata check or list if possible.
+            // Since we usually delete by "product", files are likely in `products/${storeId}/`.
+            // We can LIST that folder and filter by the filenames we have.
+
+            // Heuristic: Check if all paths start with same folder?
+            // Usually `products/storeId/timestamp_filename`.
+
+            // Fallback: Just simple parallel metadata fetch (head).
+            // `supabase.storage.from(bucket).list()` is better if many files.
+            // For now, let's try a bulk list of the parent folder `storeId/`.
+
+            // Assume paths start with `${storeId}/`
+            const prefix = `${storeId}/`;
+            const { data: listData } = await supabase.storage.from(bucket).list(storeId, { limit: 1000 });
+
+            if (listData) {
+                const filesMap = new Map(listData.map(f => [f.name, f]));
+                paths.forEach(p => {
+                    // p is `storeId/filename`. list keys are `filename`.
+                    const filename = p.split('/').pop();
+                    const file = filesMap.get(filename);
+                    if (file && file.metadata) {
+                        totalSize += file.metadata.size;
+                    }
+                });
+            }
+        }
+
+        // 2. Delete the files
+        const { error } = await supabase.storage
+            .from(bucket)
+            .remove(paths);
+
+        if (error) {
+            console.error('Error deleting files:', error);
+        } else {
+            console.log(`Deleted ${paths.length} files from ${bucket}`);
+            // 3. Track decrement
+            if (storeId && totalSize > 0) {
+                await trackStorageDelete(storeId, totalSize);
+            }
+        }
+    } catch (err) {
+        console.error('Error in deleteStoreFiles:', err);
+    }
 };
