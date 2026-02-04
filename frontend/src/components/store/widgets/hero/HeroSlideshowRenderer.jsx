@@ -178,7 +178,7 @@ export function HeroSlideshowRenderer({ settings, viewMode, isEditor }) {
                             }}
                         >
                             <div className={`max-w-4xl space-y-6 ${hAlign === 'center' ? 'text-center' : hAlign === 'flex-end' ? 'text-right' : 'text-left'}`}>
-                                {settings.showText !== false && (
+                                {getSlideRespValue(slide, 'showText', viewMode, true) !== false && (
                                     <>
                                         {slideTitle && (
                                             <h2
@@ -211,7 +211,7 @@ export function HeroSlideshowRenderer({ settings, viewMode, isEditor }) {
                                 )}
 
                                 {/* Render Buttons */}
-                                {settings.showButtons !== false && buttons.length > 0 && (
+                                {getSlideRespValue(slide, 'showButtons', viewMode, true) !== false && buttons.length > 0 && (
                                     <div className={`pt-4 flex flex-wrap gap-4 ${hAlign === 'center' ? 'justify-center' : hAlign === 'flex-end' ? 'justify-end' : 'justify-start'}`}>
                                         {buttons.map((btn, btnIdx) => {
                                             const isPrimary = !btn.variant || btn.variant === 'primary';

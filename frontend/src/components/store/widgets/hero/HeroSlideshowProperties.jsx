@@ -211,6 +211,15 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
 
                                         {/* Texts - Changed to Textarea for Preformatted Text Support */}
                                         <div className="grid grid-cols-1 gap-3">
+                                            <label className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={getSlideValue(slide, 'showText') !== false}
+                                                    onChange={(e) => handleSlideUpdate(index, 'showText', e.target.checked)}
+                                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3 w-3"
+                                                />
+                                                Show Content
+                                            </label>
                                             <div>
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Heading</label>
                                                 <textarea
@@ -236,7 +245,18 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                                         {/* Buttons Manager */}
                                         <div>
                                             <div className="flex justify-between items-center mb-2">
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Buttons (Max 3)</label>
+                                                <div className="flex items-center gap-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase block">Buttons (Max 3)</label>
+                                                    <label className="flex items-center gap-1 text-[10px] text-slate-500 cursor-pointer ml-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={getSlideValue(slide, 'showButtons') !== false}
+                                                            onChange={(e) => handleSlideUpdate(index, 'showButtons', e.target.checked)}
+                                                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3 w-3"
+                                                        />
+                                                        Visible
+                                                    </label>
+                                                </div>
                                                 {(slide.buttons?.length || 0) < 3 && viewMode === 'desktop' && (
                                                     <button onClick={() => addButton(index)} className="text-[10px] font-bold text-indigo-600 hover:underline">+ Add</button>
                                                 )}
@@ -351,14 +371,6 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                             <label className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs font-medium cursor-pointer">
                                 <span>Show Dots</span>
                                 <input type="checkbox" checked={settings.showDots} onChange={(e) => handleUpdate({ showDots: e.target.checked })} />
-                            </label>
-                            <label className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs font-medium cursor-pointer">
-                                <span>Show Text</span>
-                                <input type="checkbox" checked={settings.showText !== false} onChange={(e) => handleUpdate({ showText: e.target.checked })} />
-                            </label>
-                            <label className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs font-medium cursor-pointer">
-                                <span>Show Buttons</span>
-                                <input type="checkbox" checked={settings.showButtons !== false} onChange={(e) => handleUpdate({ showButtons: e.target.checked })} />
                             </label>
                         </div>
                     </div>
