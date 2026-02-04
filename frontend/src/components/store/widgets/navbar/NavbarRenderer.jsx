@@ -114,7 +114,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                     }}
                 >
                     {/* Logo & Store Name */}
-                    <div className="flex items-center cursor-pointer" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }} onClick={() => navigate('/')}>
+                    <div className="flex items-center cursor-pointer" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }} onClick={() => navigate(`/s/${store?.sub_url || 'demo'}`)}>
                         <div className="flex items-center">
                             {rVal('logoUrl', settings.logoUrl) ? (
                                 <img src={rVal('logoUrl', settings.logoUrl)} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />
