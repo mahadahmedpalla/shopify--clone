@@ -12,45 +12,42 @@ export function StoreSettingsPage() {
     const [copiedId, setCopiedId] = useState(false);
 
     // Storage State
-    const [storageUsage, setStorageUsage] = useState(null); // Bytes
+    const [storageUsage, setStorageUsage] = useState(null); // Value in MBs
     const [calculating, setCalculating] = useState(false);
+
+    // Cooldown is now simple local state, no need for persistence as calculation is valid operation
     const [cooldown, setCooldown] = useState(0);
 
     const MAX_STORAGE_MB = 30;
-    const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
 
     useEffect(() => {
-        // Check local storage for cooldown
-        const savedCooldown = localStorage.getItem(`storage_cooldown_${store?.id}`);
-        if (savedCooldown) {
-            const expireTime = parseInt(savedCooldown, 10);
-            const now = Date.now();
-            const remaining = Math.ceil((expireTime - now) / 1000);
+        // Fetch current storage usage from DB (which is now stored in MBs)
+        const fetchStorageUsage = async () => {
+            if (!store?.id) return;
+            try {
+                const { data, error } = await supabase
+                    .from('stores')
+                    .select('storage_used')
+                    .eq('id', store.id)
+                    .single();
 
-            if (remaining > 0) {
-                setCooldown(remaining);
-            } else {
-                localStorage.removeItem(`storage_cooldown_${store?.id}`);
+                if (data) {
+                    // DB has numeric(10,4), so it comes as number or string. Ensure number.
+                    setStorageUsage(Number(data.storage_used || 0));
+                }
+            } catch (err) {
+                console.error('Error fetching storage usage:', err);
             }
-        }
+        };
 
-        // Load persisted storage usage
-        const savedUsage = localStorage.getItem(`storage_usage_${store?.id}`);
-        if (savedUsage) {
-            setStorageUsage(parseInt(savedUsage, 10));
-        }
+        fetchStorageUsage();
     }, [store?.id]);
 
     useEffect(() => {
         let timer;
         if (cooldown > 0) {
             timer = setInterval(() => {
-                setCooldown(prev => {
-                    if (prev <= 1) {
-                        return 0;
-                    }
-                    return prev - 1;
-                });
+                setCooldown(prev => prev > 0 ? prev - 1 : 0);
             }, 1000);
         }
         return () => clearInterval(timer);
@@ -69,15 +66,16 @@ export function StoreSettingsPage() {
 
         setCalculating(true);
         try {
-            const bytes = await getStoreTotalStorage(store.id);
-            setStorageUsage(bytes);
+            // Import dynamically to avoid circular deps if any, or just ensure safe import
+            const { syncStoreStorage } = await import('../../../lib/storageHelper');
 
-            // Persist usage
-            localStorage.setItem(`storage_usage_${store.id}`, bytes.toString());
+            // syncStoreStorage calculates bytes, updates DB with MBs, and returns BYTES
+            const totalBytes = await syncStoreStorage(store.id);
 
-            // Set cooldown (60s)
-            const expireTime = Date.now() + (60 * 1000);
-            localStorage.setItem(`storage_cooldown_${store.id}`, expireTime.toString());
+            // Convert to MB for local display state
+            const totalMB = totalBytes / (1024 * 1024);
+            setStorageUsage(totalMB);
+
             setCooldown(60);
         } catch (err) {
             console.error(err);
@@ -86,18 +84,15 @@ export function StoreSettingsPage() {
         }
     };
 
-    const formatBytes = (bytes) => {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    // Helper to display MBs neatly
+    const formatMB = (val) => {
+        if (val === null || val === undefined) return '---';
+        return Number(val).toFixed(2) + ' MB';
     };
 
-    if (!store) return <div className="p-8 text-center">Loading settings...</div>;
-
-    const usagePercent = storageUsage !== null ? Math.min(100, (storageUsage / MAX_STORAGE_BYTES) * 100) : 0;
-    const isCritical = usagePercent >= 90;
+    // Calculate percentage based on MBs
+    const usagePercent = storageUsage !== null ? Math.min(100, (storageUsage / MAX_STORAGE_MB) * 100) : 0;
+    const isCritical = usagePercent >= 100;
 
     return (
         <div className="space-y-6">
