@@ -27,8 +27,9 @@ export function NavbarRenderer({ settings, viewMode, store }) {
         setMobileMenuOpen(false);
 
         // Logic based on item type
-        // Assuming item structure has { type, value, url }
-        // types: 'category', 'product', 'page', 'external'
+        // The public store URL follows pattern: /s/:sub_url/:slug or /s/:sub_url/p/:id
+        // We need the store sub_url. Ideally passed in 'store' prop.
+        const subUrl = store?.sub_url || 'demo';
 
         if (item.type === 'external' || (item.url && item.url.startsWith('http'))) {
             window.location.href = item.url;
@@ -36,17 +37,21 @@ export function NavbarRenderer({ settings, viewMode, store }) {
         }
 
         if (item.type === 'category') {
-            navigate(`/category/${item.value}`);
+            navigate(`/s/${subUrl}/category/${item.value}`);
         } else if (item.type === 'product') {
-            navigate(`/product/${item.value}`);
+            navigate(`/s/${subUrl}/p/${item.value}`);
         } else if (item.type === 'page') {
             // Basic pages like 'about', 'contact'
-            navigate(`/${item.value}`);
+            navigate(`/s/${subUrl}/${item.value}`);
         } else if (item.url) {
-            // Fallback for internal relative links
-            navigate(item.url);
+            // Fallback: If it starts with /, assume it's relative to root? 
+            // Or relative to store? Let's assume relative to store if it doesn't have /s/
+            if (item.url.startsWith('/s/')) {
+                navigate(item.url);
+            } else {
+                navigate(`/s/${subUrl}${item.url.startsWith('/') ? item.url : '/' + item.url}`);
+            }
         } else {
-            // Default fallback if just a label?
             console.warn('Unknown menu item navigation', item);
         }
     };
