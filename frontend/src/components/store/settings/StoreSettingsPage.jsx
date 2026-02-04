@@ -32,6 +32,12 @@ export function StoreSettingsPage() {
                 localStorage.removeItem(`storage_cooldown_${store?.id}`);
             }
         }
+
+        // Load persisted storage usage
+        const savedUsage = localStorage.getItem(`storage_usage_${store?.id}`);
+        if (savedUsage) {
+            setStorageUsage(parseInt(savedUsage, 10));
+        }
     }, [store?.id]);
 
     useEffect(() => {
@@ -64,6 +70,9 @@ export function StoreSettingsPage() {
         try {
             const bytes = await getStoreTotalStorage(store.id);
             setStorageUsage(bytes);
+
+            // Persist usage
+            localStorage.setItem(`storage_usage_${store.id}`, bytes.toString());
 
             // Set cooldown (60s)
             const expireTime = Date.now() + (60 * 1000);
