@@ -6,6 +6,7 @@ import {
     AlignLeft, AlignCenter, AlignRight, ArrowUp, Move, ArrowDown
 } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
+import { deleteStoreFiles, extractPathFromUrl } from '../../../../lib/storageHelper';
 import { ColorInput } from '../Shared';
 
 export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop', storePages = [] }) {
@@ -99,6 +100,27 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
         const { data } = supabase.storage.from('store-assets').getPublicUrl(filePath);
         // Uses the responsive key logic to upload per-device image if needed
         handleSlideUpdate(slideIndex, 'image', data.publicUrl);
+    };
+
+    const handleImageDelete = async (slideIndex) => {
+        const slide = slides[slideIndex];
+        const imageUrl = getSlideValue(slide, 'image') || slide.image;
+
+        if (!imageUrl) return;
+
+        if (!confirm('Are you sure you want to delete this image? This will remove it from storage permanently.')) return;
+
+        try {
+            const path = extractPathFromUrl(imageUrl);
+            if (path) {
+                await deleteStoreFiles([path]);
+            }
+            // Clear from state
+            handleSlideUpdate(slideIndex, 'image', '');
+        } catch (err) {
+            console.error('Error deleting image:', err);
+            alert('Failed to delete image from storage.');
+        }
     };
 
     // Button Management
@@ -202,10 +224,19 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
                                                     className="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
                                                     placeholder={getSlideInheritedValue(slide, 'image') || "https://..."}
                                                 />
-                                                <label className="cursor-pointer p-1.5 bg-slate-100 rounded border border-slate-200 hover:bg-slate-200">
+                                                <label className="cursor-pointer p-1.5 bg-slate-100 rounded border border-slate-200 hover:bg-slate-200" title="Upload Image">
                                                     <Image className="h-4 w-4 text-slate-500" />
                                                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], index)} />
                                                 </label>
+                                                {(getSlideValue(slide, 'image') || slide.image) && (
+                                                    <button
+                                                        onClick={() => handleImageDelete(index)}
+                                                        className="p-1.5 bg-red-50 text-red-500 rounded border border-red-100 hover:bg-red-100"
+                                                        title="Delete Image & File"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
