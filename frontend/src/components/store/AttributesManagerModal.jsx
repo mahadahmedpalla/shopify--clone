@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { X, Settings2, Plus, Trash2, Wand2, Package, Check, ChevronRight, ChevronLeft, Image as ImageIcon, Copy } from 'lucide-react';
-import { validateStorageAllowance, updateLocalStorageUsage } from '../../lib/storageHelper';
+import { validateStorageAllowance, trackStorageUpload } from '../../lib/storageHelper';
 
 const COMMON_ATTRIBUTES = ['Size', 'Color', 'Material', 'Style', 'Fit', 'Fabric'];
 
@@ -408,7 +408,7 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                                     try {
                                                                         // Check Storage Allowance
                                                                         const totalSize = files.reduce((acc, f) => acc + f.size, 0);
-                                                                        validateStorageAllowance(storeId, totalSize);
+                                                                        await validateStorageAllowance(storeId, totalSize);
 
                                                                         const newUrls = [];
                                                                         for (const file of files) {
@@ -419,8 +419,8 @@ export function AttributesManagerModal({ isOpen, product, storeId, onClose, onSu
                                                                             const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(filePath);
                                                                             newUrls.push(publicUrl);
 
-                                                                            // Update Storage
-                                                                            updateLocalStorageUsage(storeId, file.size);
+                                                                            // Update Storage in DB
+                                                                            await trackStorageUpload(storeId, file.size);
                                                                         }
                                                                         const newV = [...variants];
                                                                         newV[vIdx].image_urls = [...(newV[vIdx].image_urls || []), ...newUrls];

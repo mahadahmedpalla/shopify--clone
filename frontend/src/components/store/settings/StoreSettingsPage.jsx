@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { Store, Globe, Server, Activity, Copy, Check, Database, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
 import { getStoreTotalStorage } from '../../../lib/storageHelper';
+import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
 
 export function StoreSettingsPage() {

@@ -7,7 +7,7 @@ import { supabase } from './supabase';
  * @param {string} bucket - The name of the storage bucket.
  * @param {string} folderPath - The path to the folder (should end with '/').
  */
-export const deleteFolderRecursive = async (bucket, folderPath) => {
+export const deleteFolderRecursive = async (bucket, folderPath, storeId = null) => {
     try {
         let hasMore = true;
 
@@ -41,6 +41,16 @@ export const deleteFolderRecursive = async (bucket, folderPath) => {
 
             // 1. Delete files in this batch
             if (filesToDelete.length > 0) {
+                // Calculate size for decrement if storeId provided
+                let batchSize = 0;
+                if (storeId) {
+                    data.forEach(item => {
+                        if (item.id !== null) { // It's a file
+                            batchSize += (item.metadata?.size || 0);
+                        }
+                    });
+                }
+
                 const { error: removeError } = await supabase.storage
                     .from(bucket)
                     .remove(filesToDelete);
@@ -49,6 +59,9 @@ export const deleteFolderRecursive = async (bucket, folderPath) => {
                     console.error(`Error removing files in ${bucket}/${folderPath}:`, removeError);
                 } else {
                     console.log(`Deleted ${filesToDelete.length} files from ${bucket}/${folderPath}`);
+                    if (storeId && batchSize > 0) {
+                        await trackStorageDelete(storeId, batchSize);
+                    }
                 }
             }
 
@@ -56,7 +69,7 @@ export const deleteFolderRecursive = async (bucket, folderPath) => {
             // We do this sequentially to avoid overwhelming the client/requests, 
             // though Promise.all could be faster. Safety first.
             for (const subfolder of foldersToRecurse) {
-                await deleteFolderRecursive(bucket, `${folderPath}${subfolder}/`);
+                await deleteFolderRecursive(bucket, `${folderPath}${subfolder}/`, storeId);
             }
 
             // After deleting files and recursing folders, we check if there are more items 
