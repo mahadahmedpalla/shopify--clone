@@ -111,10 +111,9 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
         if (!confirm('Are you sure you want to delete this image? This will remove it from storage permanently.')) return;
 
         try {
-            const path = extractPathFromUrl(imageUrl);
-            if (path) {
-                await deleteStoreFiles([path]);
-            }
+            // Correctly call the helper with bucket, array of URLs, and storeId for tracking
+            await deleteStoreFiles('store-assets', [imageUrl], activeStoreId);
+
             // Clear from state
             handleSlideUpdate(slideIndex, 'image', '');
         } catch (err) {
