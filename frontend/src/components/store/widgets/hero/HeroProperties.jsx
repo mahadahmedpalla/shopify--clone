@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../../../lib/supabase';
+import { deleteStoreFiles } from '../../../../lib/storageHelper';
 import { ColorInput } from '../Shared';
 import {
     Trash2, Upload, AlignLeft, AlignCenter, AlignRight,
@@ -28,6 +29,23 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
     };
 
     const isO = (key) => viewMode !== 'desktop' && settings.responsive?.[viewMode]?.[key] !== undefined;
+
+    const handleDeleteBackground = async () => {
+        const imageUrl = getV('backgroundImage');
+        if (!imageUrl) return;
+
+        if (!confirm('Are you sure you want to delete this banner image? This will remove it from storage permanently.')) return;
+
+        try {
+            // Delete from storage bucket
+            await deleteStoreFiles('store-assets', [imageUrl], activeStoreId);
+            // Clear from state
+            update('backgroundImage', '');
+        } catch (err) {
+            console.error('Error deleting banner:', err);
+            alert('Failed to delete banner from storage.');
+        }
+    };
 
     const ResponsiveIndicator = ({ k }) => isO(k) ? (
         <span className="ml-1.5 px-1 py-0.5 bg-indigo-100 text-indigo-600 text-[8px] font-bold rounded uppercase flex items-center inline-flex">
@@ -63,7 +81,7 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
                         <div className="group relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-video flex items-center justify-center">
                             <img src={getV('backgroundImage')} className="max-h-full w-full object-cover" alt="Hero BG" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <button onClick={() => update('backgroundImage', '')} className="p-2 bg-white rounded-full text-red-500 hover:scale-110 transition-transform">
+                                <button onClick={handleDeleteBackground} className="p-2 bg-white rounded-full text-red-500 hover:scale-110 transition-transform">
                                     <Trash2 className="h-4 w-4" />
                                 </button>
                             </div>
