@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Menu, X, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronRight, Search } from 'lucide-react';
 import { getResponsiveValue } from '../Shared';
 import { useCart } from '../../../../context/CartContext';
 
@@ -201,29 +201,67 @@ export function NavbarRenderer({ settings, viewMode, store }) {
 
                 {/* Menu Panel */}
                 <div
-                    className={`absolute top-0 ${settings.mobileMenuDirection === 'left' ? 'left-0' : 'right-0'} h-full w-[300px] bg-white shadow-2xl p-6 flex flex-col transition-transform duration-300 ease-out transform ${mobileMenuOpen ? 'translate-x-0' : (settings.mobileMenuDirection === 'left' ? '-translate-x-full' : 'translate-x-full')}`}
+                    className={`absolute top-0 ${rVal('mobileMenuDirection', settings.mobileMenuDirection || 'left') === 'left' ? 'left-0' : 'right-0'} h-full w-[300px] shadow-2xl p-6 flex flex-col transition-transform duration-300 ease-out transform ${mobileMenuOpen ? 'translate-x-0' : (rVal('mobileMenuDirection', settings.mobileMenuDirection || 'left') === 'left' ? '-translate-x-full' : 'translate-x-full')}`}
+                    style={{
+                        backgroundColor: rVal('drawerBgColor', settings.drawerBgColor || '#ffffff'),
+                        backdropFilter: rVal('drawerGlass', settings.drawerGlass) ? `blur(${rVal('drawerBlur', settings.drawerBlur || '10px')})` : 'none',
+                    }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="flex justify-end mb-8">
-                        <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
-                            <X className="h-6 w-6" />
+                    <div className="flex justify-between items-center mb-8">
+                        {/* Drawer Header (Logo/Name) */}
+                        <div className="flex items-center space-x-3">
+                            {rVal('drawerShowLogo', settings.drawerShowLogo !== false) && (
+                                <>
+                                    {rVal('logoUrl', settings.logoUrl) ? (
+                                        <img src={rVal('logoUrl', settings.logoUrl)} style={{ width: '40px' }} alt="Logo" className="object-contain" />
+                                    ) : (
+                                        <div className="h-8 w-8 bg-indigo-600 rounded flex items-center justify-center text-white font-bold text-[8px]">LOGO</div>
+                                    )}
+                                </>
+                            )}
+                            {rVal('drawerShowName', settings.drawerShowName !== false) && (
+                                <span className="font-bold text-lg tracking-tight" style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}>
+                                    {store?.name || 'My Store'}
+                                </span>
+                            )}
+                        </div>
+
+                        <button onClick={() => setMobileMenuOpen(false)} className="p-2 bg-slate-100/50 rounded-full hover:bg-slate-200/50 transition-colors">
+                            <X className="h-6 w-6" style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }} />
                         </button>
                     </div>
-                    <div className="flex flex-col space-y-6 overflow-y-auto">
+
+                    {/* Search Bar Placeholder */}
+                    {rVal('drawerShowSearch', settings.drawerShowSearch) && (
+                        <div className="mb-6 relative">
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                className="w-full bg-slate-100/50 border border-slate-200/50 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
+                                disabled
+                            />
+                            <Search className="absolute right-3 top-2.5 h-4 w-4 opacity-50" style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }} />
+                        </div>
+                    )}
+
+                    <div className="flex flex-col space-y-4 overflow-y-auto">
                         {menuItems.map(item => (
                             <div
                                 key={item.id}
                                 onClick={() => handleNavigate(item)}
-                                className="text-xl border-b border-slate-100 pb-4 flex items-center justify-between group cursor-pointer hover:pl-2 transition-all"
+                                className="border-b border-slate-100/10 pb-3 flex items-center justify-between group cursor-pointer hover:pl-2 transition-all"
                             >
                                 <span style={{
                                     fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
-                                    fontWeight: rVal('fontWeight', settings.fontWeight) || '700',
-                                    color: rVal('textColor', settings.textColor)
+                                    fontWeight: rVal('fontWeight', settings.fontWeight) || '600',
+                                    color: rVal('drawerFontColor', settings.drawerFontColor),
+                                    fontSize: rVal('drawerFontSize', settings.drawerFontSize || '16px')
                                 }}>
                                     {item.label}
                                 </span>
-                                <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                                <ChevronRight className="h-5 w-5 opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }} />
                             </div>
                         ))}
                     </div>
