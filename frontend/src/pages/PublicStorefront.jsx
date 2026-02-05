@@ -10,9 +10,9 @@ import { CartProvider } from '../context/CartContext';
 import { CartDrawer } from '../components/store/widgets/cart/CartDrawer';
 
 export function PublicStorefront() {
-    const { storeSubUrl, pageSlug, categorySlug } = useParams();
+    const { storeSubUrl, pageSlug, categorySlug, parentSlug, childSlug } = useParams();
     // If categorySlug exists, we are on the shop page, otherwise use pageSlug or default to home
-    const activeSlug = pageSlug || (categorySlug ? 'shop' : 'home');
+    const activeSlug = pageSlug || ((categorySlug || (parentSlug && childSlug)) ? 'shop' : 'home');
     const [store, setStore] = useState(null);
     const [page, setPage] = useState(null);
     const [products, setProducts] = useState([]);
@@ -114,6 +114,8 @@ export function PublicStorefront() {
                         products={products}
                         categories={categories}
                         categorySlug={categorySlug}
+                        parentSlug={parentSlug}
+                        childSlug={childSlug}
                     />
                 ))}
             </CartProvider>

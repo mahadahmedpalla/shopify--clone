@@ -190,9 +190,21 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
                 // Find category name for SEO URL
                 const cat = categories.find(c => c.id === item.value);
                 if (cat) {
-                    navigate(`/s/${subUrl}/shop/${encodeURIComponent(cat.name)}`);
+                    if (cat.parent_id) {
+                        // Hierarchical URL: /shop/Parent/Child
+                        const parent = categories.find(c => c.id === cat.parent_id);
+                        if (parent) {
+                            navigate(`/s/${subUrl}/shop/${encodeURIComponent(parent.name)}/${encodeURIComponent(cat.name)}`);
+                        } else {
+                            // Fallback if parent missing
+                            navigate(`/s/${subUrl}/shop/${encodeURIComponent(cat.name)}`);
+                        }
+                    } else {
+                        // Root Category
+                        navigate(`/s/${subUrl}/shop/${encodeURIComponent(cat.name)}`);
+                    }
                 } else {
-                    // Fallback if not found locally (though should be present)
+                    // Fallback if not found locally
                     navigate(`/s/${subUrl}/shop?category=${item.value}`);
                 }
             }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, parentSlug, childSlug }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Filter products logic
@@ -15,8 +15,25 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     // Resolve slug if present
     let activeCategoryId = settings.categoryId;
 
-    if (categorySlug && categories) {
-        // Find category by name (slug) - Case insensitive
+    if (childSlug && parentSlug && categories) {
+        // Hierarchical Match via Parent -> Child
+        // This ensures uniqueness if child name is duplicated across different parents
+        const childName = decodeURIComponent(childSlug).toLowerCase();
+        const parentName = decodeURIComponent(parentSlug).toLowerCase();
+
+        const matchedCat = categories.find(c => {
+            const isNameMatch = c.name.toLowerCase() === childName;
+            if (!isNameMatch) return false;
+
+            // Check parent
+            const parent = categories.find(p => p.id === c.parent_id);
+            return parent && parent.name.toLowerCase() === parentName;
+        });
+
+        if (matchedCat) activeCategoryId = matchedCat.id;
+
+    } else if (categorySlug && categories) {
+        // Single level match (fallback or root category)
         const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
         if (matchedCat) activeCategoryId = matchedCat.id;
     } else if (categoryIdParam) {
