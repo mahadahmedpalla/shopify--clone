@@ -303,8 +303,8 @@ export function NavbarRenderer({ settings, viewMode, store, products }) {
                                             className="flex items-center p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
                                         >
                                             <div className="h-10 w-10 bg-slate-100 rounded shrink-0 mr-3 overflow-hidden flex items-center justify-center">
-                                                {product.images && product.images[0] ? (
-                                                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                                                {product.image_urls && product.image_urls[0] ? (
+                                                    <img src={product.image_urls[0]} alt={product.name} className="h-full w-full object-cover" />
                                                 ) : (
                                                     <div className="text-xs text-slate-300 font-bold">IMG</div>
                                                 )}
