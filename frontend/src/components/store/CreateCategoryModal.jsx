@@ -32,12 +32,22 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
         setLoading(true);
         setError(null);
 
-        // 0. Uniqueness Check (Case-insensitive)
+        // 0. Scoped Uniqueness Check (Case-insensitive)
         const normalizedName = formData.name.trim().toLowerCase();
-        const exists = allCategories.some(c => c.name.trim().toLowerCase() === normalizedName);
+        // Determine target parent (null if root, else parent_id)
+        const targetParentId = formData.is_sub_category ? (formData.parent_id || null) : null;
+
+        const exists = allCategories.some(c => {
+            const isSameName = c.name.trim().toLowerCase() === normalizedName;
+            // Treat undefined/null/empty string as null for comparison
+            const cParentId = c.parent_id || null;
+            // Use loose equality to handle possible string/number mismatches from form data
+            const isSameParent = cParentId == targetParentId;
+            return isSameName && isSameParent;
+        });
 
         if (exists) {
-            setError(`category "${formData.name}" already exist`);
+            setError(`Category "${formData.name}" already exists in this level.`);
             setLoading(false);
             return;
         }
