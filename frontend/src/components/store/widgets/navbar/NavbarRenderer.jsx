@@ -4,7 +4,7 @@ import { ShoppingCart, Menu, X, ChevronRight, Search } from 'lucide-react';
 import { getResponsiveValue } from '../Shared';
 import { useCart } from '../../../../context/CartContext';
 
-export function NavbarRenderer({ settings, viewMode, store }) {
+export function NavbarRenderer({ settings, viewMode, store, products }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
@@ -35,6 +35,18 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                 setSearchQuery('');
             }
         }
+    };
+
+    // Filter products for autocomplete
+    const filteredProducts = searchQuery.length > 1
+        ? (products || []).filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+        : [];
+
+    const handleProductSelect = (product) => {
+        const subUrl = store?.sub_url || 'demo';
+        navigate(`/s/${subUrl}/p/${product.id}`);
+        setMobileMenuOpen(false);
+        setSearchQuery('');
     };
 
     // Helper to convert hex to rgba
@@ -280,6 +292,25 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                                 style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
                                 onClick={handleSearch}
                             />
+
+                            {/* Autocomplete Dropdown */}
+                            {searchQuery.length > 1 && filteredProducts.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl overflow-hidden z-20">
+                                    {filteredProducts.map(product => (
+                                        <div
+                                            key={product.id}
+                                            onClick={() => handleProductSelect(product)}
+                                            className="flex items-center p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
+                                        >
+                                            <div className="h-10 w-10 bg-slate-100 rounded bg-cover bg-center shrink-0 mr-3" style={{ backgroundImage: `url(${product.images?.[0] || 'https://via.placeholder.com/40'})` }}></div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-sm font-medium text-slate-900 truncate">{product.name}</div>
+                                                <div className="text-xs text-slate-500">${product.price}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 

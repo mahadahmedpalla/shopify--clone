@@ -80,7 +80,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                             </ContainerRenderer>
                         );
                     case 'navbar':
-                        return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} />;
+                        return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} products={products} />;
                     case 'hero':
                         return <HeroRenderer settings={settings} viewMode={viewMode} />;
                     case 'hero_slideshow':
