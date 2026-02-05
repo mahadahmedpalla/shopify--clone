@@ -31,19 +31,21 @@ const DesktopMenuItem = ({ item, rVal, settings, handleNavigate, depth = 0 }) =>
             {/* Dropdown */}
             {hasChildren && open && (
                 <div
-                    className={`absolute z-50 bg-white shadow-xl border border-slate-100 rounded-lg py-2 min-w-[200px] animate-in fade-in zoom-in-95 duration-150 ${depth === 0 ? 'top-full left-0 mt-2' : 'top-0 left-full ml-2'}`}
+                    className={`absolute z-50 ${depth === 0 ? 'top-full left-0 pt-4' : 'top-0 left-full pl-2'} animate-in fade-in zoom-in-95 duration-150`}
                 >
-                    {item.children.map(child => (
-                        <div key={child.id} className="px-4 py-2 hover:bg-slate-50">
-                            <DesktopMenuItem
-                                item={child}
-                                rVal={rVal}
-                                settings={settings}
-                                handleNavigate={handleNavigate}
-                                depth={depth + 1}
-                            />
-                        </div>
-                    ))}
+                    <div className="bg-white shadow-xl border border-slate-100 rounded-lg py-2 min-w-[200px]">
+                        {item.children.map(child => (
+                            <div key={child.id} className="px-4 py-2 hover:bg-slate-50">
+                                <DesktopMenuItem
+                                    item={child}
+                                    rVal={rVal}
+                                    settings={settings}
+                                    handleNavigate={handleNavigate}
+                                    depth={depth + 1}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
@@ -366,9 +368,9 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
                             {drawerMode === 'slide' && mobilePath.length > 0 ? (
                                 <button
                                     onClick={() => setMobilePath(prev => prev.slice(0, -1))}
-                                    className="flex items-center text-sm font-bold text-indigo-600 hover:opacity-80"
+                                    className="flex items-center text-base font-bold text-black hover:opacity-80"
                                 >
-                                    <ChevronRight className="h-4 w-4 rotate-180 mr-1" />
+                                    <ChevronRight className="h-5 w-5 rotate-180 mr-1" />
                                     Back
                                 </button>
                             ) : (
@@ -493,13 +495,9 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
                                                 {item.children.map(child => (
                                                     <div
                                                         key={child.id}
-                                                        onClick={() => handleNavigate(child)} // Assuming deeper levels also accordion? 
-                                                        // For simplicity, let's assume 1 level expand or recursive? 
-                                                        // Let's allow recursive recursion would need a component.
-                                                        // For now, simple mapping for immediate children. For deep nesting, we need a recursive component.
-                                                        // Let's stick to simple mapping for this replacement to avoid complexity in this huge file replace.
-                                                        // OR define a helper component above and use it. 
-                                                        className="py-2 text-sm text-slate-500 hover:text-indigo-600 cursor-pointer"
+                                                        onClick={() => handleNavigate(child)}
+                                                        className="py-2 text-sm cursor-pointer hover:opacity-75 transition-opacity"
+                                                        style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
                                                     >
                                                         {child.label}
                                                     </div>
