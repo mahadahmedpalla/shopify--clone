@@ -302,17 +302,22 @@ export function NavbarRenderer({ settings, viewMode, store, products }) {
                                             onClick={() => handleProductSelect(product)}
                                             className="flex items-center p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors"
                                         >
-                                            <div
-                                                className="h-10 w-10 bg-slate-100 rounded bg-cover bg-center shrink-0 mr-3"
-                                                style={{ backgroundImage: `url(${product.images?.[0] || 'https://via.placeholder.com/40'})` }}
-                                            />
+                                            <div className="h-10 w-10 bg-slate-100 rounded shrink-0 mr-3 overflow-hidden flex items-center justify-center">
+                                                {product.images && product.images[0] ? (
+                                                    <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="text-xs text-slate-300 font-bold">IMG</div>
+                                                )}
+                                            </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className="text-sm font-medium text-slate-900 truncate">{product.name}</div>
                                                 <div className="flex items-center space-x-2 text-xs">
-                                                    {product.compare_at_price > product.price && (
-                                                        <span className="text-slate-400 line-through">${product.compare_at_price}</span>
+                                                    {parseFloat(product.compare_at_price) > parseFloat(product.price) && (
+                                                        <span className="text-slate-400 line-through">${parseFloat(product.compare_at_price).toFixed(2)}</span>
                                                     )}
-                                                    <span className={`${product.compare_at_price > product.price ? 'text-red-500 font-bold' : 'text-slate-500'}`}>${product.price}</span>
+                                                    <span className={`${parseFloat(product.compare_at_price) > parseFloat(product.price) ? 'text-red-600 font-bold' : 'text-slate-500'}`}>
+                                                        ${parseFloat(product.price).toFixed(2)}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
