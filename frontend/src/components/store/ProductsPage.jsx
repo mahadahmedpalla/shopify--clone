@@ -33,7 +33,7 @@ export function ProductsPage() {
         // Fetch Categories
         const { data: cats } = await supabase
             .from('product_categories')
-            .select('id, name')
+            .select('id, name, parent_id')
             .eq('store_id', storeId);
         setCategories(cats || []);
 
