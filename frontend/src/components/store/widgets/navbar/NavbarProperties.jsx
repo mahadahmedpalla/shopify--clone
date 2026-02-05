@@ -100,13 +100,18 @@ function SortableItem({ id, item, idx, update, menuItems, categories, products, 
                             newItems[idx] = { ...newItems[idx], value: e.target.value };
                             // Auto-update label if blank
                             if (!newItems[idx].label || newItems[idx].label === 'New Link') {
-                                const cat = categories.find(c => c.id === e.target.value);
-                                if (cat) newItems[idx].label = cat.name;
+                                if (e.target.value === 'all') {
+                                    newItems[idx].label = 'All Categories';
+                                } else {
+                                    const cat = categories.find(c => c.id === e.target.value);
+                                    if (cat) newItems[idx].label = cat.name;
+                                }
                             }
                             update('menuItems', newItems);
                         }}
                     >
                         <option value="">Select Category...</option>
+                        <option value="all" className="font-bold text-indigo-600">All Categories (Auto-Nested)</option>
                         {categories.filter(c => !c.parent_id).map(parent => (
                             <React.Fragment key={parent.id}>
                                 <option value={parent.id} className="font-bold">{parent.name}</option>
@@ -645,6 +650,29 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                     <p className="text-[9px] text-slate-400 mt-1 italic">* Requires transparent opacity in BG Color</p>
                                 </div>
                             )}
+                        </section>
+
+                        <section className="space-y-4 pt-4 border-t border-slate-100">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Behavior</h3>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">
+                                    Drawer Menu Mode <ResponsiveIndicator k="drawerMenuMode" />
+                                </label>
+                                <div className="flex bg-slate-100 rounded-lg p-1">
+                                    <button
+                                        className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${getV('drawerMenuMode', 'slide') === 'slide' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                        onClick={() => update('drawerMenuMode', 'slide')}
+                                    >
+                                        SLIDE
+                                    </button>
+                                    <button
+                                        className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${getV('drawerMenuMode', 'slide') === 'accordion' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                        onClick={() => update('drawerMenuMode', 'accordion')}
+                                    >
+                                        EXPAND
+                                    </button>
+                                </div>
+                            </div>
                         </section>
 
                         <section className="space-y-4 pt-4 border-t border-slate-100">
