@@ -603,6 +603,21 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                 <ColorInput label="BG Color" value={getV('drawerBgColor', '#ffffff')} onChange={v => update('drawerBgColor', v)} />
                             </div>
 
+                            <div className="animate-in fade-in duration-300">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">BG Opacity (%)</label>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        className="flex-1"
+                                        value={parseInt(getV('drawerBgOpacity', '100'))}
+                                        onChange={e => update('drawerBgOpacity', e.target.value)}
+                                    />
+                                    <span className="text-xs text-slate-500 w-8 text-right">{getV('drawerBgOpacity', '100')}%</span>
+                                </div>
+                            </div>
+
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Glass UI (Blur) <ResponsiveIndicator k="drawerGlass" /></label>
                                 <input
