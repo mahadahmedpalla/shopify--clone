@@ -37,7 +37,7 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
         const exists = allCategories.some(c => c.name.trim().toLowerCase() === normalizedName);
 
         if (exists) {
-            setError('Category name must be unique.');
+            setError(`category "${formData.name}" already exist`);
             setLoading(false);
             return;
         }
