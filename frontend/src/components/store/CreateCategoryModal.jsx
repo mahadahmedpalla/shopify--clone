@@ -32,6 +32,16 @@ export function CreateCategoryModal({ isOpen, onClose, onSuccess, storeId, allCa
         setLoading(true);
         setError(null);
 
+        // 0. Uniqueness Check (Case-insensitive)
+        const normalizedName = formData.name.trim().toLowerCase();
+        const exists = allCategories.some(c => c.name.trim().toLowerCase() === normalizedName);
+
+        if (exists) {
+            setError('Category name must be unique.');
+            setLoading(false);
+            return;
+        }
+
         try {
             let image_url = null;
 

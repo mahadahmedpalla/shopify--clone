@@ -187,8 +187,14 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
             if (item.value === 'all') {
                 navigate(`/s/${subUrl}/shop`);
             } else {
-                // Pass category ID as query param
-                navigate(`/s/${subUrl}/shop?category=${item.value}`);
+                // Find category name for SEO URL
+                const cat = categories.find(c => c.id === item.value);
+                if (cat) {
+                    navigate(`/s/${subUrl}/shop/${encodeURIComponent(cat.name)}`);
+                } else {
+                    // Fallback if not found locally (though should be present)
+                    navigate(`/s/${subUrl}/shop?category=${item.value}`);
+                }
             }
         } else if (item.type === 'product') {
             navigate(`/s/${subUrl}/p/${item.value}`);

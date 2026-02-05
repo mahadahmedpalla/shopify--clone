@@ -57,7 +57,7 @@ const WidgetSkeleton = ({ type }) => {
     return <div className={`${baseClass} h-64 md:h-96`} />;
 };
 
-export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId }) {
+export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, categorySlug, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId }) {
     return (
         <React.Suspense fallback={<WidgetSkeleton type={type} />}>
             {(() => {
@@ -88,7 +88,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'image':
                         return <ImageRenderer settings={settings} viewMode={viewMode} />;
                     case 'product_grid':
-                        return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} />;
+                        return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} categories={categories} categorySlug={categorySlug} />;
                     case 'product_reviews':
                         return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
                     case 'related_products':

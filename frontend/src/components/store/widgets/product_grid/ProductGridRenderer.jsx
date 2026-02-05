@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-export function ProductGridRenderer({ settings, products, viewMode, store, isEditor }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Filter products logic
@@ -12,8 +12,16 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const categoryIdParam = searchParams.get('category');
 
     // 1. Filter by Category
-    // URL param takes precedence over builder setting
-    const activeCategoryId = categoryIdParam || settings.categoryId;
+    // Resolve slug if present
+    let activeCategoryId = settings.categoryId;
+
+    if (categorySlug && categories) {
+        // Find category by name (slug) - Case insensitive
+        const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
+        if (matchedCat) activeCategoryId = matchedCat.id;
+    } else if (categoryIdParam) {
+        activeCategoryId = categoryIdParam;
+    }
 
     if (activeCategoryId && activeCategoryId !== 'all') {
         displayProducts = displayProducts.filter(p => p.category_id === activeCategoryId);
