@@ -52,6 +52,62 @@ const DesktopMenuItem = ({ item, rVal, settings, handleNavigate, depth = 0 }) =>
     );
 };
 
+const MobileAccordionItem = ({ item, rVal, settings, handleNavigate, depth = 0 }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const hasChildren = item.children && item.children.length > 0;
+
+    return (
+        <div className="flex flex-col select-none">
+            <div
+                className={`flex items-center justify-between border-slate-100/10 cursor-pointer group hover:bg-slate-50/5 rounded px-2 transition-colors ${depth === 0 ? 'py-3 border-b' : 'py-2'}`}
+                onClick={(e) => {
+                    e.stopPropagation(); // Prevent bubbling if nested
+                    hasChildren ? setIsOpen(!isOpen) : handleNavigate(item);
+                }}
+            >
+                <span style={{
+                    fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
+                    fontWeight: rVal('fontWeight', settings.fontWeight) || '600',
+                    color: rVal('drawerFontColor', settings.drawerFontColor),
+                    fontSize: depth === 0 ? (rVal('drawerFontSize', settings.drawerFontSize) || '16px') : '14px',
+                    opacity: depth === 0 ? 1 : 0.9
+                }}>
+                    {item.label}
+                </span>
+                {hasChildren && (
+                    <div
+                        className="p-1"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(!isOpen);
+                        }}
+                    >
+                        <ChevronRight
+                            className={`h-5 w-5 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                            style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
+                        />
+                    </div>
+                )}
+            </div>
+            {/* Nested Accordion Children */}
+            {hasChildren && isOpen && (
+                <div className="pl-4 border-l border-slate-200/20 ml-2 mb-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                    {item.children.map(child => (
+                        <MobileAccordionItem
+                            key={child.id}
+                            item={child}
+                            rVal={rVal}
+                            settings={settings}
+                            handleNavigate={handleNavigate}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 export function NavbarRenderer({ settings, viewMode, store, products, categories = [] }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
@@ -230,12 +286,6 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
     const currentMobileItems = mobilePath.length === 0
         ? menuItems
         : mobilePath[mobilePath.length - 1].children || [];
-
-    // For Accordion Mode: track expanded items
-    const [expandedItems, setExpandedItems] = useState({});
-    const toggleExpand = (id) => {
-        setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
-    };
 
     const handleMobileItemClick = (item) => {
         if (drawerMode === 'slide') {
@@ -464,47 +514,13 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
                             // For Accordion Mode rendering
                             if (drawerMode === 'accordion') {
                                 return (
-                                    <div key={item.id} className="flex flex-col">
-                                        <div
-                                            className="flex items-center justify-between py-3 border-b border-slate-100/10 cursor-pointer group hover:bg-slate-50/5 rounded px-2"
-                                            onClick={() => item.children?.length > 0 ? toggleExpand(item.id) : handleNavigate(item)}
-                                        >
-                                            <span style={{
-                                                fontFamily: rVal('fontFamily', settings.fontFamily) || 'Inter, sans-serif',
-                                                fontWeight: rVal('fontWeight', settings.fontWeight) || '600',
-                                                color: rVal('drawerFontColor', settings.drawerFontColor),
-                                                fontSize: rVal('drawerFontSize', settings.drawerFontSize || '16px')
-                                            }}>
-                                                {item.label}
-                                            </span>
-                                            {item.children && item.children.length > 0 && (
-                                                <div
-                                                    className="p-1"
-                                                    onClick={(e) => { e.stopPropagation(); toggleExpand(item.id); }}
-                                                >
-                                                    <ChevronRight
-                                                        className={`h-5 w-5 transition-transform duration-200 ${expandedItems[item.id] ? 'rotate-90' : ''}`}
-                                                        style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                        {/* Nested Accordion Children */}
-                                        {expandedItems[item.id] && item.children && (
-                                            <div className="pl-4 border-l-2 border-slate-100 mb-2 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                                                {item.children.map(child => (
-                                                    <div
-                                                        key={child.id}
-                                                        onClick={() => handleNavigate(child)}
-                                                        className="py-2 text-sm cursor-pointer hover:opacity-75 transition-opacity"
-                                                        style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
-                                                    >
-                                                        {child.label}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <MobileAccordionItem
+                                        key={item.id}
+                                        item={item}
+                                        rVal={rVal}
+                                        settings={settings}
+                                        handleNavigate={handleNavigate}
+                                    />
                                 );
                             }
 
