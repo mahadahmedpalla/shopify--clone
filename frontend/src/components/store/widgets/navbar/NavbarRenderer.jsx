@@ -24,11 +24,13 @@ export function NavbarRenderer({ settings, viewMode, store }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = (e) => {
-        if ((e.type === 'keydown' && e.key === 'Enter') || e.type === 'click') {
+        if (e.key === 'Enter' || e.type === 'click') {
+            if (e.key === 'Enter') e.preventDefault();
+
             if (searchQuery.trim()) {
                 const subUrl = store?.sub_url || 'demo';
-                // Navigate to standard search route (this depends on routing setup, but is a safe default for now)
-                navigate(`/s/${subUrl}/search?q=${encodeURIComponent(searchQuery)}`);
+                const query = encodeURIComponent(searchQuery.trim());
+                navigate(`/s/${subUrl}/search?q=${query}`);
                 setMobileMenuOpen(false);
                 setSearchQuery('');
             }

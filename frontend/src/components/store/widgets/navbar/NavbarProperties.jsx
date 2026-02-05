@@ -598,6 +598,11 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
 
                         <section className="space-y-4 pt-4 border-t border-slate-100">
                             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Appearance</h3>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Background Color</label>
+                                <ColorInput label="BG Color" value={getV('drawerBgColor', '#ffffff')} onChange={v => update('drawerBgColor', v)} />
+                            </div>
+
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Glass UI (Blur) <ResponsiveIndicator k="drawerGlass" /></label>
                                 <input
