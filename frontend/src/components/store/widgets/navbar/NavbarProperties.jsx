@@ -40,7 +40,12 @@ function SortableItem({ id, item, idx, update, menuItems, categories, products, 
     return (
         <div ref={setNodeRef} style={style} className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm space-y-3 group hover:border-indigo-300 transition-colors">
             <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Item {idx + 1}</span>
+                <div className="flex items-center space-x-3">
+                    <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-100 text-slate-300 hover:text-indigo-500 transition-colors">
+                        <GripVertical className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Item {idx + 1}</span>
+                </div>
                 <button
                     onClick={() => {
                         const newItems = menuItems.filter((_, i) => i !== idx);
@@ -52,139 +57,135 @@ function SortableItem({ id, item, idx, update, menuItems, categories, products, 
                 </button>
             </div>
 
-            <div className="flex items-center space-x-3">
-                <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-slate-100 text-slate-300 hover:text-indigo-500 transition-colors">
-                    <GripVertical className="h-5 w-5" />
+            <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                    <input
+                        type="text"
+                        placeholder="Label"
+                        className="col-span-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                        value={item.label}
+                        onChange={e => {
+                            const newItems = [...menuItems];
+                            newItems[idx] = { ...newItems[idx], label: e.target.value };
+                            update('menuItems', newItems);
+                        }}
+                    />
+                    <select
+                        className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        value={item.type}
+                        onChange={e => {
+                            const newItems = [...menuItems];
+                            newItems[idx] = {
+                                ...newItems[idx],
+                                type: e.target.value,
+                                value: '' // Reset value
+                            };
+                            update('menuItems', newItems);
+                        }}
+                    >
+                        <option value="page">Page</option>
+                        <option value="category">Category</option>
+                        <option value="product">Product</option>
+                        <option value="custom">Custom URL</option>
+                    </select>
                 </div>
-                <div className="flex-1 space-y-2">
-                    <div className="grid grid-cols-3 gap-2">
-                        <input
-                            type="text"
-                            placeholder="Label"
-                            className="col-span-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
-                            value={item.label}
-                            onChange={e => {
-                                const newItems = [...menuItems];
-                                newItems[idx] = { ...newItems[idx], label: e.target.value };
-                                update('menuItems', newItems);
-                            }}
-                        />
-                        <select
-                            className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                            value={item.type}
-                            onChange={e => {
-                                const newItems = [...menuItems];
-                                newItems[idx] = {
-                                    ...newItems[idx],
-                                    type: e.target.value,
-                                    value: '' // Reset value
-                                };
-                                update('menuItems', newItems);
-                            }}
-                        >
-                            <option value="page">Page</option>
-                            <option value="category">Category</option>
-                            <option value="product">Product</option>
-                            <option value="custom">Custom URL</option>
-                        </select>
-                    </div>
 
-                    {/* Contextual Value Selector */}
-                    {item.type === 'category' ? (
+                {/* Contextual Value Selector */}
+                {item.type === 'category' ? (
+                    <select
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        value={item.value}
+                        onChange={e => {
+                            const newItems = [...menuItems];
+                            newItems[idx] = { ...newItems[idx], value: e.target.value };
+                            // Auto-update label if blank
+                            if (!newItems[idx].label || newItems[idx].label === 'New Link') {
+                                const cat = categories.find(c => c.id === e.target.value);
+                                if (cat) newItems[idx].label = cat.name;
+                            }
+                            update('menuItems', newItems);
+                        }}
+                    >
+                        <option value="">Select Category...</option>
+                        {categories.filter(c => !c.parent_id).map(parent => (
+                            <React.Fragment key={parent.id}>
+                                <option value={parent.id} className="font-bold">{parent.name}</option>
+                                {categories.filter(c => c.parent_id === parent.id).map(child => (
+                                    <option key={child.id} value={child.id}>&nbsp;&nbsp;↳ {child.name}</option>
+                                ))}
+                            </React.Fragment>
+                        ))}
+                    </select>
+                ) : item.type === 'product' ? (
+                    <div className="space-y-2">
                         <select
                             className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                            value={item.value}
+                            value={products.some(p => p.id === item.value) ? item.value : 'manual'}
                             onChange={e => {
+                                if (e.target.value === 'manual') return;
                                 const newItems = [...menuItems];
                                 newItems[idx] = { ...newItems[idx], value: e.target.value };
-                                // Auto-update label if blank
-                                if (!newItems[idx].label || newItems[idx].label === 'New Link') {
-                                    const cat = categories.find(c => c.id === e.target.value);
-                                    if (cat) newItems[idx].label = cat.name;
+                                const prod = products.find(p => p.id === e.target.value);
+                                if (prod && (!newItems[idx].label || newItems[idx].label === 'New Link')) {
+                                    newItems[idx].label = prod.name;
                                 }
                                 update('menuItems', newItems);
                             }}
                         >
-                            <option value="">Select Category...</option>
-                            {categories.filter(c => !c.parent_id).map(parent => (
-                                <React.Fragment key={parent.id}>
-                                    <option value={parent.id} className="font-bold">{parent.name}</option>
-                                    {categories.filter(c => c.parent_id === parent.id).map(child => (
-                                        <option key={child.id} value={child.id}>&nbsp;&nbsp;↳ {child.name}</option>
-                                    ))}
-                                </React.Fragment>
+                            <option value="">Select Product...</option>
+                            <option value="manual">-- Enter ID Manually --</option>
+                            {products.map(p => (
+                                <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
                             ))}
                         </select>
-                    ) : item.type === 'product' ? (
-                        <div className="space-y-2">
-                            <select
-                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                value={products.some(p => p.id === item.value) ? item.value : 'manual'}
+                        {(!products.some(p => p.id === item.value) || item.value === '') && (
+                            <input
+                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                                placeholder="Paste Product ID here..."
+                                value={item.value}
                                 onChange={e => {
-                                    if (e.target.value === 'manual') return;
                                     const newItems = [...menuItems];
                                     newItems[idx] = { ...newItems[idx], value: e.target.value };
-                                    const prod = products.find(p => p.id === e.target.value);
-                                    if (prod && (!newItems[idx].label || newItems[idx].label === 'New Link')) {
-                                        newItems[idx].label = prod.name;
-                                    }
                                     update('menuItems', newItems);
                                 }}
-                            >
-                                <option value="">Select Product...</option>
-                                <option value="manual">-- Enter ID Manually --</option>
-                                {products.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
-                                ))}
-                            </select>
-                            {(!products.some(p => p.id === item.value) || item.value === '') && (
-                                <input
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
-                                    placeholder="Paste Product ID here..."
-                                    value={item.value}
-                                    onChange={e => {
-                                        const newItems = [...menuItems];
-                                        newItems[idx] = { ...newItems[idx], value: e.target.value };
-                                        update('menuItems', newItems);
-                                    }}
-                                />
-                            )}
-                        </div>
-                    ) : item.type === 'page' ? (
-                        <select
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                            value={item.value}
-                            onChange={e => {
-                                const newItems = [...menuItems];
-                                newItems[idx] = { ...newItems[idx], value: e.target.value };
-                                // Auto-update label if blank
-                                if (!newItems[idx].label || newItems[idx].label === 'New Link') {
-                                    const p = storePages.find(p => p.slug === e.target.value);
-                                    if (p) newItems[idx].label = p.name;
-                                }
-                                update('menuItems', newItems);
-                            }}
-                        >
-                            <option value="">Select Page...</option>
-                            {storePages.map(p => (
-                                <option key={p.id} value={p.slug}>{p.name}</option>
-                            ))}
-                        </select>
-                    ) : (
-                        <input
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
-                            placeholder="e.g. https://google.com"
-                            value={item.value}
-                            onChange={e => {
-                                const newItems = [...menuItems];
-                                newItems[idx] = { ...newItems[idx], value: e.target.value };
-                                update('menuItems', newItems);
-                            }}
-                        />
-                    )}
-                </div>
+                            />
+                        )}
+                    </div>
+                ) : item.type === 'page' ? (
+                    <select
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        value={item.value}
+                        onChange={e => {
+                            const newItems = [...menuItems];
+                            newItems[idx] = { ...newItems[idx], value: e.target.value };
+                            // Auto-update label if blank
+                            if (!newItems[idx].label || newItems[idx].label === 'New Link') {
+                                const p = storePages.find(p => p.slug === e.target.value);
+                                if (p) newItems[idx].label = p.name;
+                            }
+                            update('menuItems', newItems);
+                        }}
+                    >
+                        <option value="">Select Page...</option>
+                        {storePages.map(p => (
+                            <option key={p.id} value={p.slug}>{p.name}</option>
+                        ))}
+                    </select>
+                ) : (
+                    <input
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                        placeholder="e.g. https://google.com"
+                        value={item.value}
+                        onChange={e => {
+                            const newItems = [...menuItems];
+                            newItems[idx] = { ...newItems[idx], value: e.target.value };
+                            update('menuItems', newItems);
+                        }}
+                    />
+                )}
             </div>
         </div>
+
     );
 }
 
