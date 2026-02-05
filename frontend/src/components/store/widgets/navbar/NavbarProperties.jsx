@@ -190,7 +190,7 @@ function SortableItem({ id, item, idx, update, menuItems, categories, products, 
 }
 
 export function NavbarProperties({ settings, onUpdate, categories, products, storePages, viewMode, storeId }) {
-    const [activeTab, setActiveTab] = React.useState('content'); // content, style, settings
+    const [activeTab, setActiveTab] = React.useState('content'); // content, style, settings, drawer
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -239,15 +239,34 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
 
             {/* Tabs */}
             <div className="flex p-1 bg-slate-100 rounded-lg">
-                {['content', 'style', 'settings'].map(tab => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`flex-1 py-1.5 text-xs font-bold capitalize rounded-md transition-all ${activeTab === tab ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                        {tab}
-                    </button>
-                ))}
+                <button
+                    key="content"
+                    onClick={() => setActiveTab('content')}
+                    className={`flex-1 py-1.5 text-xs font-bold capitalize rounded-md transition-all ${activeTab === 'content' ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    Content
+                </button>
+                <button
+                    key="style"
+                    onClick={() => setActiveTab('style')}
+                    className={`flex-1 py-1.5 text-xs font-bold capitalize rounded-md transition-all ${activeTab === 'style' ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    Style
+                </button>
+                <button
+                    key="settings"
+                    onClick={() => setActiveTab('settings')}
+                    className={`flex-1 py-1.5 text-xs font-bold capitalize rounded-md transition-all ${activeTab === 'settings' ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    Settings
+                </button>
+                <button
+                    key="drawer"
+                    onClick={() => setActiveTab('drawer')}
+                    className={`flex-1 py-1.5 text-xs font-bold capitalize rounded-md transition-all ${activeTab === 'drawer' ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    Drawer
+                </button>
             </div>
 
             {/* TAB 1: CONTENT */}
@@ -507,44 +526,122 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                         </div>
                     </section>
 
-                    <section className="space-y-4 pt-4 border-t border-slate-100">
-                        <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mobile Menu</h3>
+                </div>
+            )}
 
-                        {/* Drawer Direction */}
-                        <div className="mb-2">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Drawer Slide Direction</label>
-                            <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
-                                <button
-                                    onClick={() => forceGlobalUpdate('mobileMenuDirection', 'left')}
-                                    className={`flex-1 py-1 text-[10px] font-bold uppercase rounded transition-all ${getV('mobileMenuDirection', 'right') === 'left' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                                >
-                                    Left
-                                </button>
-                                <button
-                                    onClick={() => forceGlobalUpdate('mobileMenuDirection', 'right')}
-                                    className={`flex-1 py-1 text-[10px] font-bold uppercase rounded transition-all ${getV('mobileMenuDirection', 'right') === 'right' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                                >
-                                    Right
-                                </button>
+            {/* TAB 4: MENU DRAWER */}
+            {activeTab === 'drawer' && (
+                <div className="p-4 space-y-6 animate-in fade-in duration-300">
+                    {/* Drawer Settings */}
+                    <div className="space-y-4">
+                        <section className="space-y-4">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">General</h3>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Drawer Direction <ResponsiveIndicator k="drawerDirection" /></label>
+                                <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={getV('drawerDirection', 'left')} onChange={e => update('drawerDirection', e.target.value)}>
+                                    <option value="left">Left</option>
+                                    <option value="right">Right</option>
+                                </select>
                             </div>
-                        </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Show Hamburger On <ResponsiveIndicator k="showHamburger" /></label>
+                                <select className="w-full px-2 py-1 bg-slate-50 border rounded text-xs" value={getV('showHamburger', 'mobile')} onChange={e => update('showHamburger', e.target.value)}>
+                                    <option value="mobile">Mobile Only</option>
+                                    <option value="tablet">Mobile & Tablet</option>
+                                    <option value="always">Always (PC included)</option>
+                                </select>
+                            </div>
+                        </section>
 
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">Show Hamburger On...</label>
-                            <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span className="flex items-center"><Monitor className="h-3 w-3 mr-2 text-slate-400" /> PC</span>
-                                <input type="checkbox" checked={settings.hamburgerPC} onChange={e => forceGlobalUpdate('hamburgerPC', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                            </label>
-                            <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span className="flex items-center"><Tablet className="h-3 w-3 mr-2 text-slate-400" /> Tablet</span>
-                                <input type="checkbox" checked={settings.hamburgerTablet} onChange={e => forceGlobalUpdate('hamburgerTablet', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                            </label>
-                            <label className="flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                                <span className="flex items-center"><Smartphone className="h-3 w-3 mr-2 text-slate-400" /> Mobile</span>
-                                <input type="checkbox" checked={settings.hamburgerMobile} onChange={e => forceGlobalUpdate('hamburgerMobile', e.target.checked)} className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                            </label>
-                        </div>
-                    </section>
+                        <section className="space-y-4 pt-4 border-t border-slate-100">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Typography</h3>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Font Size (px) <ResponsiveIndicator k="drawerFontSize" /></label>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="range"
+                                        min="12"
+                                        max="32"
+                                        className="flex-1"
+                                        value={parseInt(getV('drawerFontSize', '16px'))}
+                                        onChange={e => update('drawerFontSize', e.target.value + 'px')}
+                                    />
+                                    <span className="text-xs text-slate-500 w-8 text-right">{getV('drawerFontSize', '16px')}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Font Color</label>
+                                <ColorInput label="Font Color" value={getV('drawerFontColor', '#000000')} onChange={v => update('drawerFontColor', v)} />
+                            </div>
+                        </section>
+
+                        <section className="space-y-4 pt-4 border-t border-slate-100">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Appearance</h3>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Background Color</label>
+                                <ColorInput label="BG Color" value={getV('drawerBgColor', '#ffffff')} onChange={v => update('drawerBgColor', v)} />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Glass UI (Blur) <ResponsiveIndicator k="drawerGlass" /></label>
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                    checked={getV('drawerGlass', false)}
+                                    onChange={e => update('drawerGlass', e.target.checked)}
+                                />
+                            </div>
+
+                            {getV('drawerGlass', false) && (
+                                <div className="animate-in fade-in duration-300">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">Blur Amount (px) <ResponsiveIndicator k="drawerBlur" /></label>
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="20"
+                                            className="flex-1"
+                                            value={parseInt(getV('drawerBlur', '10px'))}
+                                            onChange={e => update('drawerBlur', e.target.value + 'px')}
+                                        />
+                                        <span className="text-xs text-slate-500 w-8 text-right">{getV('drawerBlur', '10px')}</span>
+                                    </div>
+                                    <p className="text-[9px] text-slate-400 mt-1 italic">* Requires transparent opacity in BG Color</p>
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="space-y-4 pt-4 border-t border-slate-100">
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Elements</h3>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Show Store Logo <ResponsiveIndicator k="drawerShowLogo" /></label>
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                    checked={getV('drawerShowLogo', true)}
+                                    onChange={e => update('drawerShowLogo', e.target.checked)}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Show Store Name <ResponsiveIndicator k="drawerShowName" /></label>
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                    checked={getV('drawerShowName', true)}
+                                    onChange={e => update('drawerShowName', e.target.checked)}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center">Show Search Icon <ResponsiveIndicator k="drawerShowSearch" /></label>
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                    checked={getV('drawerShowSearch', false)}
+                                    onChange={e => update('drawerShowSearch', e.target.checked)}
+                                />
+                            </div>
+                        </section>
+                    </div>
                 </div>
             )}
         </div>
