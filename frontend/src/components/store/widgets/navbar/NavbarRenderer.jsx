@@ -20,6 +20,35 @@ export function NavbarRenderer({ settings, viewMode, store }) {
     const rVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
     const navigate = useNavigate();
 
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = (e) => {
+        if ((e.type === 'keydown' && e.key === 'Enter') || e.type === 'click') {
+            if (searchQuery.trim()) {
+                const subUrl = store?.sub_url || 'demo';
+                // Navigate to standard search route (this depends on routing setup, but is a safe default for now)
+                navigate(`/s/${subUrl}/search?q=${encodeURIComponent(searchQuery)}`);
+                setMobileMenuOpen(false);
+                setSearchQuery('');
+            }
+        }
+    };
+
+    // Helper to convert hex to rgba
+    const hexToRgba = (hex, opacity) => {
+        let c;
+        if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+            c = hex.substring(1).split('');
+            if (c.length == 3) {
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c = '0x' + c.join('');
+            return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',' + (opacity / 100) + ')';
+        }
+        return hex;
+    }
+
     const handleNavigate = (item) => {
         if (!item) return;
 
@@ -203,7 +232,7 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                 <div
                     className={`absolute top-0 ${rVal('mobileMenuDirection', settings.mobileMenuDirection || 'left') === 'left' ? 'left-0' : 'right-0'} h-full w-[300px] shadow-2xl p-6 flex flex-col transition-transform duration-300 ease-out transform ${mobileMenuOpen ? 'translate-x-0' : (rVal('mobileMenuDirection', settings.mobileMenuDirection || 'left') === 'left' ? '-translate-x-full' : 'translate-x-full')}`}
                     style={{
-                        backgroundColor: rVal('drawerBgColor', settings.drawerBgColor || '#ffffff'),
+                        backgroundColor: hexToRgba(rVal('drawerBgColor', settings.drawerBgColor || '#ffffff'), rVal('drawerBgOpacity', 100)),
                         backdropFilter: rVal('drawerGlass', settings.drawerGlass) ? `blur(${rVal('drawerBlur', settings.drawerBlur || '10px')})` : 'none',
                     }}
                     onClick={(e) => e.stopPropagation()}
@@ -240,9 +269,15 @@ export function NavbarRenderer({ settings, viewMode, store }) {
                                 placeholder="Search..."
                                 className="w-full bg-slate-100/50 border border-slate-200/50 rounded-lg py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                                 style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
-                                disabled
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={handleSearch}
                             />
-                            <Search className="absolute right-3 top-2.5 h-4 w-4 opacity-50" style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }} />
+                            <Search
+                                className="absolute right-3 top-2.5 h-4 w-4 opacity-50 cursor-pointer hover:opacity-100 transition-opacity"
+                                style={{ color: rVal('drawerFontColor', settings.drawerFontColor) }}
+                                onClick={handleSearch}
+                            />
                         </div>
                     )}
 
