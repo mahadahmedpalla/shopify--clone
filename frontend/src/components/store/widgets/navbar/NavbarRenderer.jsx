@@ -183,15 +183,12 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
         }
 
         if (item.type === 'category') {
-            // Check for 'all' special value
+            // Updated Routing: All categories go to /shop (Collection Page)
             if (item.value === 'all') {
-                // Usually 'all' maps to a root category or just search? 
-                // Or maybe a specific 'All Products' page. 
-                // For now, let's treat it as root category or navigate to search/collections?
-                // Let's assume it navigates to /category/all or similar.
-                navigate(`/s/${subUrl}/category/all`);
+                navigate(`/s/${subUrl}/shop`);
             } else {
-                navigate(`/s/${subUrl}/category/${item.value}`);
+                // Pass category ID as query param
+                navigate(`/s/${subUrl}/shop?category=${item.value}`);
             }
         } else if (item.type === 'product') {
             navigate(`/s/${subUrl}/p/${item.value}`);

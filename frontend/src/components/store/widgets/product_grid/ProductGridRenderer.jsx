@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export function ProductGridRenderer({ settings, products, viewMode, store, isEditor }) {
     const [currentPage, setCurrentPage] = useState(1);
@@ -8,9 +8,15 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     // Filter products logic
     let displayProducts = products || [];
 
+    const [searchParams] = useSearchParams();
+    const categoryIdParam = searchParams.get('category');
+
     // 1. Filter by Category
-    if (settings.categoryId && settings.categoryId !== 'all') {
-        displayProducts = displayProducts.filter(p => p.category_id === settings.categoryId);
+    // URL param takes precedence over builder setting
+    const activeCategoryId = categoryIdParam || settings.categoryId;
+
+    if (activeCategoryId && activeCategoryId !== 'all') {
+        displayProducts = displayProducts.filter(p => p.category_id === activeCategoryId);
     }
 
     // 2. Sort Logic

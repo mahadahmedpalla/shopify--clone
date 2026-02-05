@@ -596,9 +596,10 @@ export function StoreBuilder() {
                                                         products={products}
                                                         categories={categories}
                                                         onDelete={
-                                                            /* Lock Cart & Checkout Widgets */
+                                                            /* Lock Cart, Checkout & Shop Product Grid Widgets */
                                                             ((page?.slug === 'cart' && block.type === 'cart_list') ||
-                                                                (page?.slug === 'checkout' && block.type === 'checkout_form'))
+                                                                (page?.slug === 'checkout' && block.type === 'checkout_form') ||
+                                                                (page?.slug === 'shop' && block.type === 'product_grid'))
                                                                 ? undefined
                                                                 : () => deleteWidget(block.id)
                                                         }
