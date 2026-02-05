@@ -116,6 +116,18 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
         onClose();
     };
 
+    // Helper to render flattened categories with indentation
+    const getFlattenedOptions = (items, parentId = null, depth = 0) => {
+        let options = [];
+        items
+            .filter(item => item.parent_id === parentId)
+            .forEach(item => {
+                options.push({ ...item, depth });
+                options = [...options, ...getFlattenedOptions(items, item.id, depth + 1)];
+            });
+        return options;
+    };
+
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -228,8 +240,10 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                                     onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
                                 >
                                     <option value="">No Category</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    {getFlattenedOptions(categories).map(cat => (
+                                        <option key={cat.id} value={cat.id}>
+                                            {'\u00A0'.repeat(cat.depth * 4)} {cat.depth > 0 ? '↳ ' : ''} {cat.name}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
