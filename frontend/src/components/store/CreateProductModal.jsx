@@ -120,7 +120,12 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
     const getFlattenedOptions = (items, parentId = null, depth = 0) => {
         let options = [];
         items
-            .filter(item => item.parent_id === parentId)
+            .filter(item => {
+                // Handle equality loosely to catch null/undefined or ID type mismatches
+                const itemParentId = item.parent_id || null;
+                const targetParentId = parentId || null;
+                return itemParentId == targetParentId;
+            })
             .forEach(item => {
                 options.push({ ...item, depth });
                 options = [...options, ...getFlattenedOptions(items, item.id, depth + 1)];
