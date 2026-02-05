@@ -66,9 +66,8 @@ function App() {
 
         {/* Public Storefront Route */}
         <Route path="/s/:storeSubUrl" element={<PublicStorefront />} />
-        {/* SEO-friendly Category Route - placed before generic pageSlug to ensure priority */}
-        <Route path="/s/:storeSubUrl/shop/:parentSlug/:childSlug" element={<PublicStorefront />} />
-        <Route path="/s/:storeSubUrl/shop/:categorySlug" element={<PublicStorefront />} />
+        {/* Dynamic Hierarchical Category Route (Wildcard) */}
+        <Route path="/s/:storeSubUrl/shop/*" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/:pageSlug" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/p/:productId" element={<PublicProductPage />} />
         <Route path="/s/:storeSubUrl/category/:categoryId" element={<PublicStorefront />} />

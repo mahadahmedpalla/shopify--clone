@@ -4,6 +4,16 @@ import { ShoppingCart, Menu, X, ChevronRight, Search } from 'lucide-react';
 import { getResponsiveValue } from '../Shared';
 import { useCart } from '../../../../context/CartContext';
 
+// Helper: Convert name to slug (hyphens, lowercase)
+const slugify = (text) => {
+    return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/[\s\W-]+/g, '-') // Replace spaces and non-word chars with -
+        .replace(/^-+|-+$/g, ''); // Remove leading/trailing -
+};
+
 const DesktopMenuItem = ({ item, rVal, settings, handleNavigate, depth = 0 }) => {
     const [open, setOpen] = useState(false);
     const hasChildren = item.children && item.children.length > 0;
@@ -153,7 +163,6 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
         setSearchQuery('');
     };
 
-    // Helper to convert hex to rgba
     const hexToRgba = (hex, opacity) => {
         let c;
         if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
@@ -166,6 +175,19 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
         }
         return hex;
     }
+
+    // Recursive path builder
+    const getCategoryPath = (categoryId) => {
+        const cat = categories.find(c => c.id === categoryId);
+        if (!cat) return '';
+
+        const slug = slugify(cat.name);
+        if (cat.parent_id) {
+            const parentPath = getCategoryPath(cat.parent_id);
+            return parentPath ? `${parentPath}/${slug}` : slug;
+        }
+        return slug;
+    };
 
     const handleNavigate = (item) => {
         if (!item) return;
@@ -190,19 +212,9 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
                 // Find category name for SEO URL
                 const cat = categories.find(c => c.id === item.value);
                 if (cat) {
-                    if (cat.parent_id) {
-                        // Hierarchical URL: /shop/Parent/Child
-                        const parent = categories.find(c => c.id === cat.parent_id);
-                        if (parent) {
-                            navigate(`/s/${subUrl}/shop/${encodeURIComponent(parent.name)}/${encodeURIComponent(cat.name)}`);
-                        } else {
-                            // Fallback if parent missing
-                            navigate(`/s/${subUrl}/shop/${encodeURIComponent(cat.name)}`);
-                        }
-                    } else {
-                        // Root Category
-                        navigate(`/s/${subUrl}/shop/${encodeURIComponent(cat.name)}`);
-                    }
+                    // Build full path dynamically
+                    const fullPath = getCategoryPath(cat.id);
+                    navigate(`/s/${subUrl}/shop/${fullPath}`);
                 } else {
                     // Fallback if not found locally
                     navigate(`/s/${subUrl}/shop?category=${item.value}`);
