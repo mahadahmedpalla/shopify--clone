@@ -185,6 +185,11 @@ function SortableItem({ id, item, idx, update, menuItems, categories, products, 
 export function NavbarProperties({ settings, onUpdate, categories, products, storePages, viewMode, storeId }) {
     const [activeTab, setActiveTab] = React.useState('content'); // content, style, settings
 
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    );
+
     const update = (key, val) => {
         if (viewMode === 'desktop') {
             onUpdate({ ...settings, [key]: val });
@@ -328,10 +333,7 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                         </div>
 
                         <DndContext
-                            sensors={useSensors(
-                                useSensor(PointerSensor),
-                                useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-                            )}
+                            sensors={sensors}
                             collisionDetection={closestCenter}
                             onDragEnd={(event) => {
                                 const { active, over } = event;
