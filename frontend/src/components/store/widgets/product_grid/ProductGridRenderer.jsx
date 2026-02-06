@@ -23,57 +23,63 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const [searchParams] = useSearchParams();
     const categoryIdParam = searchParams.get('category');
 
-    // 1. Filter by Source
-    let activeCategoryId = settings.categoryId;
-    let manualProductIds = settings.manualProductIds || [];
-    let sourceType = settings.sourceType || 'all';
+    // 1. Context Resolution (Always try to resolve category from URL)
+    let contextCategoryId = null;
+    if (categoryPath && categories) {
+        // Recursive Hierarchical Match (from URL path)
+        const slugs = categoryPath.split('/').map(s => decodeURIComponent(s).toLowerCase());
+        let currentParentId = null;
+        let matchedCat = null;
+        let matchFailed = false;
 
-    // A. Source Logic
+        for (const slug of slugs) {
+            const found = categories.find(c => {
+                const nameSlug = slugify(c.name);
+                const parentMatch = currentParentId === null ? (c.parent_id === null || !c.parent_id) : c.parent_id === currentParentId;
+                return nameSlug === slug && parentMatch;
+            });
+
+            if (found) {
+                currentParentId = found.id;
+                matchedCat = found;
+            } else {
+                matchFailed = true;
+                break;
+            }
+        }
+        if (matchedCat && !matchFailed) contextCategoryId = matchedCat.id;
+        else contextCategoryId = 'not-found';
+
+    } else if (categorySlug && categories) {
+        const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
+        if (matchedCat) contextCategoryId = matchedCat.id;
+    } else if (categoryIdParam) {
+        contextCategoryId = categoryIdParam;
+    }
+
+    // 2. Filter by Source
     if (sourceType === 'products') {
-        // Filter by manual selection
+        // Filter by manual products
         displayProducts = displayProducts.filter(p => manualProductIds.includes(p.id));
     } else if (sourceType === 'category') {
-        // Filter by Category Path or specific ID
-        if (categoryPath && categories) {
-            // Recursive Hierarchical Match (from URL path)
-            const slugs = categoryPath.split('/').map(s => decodeURIComponent(s).toLowerCase());
-            let currentParentId = null;
-            let matchedCat = null;
-            let matchFailed = false;
-
-            for (const slug of slugs) {
-                const found = categories.find(c => {
-                    const nameSlug = slugify(c.name);
-                    const parentMatch = currentParentId === null ? (c.parent_id === null || !c.parent_id) : c.parent_id === currentParentId;
-                    return nameSlug === slug && parentMatch;
-                });
-
-                if (found) {
-                    currentParentId = found.id;
-                    matchedCat = found;
-                } else {
-                    matchFailed = true;
-                    break;
-                }
-            }
-
-            if (matchedCat && !matchFailed) {
-                activeCategoryId = matchedCat.id;
-            } else {
-                activeCategoryId = 'not-found';
-            }
-        } else if (categorySlug && categories) {
-            const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
-            if (matchedCat) activeCategoryId = matchedCat.id;
-        } else if (categoryIdParam) {
-            activeCategoryId = categoryIdParam;
+        // Specific Category Mode
+        // Priority: Context -> Settings -> None
+        const targetCatId = contextCategoryId || settings.categoryId;
+        if (targetCatId && targetCatId !== 'not-found') {
+            displayProducts = displayProducts.filter(p => p.category_id === targetCatId);
+        } else if (targetCatId === 'not-found') {
+            displayProducts = []; // Path didn't match
         }
-
-        if (activeCategoryId && activeCategoryId !== 'all') {
-            displayProducts = displayProducts.filter(p => p.category_id === activeCategoryId);
+    } else {
+        // All Products (Default)
+        // FIX: Contextual Override
+        // If we are on a specific category page, filter by it.
+        if (contextCategoryId && contextCategoryId !== 'not-found') {
+            displayProducts = displayProducts.filter(p => p.category_id === contextCategoryId);
+        } else if (contextCategoryId === 'not-found') {
+            displayProducts = [];
         }
     }
-    // else if sourceType === 'all', stick with all products
 
     // B. Exclusion Logic
     if (settings.enableExclusions && sourceType !== 'products') {
