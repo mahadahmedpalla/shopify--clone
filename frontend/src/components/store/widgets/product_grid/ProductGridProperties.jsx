@@ -171,7 +171,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 }
             });
         }
-    }, []);
+    }, [settings.initialized]);
 
     // Helper to check for overrides
     const hasOverride = (key) => {
