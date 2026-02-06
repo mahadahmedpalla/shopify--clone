@@ -147,6 +147,7 @@ export function PropertiesPanel({
                         <ProductGridProperties
                             settings={selectedElement.settings}
                             categories={categories}
+                            products={products}
                             viewMode={viewMode}
                             onUpdate={onUpdate}
                         />

@@ -1,6 +1,8 @@
 import React from 'react';
 
-export function ProductGridProperties({ settings, onUpdate, categories, viewMode }) {
+export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
+    // Ensure products is an array to avoid crashes if undefined
+    const availableProducts = products || [];
     const update = (key, val) => {
         onUpdate({ ...settings, [key]: val });
     };
@@ -27,6 +29,101 @@ export function ProductGridProperties({ settings, onUpdate, categories, viewMode
         return options;
     };
 
+    // Generic MultiSelect Component
+    const MultiSelect = ({ label, options, values, onChange, placeholder = "Select items..." }) => {
+        const [isOpen, setIsOpen] = React.useState(false);
+        const [search, setSearch] = React.useState("");
+
+        const filteredOptions = options.filter(opt =>
+            opt.label.toLowerCase().includes(search.toLowerCase())
+        );
+
+        const toggleOption = (id) => {
+            const newValues = values.includes(id)
+                ? values.filter(v => v !== id)
+                : [...values, id];
+            onChange(newValues);
+        };
+
+        return (
+            <div className="relative">
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">{label}</label>
+                <div
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs min-h-[34px] flex flex-wrap gap-1 cursor-pointer"
+                    onClick={() => setIsOpen(!isOpen)}
+                >
+                    {values.length === 0 && <span className="text-slate-400">{placeholder}</span>}
+                    {values.map(val => {
+                        const opt = options.find(o => o.id === val);
+                        return opt ? (
+                            <span key={val} className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] items-center flex">
+                                {opt.label}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleOption(val);
+                                    }}
+                                    className="ml-1 hover:text-indigo-900"
+                                >
+                                    ×
+                                </button>
+                            </span>
+                        ) : null;
+                    })}
+                </div>
+
+                {isOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="w-full px-3 py-2 border-b border-slate-100 text-xs focus:outline-none"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                            autoFocus
+                        />
+                        <div className="overflow-y-auto flex-1">
+                            {filteredOptions.length === 0 ? (
+                                <div className="p-3 text-xs text-slate-400 text-center">No matches found</div>
+                            ) : (
+                                filteredOptions.map(opt => (
+                                    <div
+                                        key={opt.id}
+                                        className={`px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 flex items-center ${values.includes(opt.id) ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-slate-600'}`}
+                                        onClick={() => toggleOption(opt.id)}
+                                    >
+                                        <div className={`w-3 h-3 rounded border mr-2 flex items-center justify-center ${values.includes(opt.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>
+                                            {values.includes(opt.id) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                        </div>
+                                        {opt.label}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
+                {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
+            </div>
+        );
+    };
+
+    // Prepare lists for MultiSelect
+    const productOptions = (settings.products || []).map(p => ({ id: p.id, label: p.name })); // Wait, products prop is not passed consistently to properties?
+    // Correction: In StoreBuilder -> PropertiesPanel, 'products' is passed.
+    // In ProductGridProperties params, I need to verify if 'products' is received.
+    // Looking at file content, params are: { settings, onUpdate, categories, viewMode }
+    // It seems 'products' is MISSING in the props destructuring in line 3.
+    // I need to add 'products' to props first. But wait, I can access it from arguments[0].products if it's passed.
+    // Let's assume it IS passed by PropertiesPanel (StoreBuilder line 626).
+    // I will add it to destructuring in the full file replacement for safety or just use props.products if I refrain from full rewrite?
+    // Actually, line 3 shows: ({ settings, onUpdate, categories, viewMode }). 'products' is missing.
+    // I must update the function signature too.
+
+    // Changing the request strategy:
+    // I will use replace logic to rewrite the COMPONENT SIGNATURE and the content to include 'products'.
+
+
     return (
         <div className="space-y-6 pb-20">
             <section className="space-y-4">
@@ -35,21 +132,99 @@ export function ProductGridProperties({ settings, onUpdate, categories, viewMode
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Section Title</label>
                     <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.title || ''} onChange={e => update('title', e.target.value)} />
                 </div>
+
+                {/* Source Selection */}
                 <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Collection Source</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Source Type</label>
                     <select
                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                        value={settings.categoryId || 'all'}
-                        onChange={e => update('categoryId', e.target.value)}
+                        value={settings.sourceType || 'all'}
+                        onChange={e => update('sourceType', e.target.value)}
                     >
                         <option value="all">All Products</option>
-                        {getFlattenedOptions(categories).map(c => (
-                            <option key={c.id} value={c.id}>
-                                {'\u00A0'.repeat(c.depth * 4)} {c.depth > 0 ? '↳ ' : ''} {c.name}
-                            </option>
-                        ))}
+                        <option value="category">Specific Category</option>
+                        <option value="products">Specific Products</option>
                     </select>
                 </div>
+
+                {/* Conditional Logic based on Source Type */}
+                {settings.sourceType === 'category' && (
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Category</label>
+                        <select
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                            value={settings.categoryId || ''}
+                            onChange={e => update('categoryId', e.target.value)}
+                        >
+                            <option value="">-- Select --</option>
+                            {getFlattenedOptions(categories).map(c => (
+                                <option key={c.id} value={c.id}>
+                                    {'\u00A0'.repeat(c.depth * 4)} {c.depth > 0 ? '↳ ' : ''} {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
+                {settings.sourceType === 'products' && (
+                    <MultiSelect
+                        label="Select Products"
+                        options={availableProducts.map(p => ({ id: p.id, label: p.name }))}
+                        values={settings.manualProductIds || []}
+                        onChange={vals => update('manualProductIds', vals)}
+                        placeholder="Search products..."
+                    />
+                )}
+
+                {/* Exclusions Logic (Only for All or Category) */}
+                {settings.sourceType !== 'products' && (
+                    <div className="pt-4 border-t border-slate-100 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase">Enable Exclusions</label>
+                            <input
+                                type="checkbox"
+                                checked={settings.enableExclusions || false}
+                                onChange={e => update('enableExclusions', e.target.checked)}
+                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        {settings.enableExclusions && (
+                            <>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Exclusion Type</label>
+                                    <select
+                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                                        value={settings.exclusionType || 'products'}
+                                        onChange={e => update('exclusionType', e.target.value)}
+                                    >
+                                        <option value="products">Exclude Products</option>
+                                        <option value="categories">Exclude Categories</option>
+                                    </select>
+                                </div>
+
+                                {settings.exclusionType === 'products' ? (
+                                    <MultiSelect
+                                        label="Products to Exclude"
+                                        options={availableProducts.map(p => ({ id: p.id, label: p.name }))}
+                                        values={settings.excludedProductIds || []}
+                                        onChange={vals => update('excludedProductIds', vals)}
+                                        placeholder="Select products to exclude..."
+                                    />
+                                ) : (
+                                    <MultiSelect
+                                        label="Categories to Exclude"
+                                        options={categories.map(c => ({ id: c.id, label: c.name }))}
+                                        values={settings.excludedCategoryIds || []}
+                                        onChange={vals => update('excludedCategoryIds', vals)}
+                                        placeholder="Select categories to exclude..."
+                                    />
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
+
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Product Limit</label>
                     <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs" value={settings.limit || 8} onChange={e => update('limit', parseInt(e.target.value))} />

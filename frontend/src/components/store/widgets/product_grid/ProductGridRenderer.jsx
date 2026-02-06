@@ -21,56 +21,68 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const [searchParams] = useSearchParams();
     const categoryIdParam = searchParams.get('category');
 
-    // 1. Filter by Category
-    // Resolve slug if present
+    // 1. Filter by Source
     let activeCategoryId = settings.categoryId;
+    let manualProductIds = settings.manualProductIds || [];
+    let sourceType = settings.sourceType || 'all';
 
-    if (categoryPath && categories) {
-        // Recursive Hierarchical Match
-        // Path example: "electronics/computers/laptops-and-tablets"
-        const slugs = categoryPath.split('/').map(s => decodeURIComponent(s).toLowerCase());
+    // A. Source Logic
+    if (sourceType === 'products') {
+        // Filter by manual selection
+        displayProducts = displayProducts.filter(p => manualProductIds.includes(p.id));
+    } else if (sourceType === 'category') {
+        // Filter by Category Path or specific ID
+        if (categoryPath && categories) {
+            // Recursive Hierarchical Match (from URL path)
+            const slugs = categoryPath.split('/').map(s => decodeURIComponent(s).toLowerCase());
+            let currentParentId = null;
+            let matchedCat = null;
+            let matchFailed = false;
 
-        let currentParentId = null; // Start at root
-        let matchedCat = null;
-        let matchFailed = false;
+            for (const slug of slugs) {
+                const found = categories.find(c => {
+                    const nameSlug = slugify(c.name);
+                    const parentMatch = currentParentId === null ? (c.parent_id === null || !c.parent_id) : c.parent_id === currentParentId;
+                    return nameSlug === slug && parentMatch;
+                });
 
-        for (const slug of slugs) {
-            // Find category matching current slug and current parent
-            // "root" categories have parent_id === null
-            const found = categories.find(c => {
-                const nameSlug = slugify(c.name);
-                const parentMatch = currentParentId === null ? (c.parent_id === null || !c.parent_id) : c.parent_id === currentParentId;
-                return nameSlug === slug && parentMatch;
-            });
-
-            if (found) {
-                currentParentId = found.id;
-                matchedCat = found;
-            } else {
-                matchFailed = true;
-                break;
+                if (found) {
+                    currentParentId = found.id;
+                    matchedCat = found;
+                } else {
+                    matchFailed = true;
+                    break;
+                }
             }
+
+            if (matchedCat && !matchFailed) {
+                activeCategoryId = matchedCat.id;
+            } else {
+                activeCategoryId = 'not-found';
+            }
+        } else if (categorySlug && categories) {
+            const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
+            if (matchedCat) activeCategoryId = matchedCat.id;
+        } else if (categoryIdParam) {
+            activeCategoryId = categoryIdParam;
         }
 
-        if (matchedCat && !matchFailed) {
-            activeCategoryId = matchedCat.id;
-        } else {
-            // Path didn't resolve to a valid category chain
-            // Could set activeCategoryId to 'none' to show empty, or just let it fall through?
-            // Let's force it to a non-existent ID to show "No products"
-            activeCategoryId = 'not-found';
+        if (activeCategoryId && activeCategoryId !== 'all') {
+            displayProducts = displayProducts.filter(p => p.category_id === activeCategoryId);
         }
-
-    } else if (categorySlug && categories) {
-        // Single level match (fallback or root category)
-        const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
-        if (matchedCat) activeCategoryId = matchedCat.id;
-    } else if (categoryIdParam) {
-        activeCategoryId = categoryIdParam;
     }
+    // else if sourceType === 'all', stick with all products
 
-    if (activeCategoryId && activeCategoryId !== 'all') {
-        displayProducts = displayProducts.filter(p => p.category_id === activeCategoryId);
+    // B. Exclusion Logic
+    if (settings.enableExclusions && sourceType !== 'products') {
+        const exclusionType = settings.exclusionType || 'products';
+        if (exclusionType === 'products') {
+            const excludedIds = settings.excludedProductIds || [];
+            displayProducts = displayProducts.filter(p => !excludedIds.includes(p.id));
+        } else if (exclusionType === 'categories') {
+            const excludedCatIds = settings.excludedCategoryIds || [];
+            displayProducts = displayProducts.filter(p => !excludedCatIds.includes(p.category_id));
+        }
     }
 
     // 2. Sort Logic
