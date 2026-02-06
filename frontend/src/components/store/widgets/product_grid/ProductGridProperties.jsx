@@ -15,6 +15,21 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
         onUpdate({ ...settings, columns });
     };
 
+    // Helper to resolve responsive value
+    const getVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
+
+    // Helper to update style based on viewMode
+    const updateStyle = (key, val) => {
+        if (viewMode === 'mobile') {
+            onUpdate({ ...settings, [key]: val });
+        } else {
+            const responsive = { ...settings.responsive } || {};
+            if (!responsive[viewMode]) responsive[viewMode] = {};
+            responsive[viewMode][key] = val;
+            onUpdate({ ...settings, responsive });
+        }
+    };
+
     // Helper to render flattened categories with indentation
     const getFlattenedOptions = (items, parentId = null, depth = 0) => {
         let options = [];
