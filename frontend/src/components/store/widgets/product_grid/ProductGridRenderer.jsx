@@ -331,7 +331,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                         style={{ padding: `${cardContentPadding}px` }}
                                     >
                                         {showTitle && (
-                                            <h4 style={titleStyle} className={`leading-tight mb-1 line-clamp-2 ${titleFont}`}>
+                                            <h4 style={titleStyle} className={`leading-tight mb-1 line-clamp-2 ${titleFontClass}`}>
                                                 {product.name}
                                             </h4>
                                         )}
