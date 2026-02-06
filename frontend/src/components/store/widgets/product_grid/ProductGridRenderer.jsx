@@ -23,13 +23,13 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const [searchParams] = useSearchParams();
     const categoryIdParam = searchParams.get('category');
 
-    // 1. Context Resolution (Safe & Robust)
+    // 1. Defs
+    let manualProductIds = settings.manualProductIds || [];
+    let sourceType = settings.sourceType || 'all';
+
+    // 1. Context Resolution (Always try to resolve category from URL)
     let contextCategoryId = null;
-
-    // Ensure categories is a valid array
-    const safeCategories = Array.isArray(categories) ? categories : [];
-
-    if (categoryPath && typeof categoryPath === 'string' && safeCategories.length > 0) {
+    if (categoryPath && categories) {
         // Recursive Hierarchical Match (from URL path)
         const slugs = categoryPath.split('/').map(s => decodeURIComponent(s).toLowerCase());
         let currentParentId = null;
@@ -37,9 +37,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         let matchFailed = false;
 
         for (const slug of slugs) {
-            if (!slug) continue; // Skip empty segments
-            const found = safeCategories.find(c => {
-                const nameSlug = slugify(c.name || '');
+            const found = categories.find(c => {
+                const nameSlug = slugify(c.name);
                 const parentMatch = currentParentId === null ? (c.parent_id === null || !c.parent_id) : c.parent_id === currentParentId;
                 return nameSlug === slug && parentMatch;
             });
@@ -55,8 +54,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         if (matchedCat && !matchFailed) contextCategoryId = matchedCat.id;
         else contextCategoryId = 'not-found';
 
-    } else if (categorySlug && safeCategories.length > 0) {
-        const matchedCat = safeCategories.find(c => c.name?.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
+    } else if (categorySlug && categories) {
+        const matchedCat = categories.find(c => c.name.toLowerCase() === decodeURIComponent(categorySlug).toLowerCase());
         if (matchedCat) contextCategoryId = matchedCat.id;
     } else if (categoryIdParam) {
         contextCategoryId = categoryIdParam;
