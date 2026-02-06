@@ -186,6 +186,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
 
     // Styling
     const cardContentPadding = getVal('cardContentPadding', 16);
+    const sectionPadding = getVal('sectionPadding', 48);
+    const cardWrapperPadding = getVal('cardWrapperPadding', 0);
 
     // Construct styles using responsive values
     const cardStyle = {
@@ -198,9 +200,11 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             : 'none',
         display: equalHeight ? 'flex' : 'block',
         flexDirection: equalHeight ? 'column' : 'initial',
-        overflow: 'hidden' // Ensure content/image doesn't overflow radius
+        overflow: 'hidden', // Ensure content/image doesn't overflow radius
+        padding: `${cardWrapperPadding}px`
     };
 
+    const titleFont = getVal('titleFontFamily', 'font-sans');
     const titleStyle = {
         fontSize: `${getVal('titleFontSize', 14)}px`,
         fontWeight: getFontWeight(settings.titleFontWeight),
@@ -209,6 +213,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
 
     const buttonWidth = getVal('buttonWidth', 'full'); // 'full' | 'auto'
     const buttonPadding = getVal('buttonPadding', '8px 16px');
+    const buttonFont = getVal('buttonFontFamily', 'font-sans');
 
     const addToCartStyle = {
         backgroundColor: getVal('buttonBgColor', '#4f46e5'),
@@ -234,7 +239,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     };
 
     return (
-        <div className="p-12 space-y-8 bg-white">
+        <div className="space-y-8 bg-white" style={{ padding: `${sectionPadding}px` }}>
             {/* ... Header ... */}
             <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
@@ -308,7 +313,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                         style={{ padding: `${cardContentPadding}px` }}
                                     >
                                         {showTitle && (
-                                            <h4 style={titleStyle} className="leading-tight mb-1 line-clamp-2">
+                                            <h4 style={titleStyle} className={`leading-tight mb-1 line-clamp-2 ${titleFont}`}>
                                                 {product.name}
                                             </h4>
                                         )}
@@ -339,7 +344,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             `}>
                                                 <button
                                                     onClick={(e) => handleAddToCart(e, product)}
-                                                    className="uppercase tracking-wide flex items-center justify-center transition-colors text-xs font-bold"
+                                                    className={`uppercase tracking-wide flex items-center justify-center transition-colors text-xs font-bold ${buttonFont}`}
                                                     style={addToCartStyle}
                                                 >
                                                     Add to Cart

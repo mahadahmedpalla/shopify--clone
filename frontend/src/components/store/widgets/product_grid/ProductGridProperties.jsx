@@ -367,6 +367,16 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                     </div>
                 </div>
 
+                {/* Section Padding */}
+                <div className="mt-3">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                        Section Padding (px)
+                        <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                    </label>
+                    <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        value={getVal('sectionPadding', 48)} onChange={e => updateStyle('sectionPadding', parseInt(e.target.value))} />
+                </div>
+
                 {/* Equal Height Toggle */}
                 <div className="flex items-center justify-between">
                     <label className="text-[10px] font-bold text-slate-400 uppercase">Equal Height Cards</label>
@@ -465,6 +475,15 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                             value={getVal('cardContentPadding', 16)} onChange={e => updateStyle('cardContentPadding', parseInt(e.target.value))} />
                     </div>
 
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                            Card Wrapper Padding (px)
+                            <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                        </label>
+                        <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            value={getVal('cardWrapperPadding', 0)} onChange={e => updateStyle('cardWrapperPadding', parseInt(e.target.value))} />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-2">
                         <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
@@ -520,6 +539,15 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                             </select>
                         </div>
                     </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Family</label>
+                        <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            value={settings.titleFontFamily || 'font-sans'} onChange={e => update('titleFontFamily', e.target.value)}>
+                            <option value="font-sans">Sans Serif</option>
+                            <option value="font-serif">Serif</option>
+                            <option value="font-mono">Monospace</option>
+                        </select>
+                    </div>
                     <ColorInput label="Title Color" value={getVal('titleColor', '#1e293b')} onChange={val => updateStyle('titleColor', val)} />
                 </div>
 
@@ -550,6 +578,25 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                                     <option value="auto">Auto</option>
                                 </select>
                             </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Family</label>
+                                <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                    value={settings.buttonFontFamily || 'font-sans'} onChange={e => update('buttonFontFamily', e.target.value)}>
+                                    <option value="font-sans">Sans Serif</option>
+                                    <option value="font-serif">Serif</option>
+                                    <option value="font-mono">Monospace</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Font Family</label>
+                            <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.buttonFontFamily || 'font-sans'} onChange={e => update('buttonFontFamily', e.target.value)}>
+                                <option value="font-sans">Sans Serif</option>
+                                <option value="font-serif">Serif</option>
+                                <option value="font-mono">Monospace</option>
+                            </select>
                         </div>
 
                         <div>
