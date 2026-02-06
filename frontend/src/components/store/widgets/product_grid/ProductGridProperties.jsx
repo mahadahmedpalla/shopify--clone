@@ -546,6 +546,15 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                             <option value="font-sans">Sans Serif</option>
                             <option value="font-serif">Serif</option>
                             <option value="font-mono">Monospace</option>
+                            <optgroup label="Google Fonts">
+                                <option value="Inter">Inter</option>
+                                <option value="Lato">Lato</option>
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Outfit">Outfit</option>
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Roboto">Roboto</option>
+                            </optgroup>
                         </select>
                     </div>
                     <ColorInput label="Title Color" value={getVal('titleColor', '#1e293b')} onChange={val => updateStyle('titleColor', val)} />
@@ -596,6 +605,15 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                                 <option value="font-sans">Sans Serif</option>
                                 <option value="font-serif">Serif</option>
                                 <option value="font-mono">Monospace</option>
+                                <optgroup label="Google Fonts">
+                                    <option value="Inter">Inter</option>
+                                    <option value="Lato">Lato</option>
+                                    <option value="Montserrat">Montserrat</option>
+                                    <option value="Outfit">Outfit</option>
+                                    <option value="Playfair Display">Playfair Display</option>
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Roboto">Roboto</option>
+                                </optgroup>
                             </select>
                         </div>
 

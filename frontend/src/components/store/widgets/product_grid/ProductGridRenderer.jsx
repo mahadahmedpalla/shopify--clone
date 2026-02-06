@@ -204,23 +204,41 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         padding: `${cardWrapperPadding}px`
     };
 
-    const titleFont = getVal('titleFontFamily', 'font-sans');
+    // Helper for Fonts
+    const getFontFamily = (key) => {
+        if (!key || key.startsWith('font-')) return {};
+        return { fontFamily: `'${key}', sans-serif` };
+    };
+
+    const getFontClass = (key) => {
+        if (key && key.startsWith('font-')) return key;
+        return '';
+    };
+
+    const titleFontClass = getFontClass(getVal('titleFontFamily', 'font-sans'));
+    const titleFontStyle = getFontFamily(getVal('titleFontFamily', 'font-sans'));
+
     const titleStyle = {
         fontSize: `${getVal('titleFontSize', 14)}px`,
         fontWeight: getFontWeight(settings.titleFontWeight),
-        color: getVal('titleColor', '#1e293b')
+        color: getVal('titleColor', '#1e293b'),
+        ...titleFontStyle
     };
 
     const buttonWidth = getVal('buttonWidth', 'full'); // 'full' | 'auto'
     const buttonPadding = getVal('buttonPadding', '8px 16px');
-    const buttonFont = getVal('buttonFontFamily', 'font-sans');
+
+    const buttonFontKey = getVal('buttonFontFamily', 'font-sans');
+    const buttonFontClass = getFontClass(buttonFontKey);
+    const buttonFontStyle = getFontFamily(buttonFontKey);
 
     const addToCartStyle = {
         backgroundColor: getVal('buttonBgColor', '#4f46e5'),
         color: getVal('buttonTextColor', '#ffffff'),
         borderRadius: `${getVal('buttonBorderRadius', 4)}px`,
         width: buttonWidth === 'full' ? '100%' : 'auto',
-        padding: buttonPadding
+        padding: buttonPadding,
+        ...buttonFontStyle
     };
 
     const handleAddToCart = (e, product) => {
@@ -344,7 +362,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             `}>
                                                 <button
                                                     onClick={(e) => handleAddToCart(e, product)}
-                                                    className={`uppercase tracking-wide flex items-center justify-center transition-colors text-xs font-bold ${buttonFont}`}
+                                                    className={`uppercase tracking-wide flex items-center justify-center transition-colors text-xs font-bold ${buttonFontClass}`}
                                                     style={addToCartStyle}
                                                 >
                                                     Add to Cart
