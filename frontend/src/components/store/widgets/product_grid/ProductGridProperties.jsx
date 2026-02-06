@@ -1,4 +1,5 @@
 import React from 'react';
+import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box } from 'lucide-react';
 
 export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
     // Ensure products is an array to avoid crashes if undefined
@@ -136,20 +137,34 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 {/* Source Selection */}
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Source Type</label>
-                    <select
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                        value={settings.sourceType || 'all'}
-                        onChange={e => update('sourceType', e.target.value)}
-                    >
-                        <option value="all">All Products</option>
-                        <option value="category">Specific Category</option>
-                        <option value="products">Specific Products</option>
-                    </select>
+                    <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                        <button
+                            onClick={() => update('sourceType', 'all')}
+                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-md text-[10px] font-medium transition-all ${(!settings.sourceType || settings.sourceType === 'all') ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <LayoutGrid className="w-4 h-4 mb-1" />
+                            All
+                        </button>
+                        <button
+                            onClick={() => update('sourceType', 'category')}
+                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-md text-[10px] font-medium transition-all ${settings.sourceType === 'category' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <FolderTree className="w-4 h-4 mb-1" />
+                            Category
+                        </button>
+                        <button
+                            onClick={() => update('sourceType', 'products')}
+                            className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-md text-[10px] font-medium transition-all ${settings.sourceType === 'products' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <ListChecks className="w-4 h-4 mb-1" />
+                            Manual
+                        </button>
+                    </div>
                 </div>
 
                 {/* Conditional Logic based on Source Type */}
                 {settings.sourceType === 'category' && (
-                    <div>
+                    <div className="animate-in fade-in zoom-in-95 duration-200">
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Select Category</label>
                         <select
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
@@ -167,63 +182,79 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 )}
 
                 {settings.sourceType === 'products' && (
-                    <MultiSelect
-                        label="Select Products"
-                        options={availableProducts.map(p => ({ id: p.id, label: p.name }))}
-                        values={settings.manualProductIds || []}
-                        onChange={vals => update('manualProductIds', vals)}
-                        placeholder="Search products..."
-                    />
+                    <div className="animate-in fade-in zoom-in-95 duration-200">
+                        <MultiSelect
+                            label="Select Products"
+                            options={availableProducts.map(p => ({ id: p.id, label: p.name }))}
+                            values={settings.manualProductIds || []}
+                            onChange={vals => update('manualProductIds', vals)}
+                            placeholder="Search products..."
+                        />
+                    </div>
                 )}
 
                 {/* Exclusions Logic (Only for All or Category) */}
                 {settings.sourceType !== 'products' && (
                     <div className="pt-4 border-t border-slate-100 space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">Enable Exclusions</label>
-                            <input
-                                type="checkbox"
-                                checked={settings.enableExclusions || false}
-                                onChange={e => update('enableExclusions', e.target.checked)}
-                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            />
+                            <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">
+                                <Ban className="w-3 h-3" />
+                                Exclusions
+                            </label>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={settings.enableExclusions || false}
+                                    onChange={e => update('enableExclusions', e.target.checked)}
+                                />
+                                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
                         </div>
 
                         {settings.enableExclusions && (
-                            <>
+                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 bg-slate-50/50 p-3 rounded-lg border border-slate-100">
                                 <div>
                                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Exclusion Type</label>
-                                    <select
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                                        value={settings.exclusionType || 'products'}
-                                        onChange={e => update('exclusionType', e.target.value)}
-                                    >
-                                        <option value="products">Exclude Products</option>
-                                        <option value="categories">Exclude Categories</option>
-                                    </select>
+                                    <div className="flex bg-white p-1 rounded-lg border border-slate-200">
+                                        <button
+                                            onClick={() => update('exclusionType', 'products')}
+                                            className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded text-[10px] font-bold transition-all ${(!settings.exclusionType || settings.exclusionType === 'products') ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                        >
+                                            <Box className="w-3 h-3 mr-1.5" />
+                                            Products
+                                        </button>
+                                        <button
+                                            onClick={() => update('exclusionType', 'categories')}
+                                            className={`flex-1 flex items-center justify-center py-1.5 px-2 rounded text-[10px] font-bold transition-all ${settings.exclusionType === 'categories' ? 'bg-indigo-50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                        >
+                                            <Layers className="w-3 h-3 mr-1.5" />
+                                            Categories
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {settings.exclusionType === 'products' ? (
+                                {(!settings.exclusionType || settings.exclusionType === 'products') ? (
                                     <MultiSelect
-                                        label="Products to Exclude"
+                                        label="Select Products to Exclude"
                                         options={availableProducts.map(p => ({ id: p.id, label: p.name }))}
                                         values={settings.excludedProductIds || []}
                                         onChange={vals => update('excludedProductIds', vals)}
-                                        placeholder="Select products to exclude..."
+                                        placeholder="Search products..."
                                     />
                                 ) : (
                                     <MultiSelect
-                                        label="Categories to Exclude"
+                                        label="Select Categories to Exclude"
                                         options={getFlattenedOptions(categories).map(c => ({
                                             id: c.id,
                                             label: `${'\u00A0'.repeat(c.depth * 4)}${c.depth > 0 ? '↳ ' : ''}${c.name}`
                                         }))}
                                         values={settings.excludedCategoryIds || []}
                                         onChange={vals => update('excludedCategoryIds', vals)}
-                                        placeholder="Select categories to exclude..."
+                                        placeholder="Select categories..."
                                     />
                                 )}
-                            </>
+                            </div>
                         )}
                     </div>
                 )}
