@@ -350,10 +350,10 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
                                                 {showPrice && (
                                                     <div className="flex flex-wrap items-baseline gap-2">
-                                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
                                                         {showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price) && (
-                                                            <span className="text-xs text-slate-400 line-through">${parseFloat(product.compare_price).toFixed(2)}</span>
+                                                            <span className="text-xs text-slate-400 line-through decoration-slate-400 decoration-1">${parseFloat(product.compare_price).toFixed(2)}</span>
                                                         )}
+                                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
                                                     </div>
                                                 )}
                                                 {showRating && (
