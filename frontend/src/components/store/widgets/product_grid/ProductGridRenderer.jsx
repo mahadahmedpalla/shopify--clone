@@ -30,6 +30,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     if (sourceType === 'products') {
         // Filter by manual selection
         displayProducts = displayProducts.filter(p => manualProductIds.includes(p.id));
+        // Strict Order sort based on manualProductIds array
+        displayProducts.sort((a, b) => manualProductIds.indexOf(a.id) - manualProductIds.indexOf(b.id));
     } else if (sourceType === 'category') {
         // Filter by Category Path or specific ID
         if (categoryPath && categories) {
