@@ -125,21 +125,6 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
         );
     };
 
-    // Prepare lists for MultiSelect
-    // Correction: In StoreBuilder -> PropertiesPanel, 'products' is passed.
-    // In ProductGridProperties params, I need to verify if 'products' is received.
-    // Looking at file content, params are: { settings, onUpdate, categories, viewMode }
-    // It seems 'products' is MISSING in the props destructuring in line 3.
-    // I need to add 'products' to props first. But wait, I can access it from arguments[0].products if it's passed.
-    // Let's assume it IS passed by PropertiesPanel (StoreBuilder line 626).
-    // I will add it to destructuring in the full file replacement for safety or just use props.products if I refrain from full rewrite?
-    // Actually, line 3 shows: ({ settings, onUpdate, categories, viewMode }). 'products' is missing.
-    // I must update the function signature too.
-
-    // Changing the request strategy:
-    // I will use replace logic to rewrite the COMPONENT SIGNATURE and the content to include 'products'.
-
-
     // Data Seeding for Defaults
     React.useEffect(() => {
         if (!settings.rowGap && !settings.initialized) {
@@ -156,18 +141,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 imageBorderRadius: 0,
                 // Card
                 cardContentPadding: 14,
-                cardBorderRadius: 13,
-
-                // Mobile Overrides
-                responsive: {
-                    ...settings.responsive,
-                    mobile: {
-                        ...(settings.responsive?.mobile || {}),
-                        rowGap: 36,
-                        columnGap: 11,
-                        sectionPadding: 12
-                    }
-                }
+                cardBorderRadius: 13
             });
         }
     }, [settings.initialized]);
