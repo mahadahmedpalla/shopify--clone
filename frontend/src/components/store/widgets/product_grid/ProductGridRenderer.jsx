@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
+import { getResponsiveValue } from '../Shared';
 
 // Helper: Convert name to slug (hyphens, lowercase)
 const slugify = (text) => {
@@ -160,11 +161,13 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     };
 
     // -- Extended Properties --
+    // Helper to resolve responsive value
+    const getVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
     const { addToCart } = useCart();
 
     // Layout
-    const rowGap = settings.rowGap ?? 16;
-    const colGap = settings.columnGap ?? 16;
+    const rowGap = getVal('rowGap', 16);
+    const colGap = getVal('columnGap', 16);
     const equalHeight = settings.equalHeight || false;
 
     // Content Toggles
@@ -174,34 +177,45 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const showComparePrice = settings.showComparePrice !== false;
     const showRating = settings.showRating || false;
     const showAddToCart = settings.showAddToCart !== false;
+    const addToCartBehavior = settings.addToCartBehavior || 'always'; // 'always' | 'hover'
 
     // Image Settings
     const aspectRatio = settings.aspectRatio || 'auto';
     const imageFit = settings.imageFit || 'cover';
+    const imageRadius = getVal('imageBorderRadius', 0);
 
     // Styling
+    const cardContentPadding = getVal('cardContentPadding', 16);
+
+    // Construct styles using responsive values
     const cardStyle = {
-        backgroundColor: settings.cardBackgroundColor || 'transparent',
-        borderWidth: `${settings.cardBorderWidth ?? 0}px`,
-        borderColor: settings.cardBorderColor || '#e2e8f0',
-        borderRadius: `${settings.cardBorderRadius ?? 0}px`,
+        backgroundColor: getVal('cardBackgroundColor', 'transparent'),
+        borderWidth: `${getVal('cardBorderWidth', 0)}px`,
+        borderColor: getVal('cardBorderColor', '#e2e8f0'),
+        borderRadius: `${getVal('cardBorderRadius', 0)}px`,
         boxShadow: settings.cardShadow && settings.cardShadow !== 'none'
             ? getShadowStyle(settings.cardShadow)
             : 'none',
         display: equalHeight ? 'flex' : 'block',
-        flexDirection: equalHeight ? 'column' : 'initial'
+        flexDirection: equalHeight ? 'column' : 'initial',
+        overflow: 'hidden' // Ensure content/image doesn't overflow radius
     };
 
     const titleStyle = {
-        fontSize: `${settings.titleFontSize ?? 14}px`,
+        fontSize: `${getVal('titleFontSize', 14)}px`,
         fontWeight: getFontWeight(settings.titleFontWeight),
-        color: settings.titleColor || '#1e293b'
+        color: getVal('titleColor', '#1e293b')
     };
 
+    const buttonWidth = getVal('buttonWidth', 'full'); // 'full' | 'auto'
+    const buttonPadding = getVal('buttonPadding', '8px 16px');
+
     const addToCartStyle = {
-        backgroundColor: settings.buttonBgColor || '#4f46e5',
-        color: settings.buttonTextColor || '#ffffff',
-        borderRadius: `${settings.buttonBorderRadius ?? 4}px`
+        backgroundColor: getVal('buttonBgColor', '#4f46e5'),
+        color: getVal('buttonTextColor', '#ffffff'),
+        borderRadius: `${getVal('buttonBorderRadius', 4)}px`,
+        width: buttonWidth === 'full' ? '100%' : 'auto',
+        padding: buttonPadding
     };
 
     const handleAddToCart = (e, product) => {
@@ -245,14 +259,29 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             return (
                                 <Wrapper
                                     key={product.id}
-                                    className="group cursor-pointer transition-all overflow-hidden"
+                                    className="group cursor-pointer transition-all"
                                     style={cardStyle}
                                     {...wrapperProps}
                                 >
                                     {showImage && (
                                         <div
                                             className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
-                                            style={aspectRatio === 'auto' ? {} : { width: '100%' }}
+                                            style={{
+                                                width: '100%',
+                                                // If not auto, aspect class handles it. If auto, we let img determine height or use minimal defaults.
+                                                borderRadius: `${imageRadius}px`
+                                                // Note: We might need margin if Image Radius + Card Padding interactions are complex, 
+                                                // but usually Image is edge-to-edge if padding is 0. 
+                                                // If padding > 0, the image is inside the padding? 
+                                                // Current Structure: Image is sibling to Content Div. 
+                                                // Usually if card has padding, the image should be inside? 
+                                                // The current structure is [Image] [Content].
+                                                // So 'cardContentPadding' should apply to Content Div only? 
+                                                // User asked for "card content padding". 
+                                                // If they want image to be edge-to-edge, content padding refers to the text area. 
+                                                // If they want whole card padding, that's different.
+                                                // Behaving as "Content Area Padding" is safer for "Card with Image" layouts.
+                                            }}
                                         >
                                             {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
                                             {product.images?.[0] ? (
@@ -274,7 +303,10 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                         </div>
                                     )}
 
-                                    <div className={`p-4 ${equalHeight ? 'flex flex-col flex-1' : ''}`}>
+                                    <div
+                                        className={`${equalHeight ? 'flex flex-col flex-1' : ''}`}
+                                        style={{ padding: `${cardContentPadding}px` }}
+                                    >
                                         {showTitle && (
                                             <h4 style={titleStyle} className="leading-tight mb-1 line-clamp-2">
                                                 {product.name}
@@ -301,13 +333,18 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                         )}
 
                                         {showAddToCart && (
-                                            <button
-                                                onClick={(e) => handleAddToCart(e, product)}
-                                                className="w-full mt-3 py-2 text-xs font-bold uppercase tracking-wide transition-opacity opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                                                style={addToCartStyle}
-                                            >
-                                                Add to Cart
-                                            </button>
+                                            <div className={`
+                                                mt-4 transition-all duration-300
+                                                ${addToCartBehavior === 'hover' ? 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0' : ''}
+                                            `}>
+                                                <button
+                                                    onClick={(e) => handleAddToCart(e, product)}
+                                                    className="uppercase tracking-wide flex items-center justify-center transition-colors text-xs font-bold"
+                                                    style={addToCartStyle}
+                                                >
+                                                    Add to Cart
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </Wrapper>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box, Columns, Type, Image as ImageIcon, Palette } from 'lucide-react';
-import { ColorInput } from '../Shared';
+import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box, Columns, Type, Image as ImageIcon, Palette, MousePointerClick, Spacing } from 'lucide-react';
+import { ColorInput, getResponsiveValue } from '../Shared';
 
 export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
     // Ensure products is an array to avoid crashes if undefined
@@ -332,17 +332,23 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                     </div>
                 </div>
 
-                {/* Gap Controls */}
+                {/* Gap Controls - Responsive */}
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Row Gap (px)</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                            Row Gap (px)
+                            <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                        </label>
                         <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                            value={settings.rowGap ?? 16} onChange={e => update('rowGap', parseInt(e.target.value))} />
+                            value={getVal('rowGap', 16)} onChange={e => updateStyle('rowGap', parseInt(e.target.value))} />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Col Gap (px)</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                            Col Gap (px)
+                            <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                        </label>
                         <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                            value={settings.columnGap ?? 16} onChange={e => update('columnGap', parseInt(e.target.value))} />
+                            value={getVal('columnGap', 16)} onChange={e => updateStyle('columnGap', parseInt(e.target.value))} />
                     </div>
                 </div>
 
@@ -375,6 +381,18 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                         </div>
                     ))}
                 </div>
+
+                {/* Add to Cart Behavior */}
+                {settings.showAddToCart !== false && (
+                    <div className="mt-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Add to Cart Visibility</label>
+                        <select className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
+                            value={settings.addToCartBehavior || 'always'} onChange={e => update('addToCartBehavior', e.target.value)}>
+                            <option value="always">Always Visible</option>
+                            <option value="hover">Show on Hover</option>
+                        </select>
+                    </div>
+                )}
             </section>
 
             <section className="space-y-4 pt-4 border-t border-slate-100">
@@ -403,6 +421,14 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                         ))}
                     </div>
                 </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                        Image Radius (px)
+                        <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                    </label>
+                    <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        value={getVal('imageBorderRadius', 0)} onChange={e => updateStyle('imageBorderRadius', parseInt(e.target.value))} />
+                </div>
             </section>
 
             <section className="space-y-4 pt-4 border-t border-slate-100">
@@ -413,20 +439,36 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 {/* Card Style */}
                 <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Card Style</label>
-                    <ColorInput label="Background" value={settings.cardBackgroundColor || 'transparent'} onChange={val => update('cardBackgroundColor', val)} />
+                    <ColorInput label="Background" value={getVal('cardBackgroundColor', 'transparent')} onChange={val => updateStyle('cardBackgroundColor', val)} />
+
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                            Content Padding (px)
+                            <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                        </label>
+                        <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            value={getVal('cardContentPadding', 16)} onChange={e => updateStyle('cardContentPadding', parseInt(e.target.value))} />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-2">
                         <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Radius (px)</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                Radius (px)
+                                <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                            </label>
                             <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                                value={settings.cardBorderRadius ?? 0} onChange={e => update('cardBorderRadius', parseInt(e.target.value))} />
+                                value={getVal('cardBorderRadius', 0)} onChange={e => updateStyle('cardBorderRadius', parseInt(e.target.value))} />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Border (px)</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                Border (px)
+                                <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                            </label>
                             <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                                value={settings.cardBorderWidth ?? 0} onChange={e => update('cardBorderWidth', parseInt(e.target.value))} />
+                                value={getVal('cardBorderWidth', 0)} onChange={e => updateStyle('cardBorderWidth', parseInt(e.target.value))} />
                         </div>
                     </div>
-                    <ColorInput label="Border Color" value={settings.cardBorderColor || '#e2e8f0'} onChange={val => update('cardBorderColor', val)} />
+                    <ColorInput label="Border Color" value={getVal('cardBorderColor', '#e2e8f0')} onChange={val => updateStyle('cardBorderColor', val)} />
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Shadow</label>
                         <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
@@ -445,9 +487,12 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                     <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Typography (Title)</label>
                     <div className="grid grid-cols-2 gap-2">
                         <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Size (px)</label>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                Size (px)
+                                <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                            </label>
                             <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                                value={settings.titleFontSize ?? 14} onChange={e => update('titleFontSize', parseInt(e.target.value))} />
+                                value={getVal('titleFontSize', 14)} onChange={e => updateStyle('titleFontSize', parseInt(e.target.value))} />
                         </div>
                         <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Weight</label>
@@ -460,19 +505,45 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                             </select>
                         </div>
                     </div>
-                    <ColorInput label="Title Color" value={settings.titleColor || '#1e293b'} onChange={val => update('titleColor', val)} />
+                    <ColorInput label="Title Color" value={getVal('titleColor', '#1e293b')} onChange={val => updateStyle('titleColor', val)} />
                 </div>
 
                 {/* Button Style */}
                 {(settings.showAddToCart !== false) && (
                     <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                         <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Button Style</label>
-                        <ColorInput label="Background" value={settings.buttonBgColor || '#4f46e5'} onChange={val => update('buttonBgColor', val)} />
-                        <ColorInput label="Text Color" value={settings.buttonTextColor || '#ffffff'} onChange={val => update('buttonTextColor', val)} />
+                        <ColorInput label="Background" value={getVal('buttonBgColor', '#4f46e5')} onChange={val => updateStyle('buttonBgColor', val)} />
+                        <ColorInput label="Text Color" value={getVal('buttonTextColor', '#ffffff')} onChange={val => updateStyle('buttonTextColor', val)} />
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                    Radius (px)
+                                    <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                                </label>
+                                <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                    value={getVal('buttonBorderRadius', 4)} onChange={e => updateStyle('buttonBorderRadius', parseInt(e.target.value))} />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                    Width
+                                    <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                                </label>
+                                <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                    value={getVal('buttonWidth', 'full')} onChange={e => updateStyle('buttonWidth', e.target.value)}>
+                                    <option value="full">Full Width</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div>
-                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Btn Radius (px)</label>
-                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
-                                value={settings.buttonBorderRadius ?? 4} onChange={e => update('buttonBorderRadius', parseInt(e.target.value))} />
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                Content Padding (px)
+                                <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                            </label>
+                            <input type="text" placeholder="e.g. 8px 16px" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={getVal('buttonPadding', '8px 16px') || ''} onChange={e => updateStyle('buttonPadding', e.target.value)} />
                         </div>
                     </div>
                 )}
