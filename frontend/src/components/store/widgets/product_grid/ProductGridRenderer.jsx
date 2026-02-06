@@ -3,7 +3,6 @@ import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
-import { calculateBestPrice } from '../../../../utils/discountUtils';
 
 // Helper: Convert name to slug (hyphens, lowercase)
 const slugify = (text) => {
@@ -15,7 +14,7 @@ const slugify = (text) => {
         .replace(/^-+|-+$/g, '');
 };
 
-export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Filter products logic
@@ -290,9 +289,6 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             const Wrapper = isEditor ? 'div' : Link;
                             const wrapperProps = isEditor ? {} : { to: linkPath };
 
-                            // Calculate Price ONCE per product
-                            const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
-
                             return (
                                 <Wrapper
                                     key={product.id}
@@ -354,15 +350,10 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
                                                 {showPrice && (
                                                     <div className="flex flex-wrap items-baseline gap-2">
-                                                        {/* Dynamic Price Display */}
-                                                        {(hasDiscount || (showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price))) && (
-                                                            <span className="text-xs text-slate-400 line-through decoration-slate-400 decoration-1">
-                                                                ${parseFloat(comparePrice || product.compare_price).toFixed(2)}
-                                                            </span>
+                                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
+                                                        {showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price) && (
+                                                            <span className="text-xs text-slate-400 line-through">${parseFloat(product.compare_price).toFixed(2)}</span>
                                                         )}
-                                                        <span className="text-sm font-bold text-slate-900">
-                                                            ${parseFloat(finalPrice).toFixed(2)}
-                                                        </span>
                                                     </div>
                                                 )}
                                                 {showRating && (
