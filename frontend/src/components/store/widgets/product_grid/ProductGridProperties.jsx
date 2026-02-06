@@ -18,10 +18,10 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
     // Helper to resolve responsive value
     const getVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
 
-    // Helper to update style based on viewMode
+    // Helper to update style based on viewMode (DESKTOP-FIRST Architecture)
     const updateStyle = (key, val) => {
-        if (viewMode === 'mobile') {
-            onUpdate({ ...settings, [key]: val });
+        if (viewMode === 'desktop') {
+            onUpdate({ ...settings, [key]: val }); // Desktop updates Base
         } else {
             const responsive = { ...settings.responsive } || {};
             if (!responsive[viewMode]) responsive[viewMode] = {};
@@ -126,7 +126,6 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
     };
 
     // Prepare lists for MultiSelect
-    const productOptions = (settings.products || []).map(p => ({ id: p.id, label: p.name })); // Wait, products prop is not passed consistently to properties?
     // Correction: In StoreBuilder -> PropertiesPanel, 'products' is passed.
     // In ProductGridProperties params, I need to verify if 'products' is received.
     // Looking at file content, params are: { settings, onUpdate, categories, viewMode }
@@ -147,10 +146,10 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
             onUpdate({
                 ...settings,
                 initialized: true,
-                // Mobile (Base)
-                rowGap: 36,
-                columnGap: 11,
-                sectionPadding: 12,
+                // DESKTOP (Base) Defaults
+                rowGap: 35,
+                columnGap: 14,
+                sectionPadding: 85,
                 itemsPerPage: 12,
                 // Image
                 aspectRatio: 'portrait',
@@ -159,14 +158,14 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 cardContentPadding: 14,
                 cardBorderRadius: 13,
 
-                // Desktop Overrides
+                // Mobile Overrides
                 responsive: {
                     ...settings.responsive,
-                    desktop: {
-                        ...(settings.responsive?.desktop || {}),
-                        rowGap: 35,
-                        columnGap: 14,
-                        sectionPadding: 85
+                    mobile: {
+                        ...(settings.responsive?.mobile || {}),
+                        rowGap: 36,
+                        columnGap: 11,
+                        sectionPadding: 12
                     }
                 }
             });
@@ -175,7 +174,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
 
     // Helper to check for overrides
     const hasOverride = (key) => {
-        if (viewMode === 'mobile') return false; // Mobile is base
+        if (viewMode === 'desktop') return false; // Desktop is base
         return settings.responsive?.[viewMode]?.[key] !== undefined;
     };
 
