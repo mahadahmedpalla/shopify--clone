@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useCart } from '../../../../context/CartContext';
 
 // Helper: Convert name to slug (hyphens, lowercase)
 const slugify = (text) => {
@@ -151,10 +152,71 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         return colsMap[columns] || 'grid-cols-4';
     };
 
+    // Helper to optimize Supabase images
     const getOptimizedUrl = (url, width) => {
         if (!url || !url.includes('supabase.co')) return url;
         const separator = url.includes('?') ? '&' : '?';
         return `${url}${separator}width=${width}&quality=80&format=webp`;
+    };
+
+    // -- Extended Properties --
+    const { addToCart } = useCart();
+
+    // Layout
+    const rowGap = settings.rowGap ?? 16;
+    const colGap = settings.columnGap ?? 16;
+    const equalHeight = settings.equalHeight || false;
+
+    // Content Toggles
+    const showImage = settings.showImage !== false;
+    const showTitle = settings.showTitle !== false;
+    const showPrice = settings.showPrice !== false; // Usually implies showing price block
+    const showComparePrice = settings.showComparePrice !== false;
+    const showRating = settings.showRating || false;
+    const showAddToCart = settings.showAddToCart !== false;
+
+    // Image Settings
+    const aspectRatio = settings.aspectRatio || 'auto';
+    const imageFit = settings.imageFit || 'cover';
+
+    // Styling
+    const cardStyle = {
+        backgroundColor: settings.cardBackgroundColor || 'transparent',
+        borderWidth: `${settings.cardBorderWidth ?? 0}px`,
+        borderColor: settings.cardBorderColor || '#e2e8f0',
+        borderRadius: `${settings.cardBorderRadius ?? 0}px`,
+        boxShadow: settings.cardShadow && settings.cardShadow !== 'none'
+            ? getShadowStyle(settings.cardShadow)
+            : 'none',
+        display: equalHeight ? 'flex' : 'block',
+        flexDirection: equalHeight ? 'column' : 'initial'
+    };
+
+    const titleStyle = {
+        fontSize: `${settings.titleFontSize ?? 14}px`,
+        fontWeight: getFontWeight(settings.titleFontWeight),
+        color: settings.titleColor || '#1e293b'
+    };
+
+    const addToCartStyle = {
+        backgroundColor: settings.buttonBgColor || '#4f46e5',
+        color: settings.buttonTextColor || '#ffffff',
+        borderRadius: `${settings.buttonBorderRadius ?? 4}px`
+    };
+
+    const handleAddToCart = (e, product) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isEditor) return;
+
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            images: product.images || [],
+            image: product.images?.[0],
+            store_id: store?.id
+        }, 1);
     };
 
     return (
@@ -171,7 +233,10 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                 </div>
             ) : (
                 <>
-                    <div className={`grid gap-6 ${getColsClass()}`}>
+                    <div
+                        className={`grid ${getColsClass()}`}
+                        style={{ gap: `${rowGap}px ${colGap}px` }}
+                    >
                         {finalProducts.map(product => {
                             const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
                             const Wrapper = isEditor ? 'div' : Link;
@@ -180,32 +245,70 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             return (
                                 <Wrapper
                                     key={product.id}
-                                    className="space-y-3 p-4 border border-transparent hover:border-slate-100 rounded-2xl hover:shadow-lg transition-all group cursor-pointer bg-white block"
+                                    className="group cursor-pointer transition-all overflow-hidden"
+                                    style={cardStyle}
                                     {...wrapperProps}
                                 >
-                                    <div className="aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden relative">
-                                        {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
-                                        {product.images?.[0] ? (
-                                            <img
-                                                src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
-                                                loading="lazy"
-                                                decoding="async"
-                                                width="500"
-                                                height="667" // Approximate 3:4 ratio
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                alt={product.name}
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                <Box className="h-8 w-8" />
+                                    {showImage && (
+                                        <div
+                                            className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
+                                            style={aspectRatio === 'auto' ? {} : { width: '100%' }}
+                                        >
+                                            {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
+                                            {product.images?.[0] ? (
+                                                <img
+                                                    src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    width="500"
+                                                    height={aspectRatio === 'auto' ? undefined : 667}
+                                                    className={`w-full h-full group-hover:scale-105 transition-transform duration-500`}
+                                                    style={{ objectFit: imageFit }}
+                                                    alt={product.name}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <Box className="h-8 w-8" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className={`p-4 ${equalHeight ? 'flex flex-col flex-1' : ''}`}>
+                                        {showTitle && (
+                                            <h4 style={titleStyle} className="leading-tight mb-1 line-clamp-2">
+                                                {product.name}
+                                            </h4>
+                                        )}
+
+                                        {(showPrice || showRating) && (
+                                            <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
+                                                {showPrice && (
+                                                    <div className="flex flex-wrap items-baseline gap-2">
+                                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
+                                                        {showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price) && (
+                                                            <span className="text-xs text-slate-400 line-through">${parseFloat(product.compare_price).toFixed(2)}</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {showRating && (
+                                                    <div className="flex items-center text-yellow-400 text-xs">
+                                                        <Star className="w-3 h-3 fill-current" />
+                                                        <span className="ml-1 text-slate-500 font-medium">4.5</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-sm text-slate-900 leading-tight mb-1 line-clamp-2">{product.name}</h4>
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
-                                        </div>
+
+                                        {showAddToCart && (
+                                            <button
+                                                onClick={(e) => handleAddToCart(e, product)}
+                                                className="w-full mt-3 py-2 text-xs font-bold uppercase tracking-wide transition-opacity opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                                                style={addToCartStyle}
+                                            >
+                                                Add to Cart
+                                            </button>
+                                        )}
                                     </div>
                                 </Wrapper>
                             );
@@ -238,4 +341,36 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             )}
         </div>
     );
+}
+
+// Helpers
+function getShadowStyle(size) {
+    switch (size) {
+        case 'sm': return '0 1px 2px 0 rgb(0 0 0 / 0.05)';
+        case 'md': return '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)';
+        case 'lg': return '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)';
+        case 'xl': return '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)';
+        default: return 'none';
+    }
+}
+
+function getFontWeight(weight) {
+    switch (weight) {
+        case 'font-normal': return 400;
+        case 'font-medium': return 500;
+        case 'font-semibold': return 600;
+        case 'font-bold': return 700;
+        default: return 500;
+    }
+}
+
+function getAspectClass(ratio) {
+    switch (ratio) {
+        case 'square': return 'aspect-square';
+        case 'portrait': return 'aspect-[4/5]';
+        case 'standard': return 'aspect-[3/4]';
+        case 'landscape': return 'aspect-video';
+        case 'auto':
+        default: return '';
+    }
 }

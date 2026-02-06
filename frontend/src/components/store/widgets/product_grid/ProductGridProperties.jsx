@@ -1,5 +1,6 @@
 import React from 'react';
-import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box } from 'lucide-react';
+import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box, Columns, Type, Image as ImageIcon, Palette } from 'lucide-react';
+import { ColorInput } from '../Shared';
 
 export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
     // Ensure products is an array to avoid crashes if undefined
@@ -307,7 +308,10 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
             </section>
 
             <section className="space-y-4 pt-4 border-t border-slate-100">
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Layout</h3>
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Columns className="w-3 h-3" /> Grid Layout
+                </h3>
+                {/* Columns Control */}
                 <div>
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">
                         Columns per row
@@ -327,6 +331,151 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                         ))}
                     </div>
                 </div>
+
+                {/* Gap Controls */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Row Gap (px)</label>
+                        <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                            value={settings.rowGap ?? 16} onChange={e => update('rowGap', parseInt(e.target.value))} />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Col Gap (px)</label>
+                        <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                            value={settings.columnGap ?? 16} onChange={e => update('columnGap', parseInt(e.target.value))} />
+                    </div>
+                </div>
+
+                {/* Equal Height Toggle */}
+                <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Equal Height Cards</label>
+                    <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        checked={settings.equalHeight || false} onChange={e => update('equalHeight', e.target.checked)} />
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <ListChecks className="w-3 h-3" /> Card Content
+                </h3>
+                <div className="space-y-2">
+                    {[
+                        { id: 'showImage', label: 'Show Image', default: true },
+                        { id: 'showTitle', label: 'Show Title', default: true },
+                        { id: 'showPrice', label: 'Show Price', default: true },
+                        { id: 'showComparePrice', label: 'Compare Price', default: true },
+                        { id: 'showRating', label: 'Show Rating', default: false },
+                        { id: 'showAddToCart', label: 'Add to Cart Button', default: true },
+                    ].map(item => (
+                        <div key={item.id} className="flex items-center justify-between">
+                            <label className="text-[10px] font-bold text-slate-600 uppercase">{item.label}</label>
+                            <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                checked={settings[item.id] !== undefined ? settings[item.id] : item.default}
+                                onChange={e => update(item.id, e.target.checked)} />
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <ImageIcon className="w-3 h-3" /> Image Settings
+                </h3>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Aspect Ratio</label>
+                    <select className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        value={settings.aspectRatio || 'auto'} onChange={e => update('aspectRatio', e.target.value)}>
+                        <option value="auto">Auto (Original)</option>
+                        <option value="square">1:1 Square</option>
+                        <option value="portrait">4:5 Portrait</option>
+                        <option value="standard">3:4 Standard</option>
+                        <option value="landscape">16:9 Landscape</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Image Fit</label>
+                    <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                        {['cover', 'contain'].map(fit => (
+                            <button key={fit} onClick={() => update('imageFit', fit)}
+                                className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${settings.imageFit === fit ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
+                                {fit}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Palette className="w-3 h-3" /> Styling
+                </h3>
+
+                {/* Card Style */}
+                <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Card Style</label>
+                    <ColorInput label="Background" value={settings.cardBackgroundColor || 'transparent'} onChange={val => update('cardBackgroundColor', val)} />
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Radius (px)</label>
+                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.cardBorderRadius ?? 0} onChange={e => update('cardBorderRadius', parseInt(e.target.value))} />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Border (px)</label>
+                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.cardBorderWidth ?? 0} onChange={e => update('cardBorderWidth', parseInt(e.target.value))} />
+                        </div>
+                    </div>
+                    <ColorInput label="Border Color" value={settings.cardBorderColor || '#e2e8f0'} onChange={val => update('cardBorderColor', val)} />
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Shadow</label>
+                        <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                            value={settings.cardShadow || 'none'} onChange={e => update('cardShadow', e.target.value)}>
+                            <option value="none">None</option>
+                            <option value="sm">Small</option>
+                            <option value="md">Medium</option>
+                            <option value="lg">Large</option>
+                            <option value="xl">Extra Large</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Typography */}
+                <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Typography (Title)</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Size (px)</label>
+                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.titleFontSize ?? 14} onChange={e => update('titleFontSize', parseInt(e.target.value))} />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Weight</label>
+                            <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.titleFontWeight || 'font-medium'} onChange={e => update('titleFontWeight', e.target.value)}>
+                                <option value="font-normal">Normal</option>
+                                <option value="font-medium">Medium</option>
+                                <option value="font-semibold">Semibold</option>
+                                <option value="font-bold">Bold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <ColorInput label="Title Color" value={settings.titleColor || '#1e293b'} onChange={val => update('titleColor', val)} />
+                </div>
+
+                {/* Button Style */}
+                {(settings.showAddToCart !== false) && (
+                    <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Button Style</label>
+                        <ColorInput label="Background" value={settings.buttonBgColor || '#4f46e5'} onChange={val => update('buttonBgColor', val)} />
+                        <ColorInput label="Text Color" value={settings.buttonTextColor || '#ffffff'} onChange={val => update('buttonTextColor', val)} />
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Btn Radius (px)</label>
+                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.buttonBorderRadius ?? 4} onChange={e => update('buttonBorderRadius', parseInt(e.target.value))} />
+                        </div>
+                    </div>
+                )}
             </section>
         </div>
     );
