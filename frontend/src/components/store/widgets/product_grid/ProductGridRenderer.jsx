@@ -290,6 +290,9 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             const Wrapper = isEditor ? 'div' : Link;
                             const wrapperProps = isEditor ? {} : { to: linkPath };
 
+                            // Calculate Price ONCE per product
+                            const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
+
                             return (
                                 <Wrapper
                                     key={product.id}
@@ -297,55 +300,45 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                     style={cardStyle}
                                     {...wrapperProps}
                                 >
-                                    {/* Price Calculation (Inside Loop) */}
-                                    {(() => {
-                                        const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
-
-                                        return (
-                                            <>
-                                                {showImage && (
-                                                    <div
-                                                        className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
-                                                        style={{
-                                                            width: '100%',
-                                                            // If not auto, aspect class handles it. If auto, we let img determine height or use minimal defaults.
-                                                            borderRadius: `${imageRadius}px`
-                                                            // Note: We might need margin if Image Radius + Card Padding interactions are complex, 
-                                                            // but usually Image is edge-to-edge if padding is 0. 
-                                                            // If padding > 0, the image is inside the padding? 
-                                                            // Current Structure: Image is sibling to Content Div. 
-                                                            // Usually if card has padding, the image should be inside? 
-                                                            // The current structure is [Image] [Content].
-                                                            // So 'cardContentPadding' should apply to Content Div only? 
-                                                            // User asked for "card content padding". 
-                                                            // If they want image to be edge-to-edge, content padding refers to the text area. 
-                                                            // If they want whole card padding, that's different.
-                                                            // Behaving as "Content Area Padding" is safer for "Card with Image" layouts.
-                                                        }}
-                                                    >
-                                                        {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
-                                                        {product.images?.[0] ? (
-                                                            <img
-                                                                src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
-                                                                loading="lazy"
-                                                                decoding="async"
-                                                                width="500"
-                                                                height={aspectRatio === 'auto' ? undefined : 667}
-                                                                className={`w-full h-full group-hover:scale-105 transition-transform duration-500`}
-                                                                style={{ objectFit: imageFit }}
-                                                                alt={product.name}
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                                <Box className="h-8 w-8" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                            </>
-                                        );
-                                    })()}
+                                    {showImage && (
+                                        <div
+                                            className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
+                                            style={{
+                                                width: '100%',
+                                                // If not auto, aspect class handles it. If auto, we let img determine height or use minimal defaults.
+                                                borderRadius: `${imageRadius}px`
+                                                // Note: We might need margin if Image Radius + Card Padding interactions are complex, 
+                                                // but usually Image is edge-to-edge if padding is 0. 
+                                                // If padding > 0, the image is inside the padding? 
+                                                // Current Structure: Image is sibling to Content Div. 
+                                                // Usually if card has padding, the image should be inside? 
+                                                // The current structure is [Image] [Content].
+                                                // So 'cardContentPadding' should apply to Content Div only? 
+                                                // User asked for "card content padding". 
+                                                // If they want image to be edge-to-edge, content padding refers to the text area. 
+                                                // If they want whole card padding, that's different.
+                                                // Behaving as "Content Area Padding" is safer for "Card with Image" layouts.
+                                            }}
+                                        >
+                                            {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
+                                            {product.images?.[0] ? (
+                                                <img
+                                                    src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    width="500"
+                                                    height={aspectRatio === 'auto' ? undefined : 667}
+                                                    className={`w-full h-full group-hover:scale-105 transition-transform duration-500`}
+                                                    style={{ objectFit: imageFit }}
+                                                    alt={product.name}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <Box className="h-8 w-8" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div
                                         className={`${equalHeight ? 'flex flex-col flex-1' : ''}`}
