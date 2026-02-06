@@ -166,8 +166,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const { addToCart } = useCart();
 
     // Layout
-    const rowGap = getVal('rowGap', 16);
-    const colGap = getVal('columnGap', 16);
+    const rowGap = getVal('rowGap', 36);
+    const colGap = getVal('columnGap', 11);
     const equalHeight = settings.equalHeight || false;
 
     // Content Toggles
@@ -180,13 +180,13 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const addToCartBehavior = settings.addToCartBehavior || 'always'; // 'always' | 'hover'
 
     // Image Settings
-    const aspectRatio = settings.aspectRatio || 'auto';
+    const aspectRatio = settings.aspectRatio || 'portrait';
     const imageFit = settings.imageFit || 'cover';
     const imageRadius = getVal('imageBorderRadius', 0);
 
     // Styling
-    const cardContentPadding = getVal('cardContentPadding', 16);
-    const sectionPadding = getVal('sectionPadding', 48);
+    const cardContentPadding = getVal('cardContentPadding', 14);
+    const sectionPadding = getVal('sectionPadding', 12);
     const cardWrapperPadding = getVal('cardWrapperPadding', 0);
 
     // Construct styles using responsive values

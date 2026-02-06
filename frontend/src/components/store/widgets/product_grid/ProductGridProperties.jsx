@@ -141,6 +141,50 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
     // I will use replace logic to rewrite the COMPONENT SIGNATURE and the content to include 'products'.
 
 
+    // Data Seeding for Defaults
+    React.useEffect(() => {
+        if (!settings.rowGap && !settings.initialized) {
+            onUpdate({
+                ...settings,
+                initialized: true,
+                // Mobile (Base)
+                rowGap: 36,
+                columnGap: 11,
+                sectionPadding: 12,
+                itemsPerPage: 12,
+                // Image
+                aspectRatio: 'portrait',
+                imageBorderRadius: 0,
+                // Card
+                cardContentPadding: 14,
+                cardBorderRadius: 13,
+
+                // Desktop Overrides
+                responsive: {
+                    ...settings.responsive,
+                    desktop: {
+                        ...(settings.responsive?.desktop || {}),
+                        rowGap: 35,
+                        columnGap: 14,
+                        sectionPadding: 85
+                    }
+                }
+            });
+        }
+    }, []);
+
+    // Helper to check for overrides
+    const hasOverride = (key) => {
+        if (viewMode === 'mobile') return false; // Mobile is base
+        return settings.responsive?.[viewMode]?.[key] !== undefined;
+    };
+
+    const OverrideBadge = () => (
+        <span className="ml-1 px-1 py-0.5 bg-amber-100 text-amber-700 text-[8px] font-bold rounded uppercase tracking-wider">
+            Modified
+        </span>
+    );
+
     return (
         <div className="space-y-6 pb-20">
             <section className="space-y-4">
@@ -351,7 +395,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
-                            Row Gap (px)
+                            <span>Row Gap (px) {hasOverride('rowGap') && <OverrideBadge />}</span>
                             <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
                         </label>
                         <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
@@ -359,7 +403,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                     </div>
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
-                            Col Gap (px)
+                            <span>Col Gap (px) {hasOverride('columnGap') && <OverrideBadge />}</span>
                             <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
                         </label>
                         <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
@@ -370,7 +414,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                 {/* Section Padding */}
                 <div className="mt-3">
                     <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
-                        Section Padding (px)
+                        <span>Section Padding (px) {hasOverride('sectionPadding') && <OverrideBadge />}</span>
                         <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
                     </label>
                     <input type="number" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
@@ -468,7 +512,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
 
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
-                            Content Padding (px)
+                            <span>Content Padding (px) {hasOverride('cardContentPadding') && <OverrideBadge />}</span>
                             <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
                         </label>
                         <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
@@ -477,7 +521,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
 
                     <div>
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
-                            Card Wrapper Padding (px)
+                            <span>Card Wrapper Padding (px) {hasOverride('cardWrapperPadding') && <OverrideBadge />}</span>
                             <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
                         </label>
                         <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
@@ -487,7 +531,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                     <div className="grid grid-cols-2 gap-2">
                         <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
-                                Radius (px)
+                                <span>Radius (px) {hasOverride('cardBorderRadius') && <OverrideBadge />}</span>
                                 <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
                             </label>
                             <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
