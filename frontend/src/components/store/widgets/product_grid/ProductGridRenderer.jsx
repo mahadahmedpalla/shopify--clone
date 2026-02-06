@@ -15,7 +15,7 @@ const slugify = (text) => {
         .replace(/^-+|-+$/g, '');
 };
 
-export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts }) {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Filter products logic
