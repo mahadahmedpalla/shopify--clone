@@ -214,7 +214,10 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                                 ) : (
                                     <MultiSelect
                                         label="Categories to Exclude"
-                                        options={categories.map(c => ({ id: c.id, label: c.name }))}
+                                        options={getFlattenedOptions(categories).map(c => ({
+                                            id: c.id,
+                                            label: `${'\u00A0'.repeat(c.depth * 4)}${c.depth > 0 ? '↳ ' : ''}${c.name}`
+                                        }))}
                                         values={settings.excludedCategoryIds || []}
                                         onChange={vals => update('excludedCategoryIds', vals)}
                                         placeholder="Select categories to exclude..."
