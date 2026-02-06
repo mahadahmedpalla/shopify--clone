@@ -11,6 +11,22 @@ export function ProductGridProperties({ settings, onUpdate, categories, viewMode
         onUpdate({ ...settings, columns });
     };
 
+    // Helper to render flattened categories with indentation
+    const getFlattenedOptions = (items, parentId = null, depth = 0) => {
+        let options = [];
+        items
+            .filter(item => {
+                const itemParentId = item.parent_id || null;
+                const targetParentId = parentId || null;
+                return itemParentId == targetParentId;
+            })
+            .forEach(item => {
+                options.push({ ...item, depth });
+                options = [...options, ...getFlattenedOptions(items, item.id, depth + 1)];
+            });
+        return options;
+    };
+
     return (
         <div className="space-y-6 pb-20">
             <section className="space-y-4">
@@ -27,8 +43,10 @@ export function ProductGridProperties({ settings, onUpdate, categories, viewMode
                         onChange={e => update('categoryId', e.target.value)}
                     >
                         <option value="all">All Products</option>
-                        {categories.map(c => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
+                        {getFlattenedOptions(categories).map(c => (
+                            <option key={c.id} value={c.id}>
+                                {'\u00A0'.repeat(c.depth * 4)} {c.depth > 0 ? '↳ ' : ''} {c.name}
+                            </option>
                         ))}
                     </select>
                 </div>
