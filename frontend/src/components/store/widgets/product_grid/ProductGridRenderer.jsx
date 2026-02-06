@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
+import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
+import { calculateBestPrice } from '../../../../utils/discountUtils';
 
 // Helper: Convert name to slug (hyphens, lowercase)
 const slugify = (text) => {
@@ -296,45 +298,55 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                     style={cardStyle}
                                     {...wrapperProps}
                                 >
-                                    {showImage && (
-                                        <div
-                                            className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
-                                            style={{
-                                                width: '100%',
-                                                // If not auto, aspect class handles it. If auto, we let img determine height or use minimal defaults.
-                                                borderRadius: `${imageRadius}px`
-                                                // Note: We might need margin if Image Radius + Card Padding interactions are complex, 
-                                                // but usually Image is edge-to-edge if padding is 0. 
-                                                // If padding > 0, the image is inside the padding? 
-                                                // Current Structure: Image is sibling to Content Div. 
-                                                // Usually if card has padding, the image should be inside? 
-                                                // The current structure is [Image] [Content].
-                                                // So 'cardContentPadding' should apply to Content Div only? 
-                                                // User asked for "card content padding". 
-                                                // If they want image to be edge-to-edge, content padding refers to the text area. 
-                                                // If they want whole card padding, that's different.
-                                                // Behaving as "Content Area Padding" is safer for "Card with Image" layouts.
-                                            }}
-                                        >
-                                            {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
-                                            {product.images?.[0] ? (
-                                                <img
-                                                    src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
-                                                    loading="lazy"
-                                                    decoding="async"
-                                                    width="500"
-                                                    height={aspectRatio === 'auto' ? undefined : 667}
-                                                    className={`w-full h-full group-hover:scale-105 transition-transform duration-500`}
-                                                    style={{ objectFit: imageFit }}
-                                                    alt={product.name}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                    <Box className="h-8 w-8" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                    {/* Price Calculation (Inside Loop) */}
+                                    {(() => {
+                                        const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
+
+                                        return (
+                                            <>
+                                                {showImage && (
+                                                    <div
+                                                        className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
+                                                        style={{
+                                                            width: '100%',
+                                                            // If not auto, aspect class handles it. If auto, we let img determine height or use minimal defaults.
+                                                            borderRadius: `${imageRadius}px`
+                                                            // Note: We might need margin if Image Radius + Card Padding interactions are complex, 
+                                                            // but usually Image is edge-to-edge if padding is 0. 
+                                                            // If padding > 0, the image is inside the padding? 
+                                                            // Current Structure: Image is sibling to Content Div. 
+                                                            // Usually if card has padding, the image should be inside? 
+                                                            // The current structure is [Image] [Content].
+                                                            // So 'cardContentPadding' should apply to Content Div only? 
+                                                            // User asked for "card content padding". 
+                                                            // If they want image to be edge-to-edge, content padding refers to the text area. 
+                                                            // If they want whole card padding, that's different.
+                                                            // Behaving as "Content Area Padding" is safer for "Card with Image" layouts.
+                                                        }}
+                                                    >
+                                                        {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
+                                                        {product.images?.[0] ? (
+                                                            <img
+                                                                src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
+                                                                loading="lazy"
+                                                                decoding="async"
+                                                                width="500"
+                                                                height={aspectRatio === 'auto' ? undefined : 667}
+                                                                className={`w-full h-full group-hover:scale-105 transition-transform duration-500`}
+                                                                style={{ objectFit: imageFit }}
+                                                                alt={product.name}
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                                <Box className="h-8 w-8" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                            </>
+                                        );
+                                    })()}
 
                                     <div
                                         className={`${equalHeight ? 'flex flex-col flex-1' : ''}`}
@@ -350,10 +362,15 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
                                                 {showPrice && (
                                                     <div className="flex flex-wrap items-baseline gap-2">
-                                                        {showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price) && (
-                                                            <span className="text-xs text-slate-400 line-through decoration-slate-400 decoration-1">${parseFloat(product.compare_price).toFixed(2)}</span>
+                                                        {/* Dynamic Price Display */}
+                                                        {(hasDiscount || (showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price))) && (
+                                                            <span className="text-xs text-slate-400 line-through decoration-slate-400 decoration-1">
+                                                                ${parseFloat(comparePrice || product.compare_price).toFixed(2)}
+                                                            </span>
                                                         )}
-                                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
+                                                        <span className="text-sm font-bold text-slate-900">
+                                                            ${parseFloat(finalPrice).toFixed(2)}
+                                                        </span>
                                                     </div>
                                                 )}
                                                 {showRating && (
