@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
-import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
 import { calculateBestPrice } from '../../../../utils/discountUtils';
 
