@@ -20,6 +20,7 @@ export function PublicStorefront() {
     const [page, setPage] = useState(null);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [discounts, setDiscounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -61,7 +62,7 @@ export function PublicStorefront() {
             setStore(storeData);
 
             // 2. Parallel Fetch: Dependent Data
-            const [cartPageResult, pageResult, productsResult, categoriesResult] = await Promise.all([
+            const [cartPageResult, pageResult, productsResult, categoriesResult, discountsResult] = await Promise.all([
                 // Cart Settings
                 supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'cart').single(),
 
@@ -72,7 +73,10 @@ export function PublicStorefront() {
                 supabase.from('products').select('*').eq('store_id', storeData.id).eq('is_active', true),
 
                 // Categories (for shared renderer)
-                supabase.from('product_categories').select('*').eq('store_id', storeData.id)
+                supabase.from('product_categories').select('*').eq('store_id', storeData.id),
+
+                // Active Discounts
+                supabase.from('discounts').select('*').eq('store_id', storeData.id).eq('is_active', true).lte('starts_at', new Date().toISOString())
             ]);
 
             // Process Cart
@@ -90,6 +94,9 @@ export function PublicStorefront() {
 
             // Process Categories
             setCategories(categoriesResult.data || []);
+
+            // Process Discounts
+            if (discountsResult.data) setDiscounts(discountsResult.data);
 
         } catch (err) {
             console.error("Storefront Error:", err);
@@ -117,6 +124,7 @@ export function PublicStorefront() {
                         products={products}
                         categories={categories}
                         categoryPath={categoryPath}
+                        storeDiscounts={discounts}
                     />
                 ))}
             </CartProvider>

@@ -3,6 +3,7 @@ import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
+import { calculateBestPrice } from '../../../../utils/discountUtils';
 
 // Helper: Convert name to slug (hyphens, lowercase)
 const slugify = (text) => {
@@ -348,14 +349,21 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
 
                                         {(showPrice || showRating) && (
                                             <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
-                                                {showPrice && (
-                                                    <div className="flex flex-wrap items-baseline gap-2">
-                                                        <span className="text-sm font-bold text-slate-900">${parseFloat(product.price).toFixed(2)}</span>
-                                                        {showComparePrice && product.compare_price && parseFloat(product.compare_price) > parseFloat(product.price) && (
-                                                            <span className="text-xs text-slate-400 line-through">${parseFloat(product.compare_price).toFixed(2)}</span>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                {showPrice && (() => {
+                                                    // Calculate Best Price (Discount Logic)
+                                                    const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
+
+                                                    return (
+                                                        <div className="flex flex-wrap items-baseline gap-2">
+                                                            <span className="text-sm font-bold text-slate-900">${parseFloat(finalPrice).toFixed(2)}</span>
+                                                            {showComparePrice && (hasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(finalPrice))) && (
+                                                                <span className="text-xs text-slate-400 line-through">
+                                                                    ${parseFloat(hasDiscount ? comparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
                                                 {showRating && (
                                                     <div className="flex items-center text-yellow-400 text-xs">
                                                         <Star className="w-3 h-3 fill-current" />
