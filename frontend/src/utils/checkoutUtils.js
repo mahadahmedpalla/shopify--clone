@@ -185,7 +185,7 @@ export const createOrder = async (orderData) => {
         total: orderData.totals.total,
 
         payment_method: orderData.paymentMethod || 'manual',
-        status: 'in-progress'
+        status: 'pending'
     };
 
     // Remove .select() to avoid RLS violation for guest users (public role can insert but not select)

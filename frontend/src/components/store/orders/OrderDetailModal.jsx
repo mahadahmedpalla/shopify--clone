@@ -31,7 +31,7 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
         if (order) setCurrentStatus(order.status);
     }, [order]);
 
-    const ALLOWED_STATUSES = ['completed', 'shipped', 'dispatched', 'in-progress', 'cancelled', 'refunded'];
+    const ALLOWED_STATUSES = ['pending', 'payment-pending', 'in-progress', 'shipped', 'dispatched', 'completed', 'cancelled', 'refunded'];
 
     const updateStatus = async (newStatus) => {
         if (!order) return;
@@ -67,7 +67,8 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
             case 'completed': return 'bg-green-100 text-green-800 border-green-200';
             case 'paid': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
             case 'in-progress': return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+            case 'pending': return 'bg-slate-100 text-slate-800 border-slate-200'; // Grey
+            case 'payment-pending': return 'bg-amber-100 text-amber-800 border-amber-200'; // Amber
             case 'shipped': return 'bg-purple-100 text-purple-800 border-purple-200';
             case 'dispatched': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
             case 'refunded': return 'bg-orange-100 text-orange-800 border-orange-200';

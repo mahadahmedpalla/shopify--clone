@@ -54,7 +54,8 @@ export function OrdersPage() {
             case 'completed': return 'bg-green-100 text-green-800';
             case 'paid': return 'bg-emerald-100 text-emerald-800'; // Keep for legacy
             case 'in-progress': return 'bg-blue-100 text-blue-800';
-            case 'pending': return 'bg-yellow-100 text-yellow-800'; // Keep for legacy
+            case 'pending': return 'bg-slate-100 text-slate-800'; // Grey for Pending
+            case 'payment-pending': return 'bg-amber-100 text-amber-800'; // Amber for Payment Pending
             case 'shipped': return 'bg-purple-100 text-purple-800';
             case 'dispatched': return 'bg-indigo-100 text-indigo-800';
             case 'refunded': return 'bg-orange-100 text-orange-800';
@@ -69,6 +70,7 @@ export function OrdersPage() {
             case 'paid': return <CheckCircle className="h-4 w-4 mr-1" />;
             case 'in-progress': return <Clock className="h-4 w-4 mr-1" />;
             case 'pending': return <Clock className="h-4 w-4 mr-1" />;
+            case 'payment-pending': return <AlertCircle className="h-4 w-4 mr-1" />;
             case 'shipped': return <Truck className="h-4 w-4 mr-1" />;
             case 'dispatched': return <Truck className="h-4 w-4 mr-1" />;
             case 'refunded': return <AlertCircle className="h-4 w-4 mr-1" />;
