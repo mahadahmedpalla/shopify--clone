@@ -213,7 +213,9 @@ export function CartDrawer({ settings }) {
                                             <span className="w-8 text-center text-xs font-bold">{item.quantity}</span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.variantId, item.quantity + 1)}
-                                                className="p-1.5 hover:bg-slate-50 text-slate-500"
+                                                disabled={item.maxStock !== undefined && item.quantity >= item.maxStock}
+                                                className={`p-1.5 hover:bg-slate-50 text-slate-500 transition-colors ${(item.maxStock !== undefined && item.quantity >= item.maxStock) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                                title={(item.maxStock !== undefined && item.quantity >= item.maxStock) ? 'Max stock reached' : ''}
                                             >
                                                 <Plus className="h-3 w-3" />
                                             </button>

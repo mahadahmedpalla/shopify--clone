@@ -114,6 +114,11 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                         }
                     }
 
+                    // Determine Max Stock
+                    const baseStock = (item.variantId && variants)
+                        ? (variants.find(v => v.id === item.variantId)?.quantity || 0)
+                        : (product.quantity || 0);
+
                     // Calculate Best Price with Discounts
                     const calcProduct = {
                         ...product,
@@ -132,7 +137,9 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                         compareAtPrice: comparePrice,
                         compare_at_price: comparePrice,
                         name: newName,
-                        image: newImage
+                        name: newName,
+                        image: newImage,
+                        maxStock: baseStock // Ensure maxStock is updated
                     };
                 }).filter(Boolean);
             });
@@ -157,13 +164,28 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                 item.variantId === product.variantId
             );
 
+
+
             if (existing) {
-                return prev.map(item =>
-                    (item.id === product.id && item.variantId === product.variantId)
-                        ? { ...item, quantity: item.quantity + quantity }
-                        : item
-                );
+                return prev.map(item => {
+                    if (item.id === product.id && item.variantId === product.variantId) {
+                        const newQuantity = item.quantity + quantity;
+                        // Check Stock Limit
+                        if (item.maxStock !== undefined && newQuantity > item.maxStock) {
+                            return { ...item, quantity: Math.min(newQuantity, item.maxStock) };
+                        }
+                        return { ...item, quantity: newQuantity };
+                    }
+                    return item;
+                });
             }
+
+
+            // New Item Check
+            if (product.maxStock !== undefined && quantity > product.maxStock) {
+                return [...prev, { ...product, quantity: product.maxStock }];
+            }
+
             return [...prev, { ...product, quantity }];
         });
         setIsOpen(true); // Auto-open drawer
@@ -175,7 +197,16 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
 
     const updateQuantity = (id, variantId, quantity) => {
         if (quantity < 1) return;
-        setCart(prev => prev.map(item => (item.id === id && item.variantId === variantId) ? { ...item, quantity } : item));
+        setCart(prev => prev.map(item => {
+            if (item.id === id && item.variantId === variantId) {
+                // Check limit
+                if (item.maxStock !== undefined && quantity > item.maxStock) {
+                    return item; // Do nothing if exceeds
+                }
+                return { ...item, quantity };
+            }
+            return item;
+        }));
     }
 
     const clearCart = () => {

@@ -376,7 +376,8 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                             images: foundVariant?.image_urls?.length > 0 ? foundVariant.image_urls : (displayProduct.image_urls || []),
                                             image: foundVariant?.image_urls?.[0] || displayProduct.image_urls?.[0], // Main display image
                                             store_id: displayProduct.store_id, // Ensure store ID is present
-                                            compareAtPrice: comparePrice || null // Add compareAtPrice for strike-through display
+                                            compareAtPrice: comparePrice || null, // Add compareAtPrice for strike-through display
+                                            maxStock: currentQty // Pass available stock limit
                                         };
 
                                         addToCart(cartItem, qty);
