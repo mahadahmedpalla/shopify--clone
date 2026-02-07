@@ -274,8 +274,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             id: product.id,
             name: product.name,
             price: product.price,
-            images: product.images || [],
-            image: product.images?.[0],
+            images: product.images || product.image_urls || [],
+            image: product.images?.[0] || product.image_urls?.[0],
             store_id: store?.id
         }, 1);
     };
@@ -302,6 +302,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
                             const Wrapper = isEditor ? 'div' : Link;
                             const wrapperProps = isEditor ? {} : { to: linkPath };
+
+                            const productImages = product.image_urls || product.images || [];
 
                             return (
                                 <Wrapper
@@ -331,9 +333,9 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             }}
                                         >
                                             {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
-                                            {product.images?.[0] ? (
+                                            {productImages?.[0] ? (
                                                 <img
-                                                    src={getOptimizedUrl(product.images[0], 500)} // Request smaller 500px width
+                                                    src={getOptimizedUrl(productImages[0], 500)} // Request smaller 500px width
                                                     loading="lazy"
                                                     decoding="async"
                                                     width="500"
