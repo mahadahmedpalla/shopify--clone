@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box, Columns, Type, Image as ImageIcon, Palette, MousePointerClick, Spacing, LayoutTemplate, Paintbrush } from 'lucide-react';
+import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box, Columns, Type, Image as ImageIcon, Palette, MousePointerClick, MoveHorizontal, LayoutTemplate, Paintbrush } from 'lucide-react';
 import { ColorInput, getResponsiveValue, ViewModeBtn } from '../Shared';
 
 export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
@@ -444,7 +444,7 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
 
                         <section className="space-y-4 pt-4 border-t border-slate-100">
                             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <Spacing className="w-3 h-3" /> Spacing & Gap
+                                <MoveHorizontal className="w-3 h-3" /> Spacing & Gap
                             </h3>
                             {/* Gap Controls - Responsive */}
                             <div className="grid grid-cols-2 gap-3">
