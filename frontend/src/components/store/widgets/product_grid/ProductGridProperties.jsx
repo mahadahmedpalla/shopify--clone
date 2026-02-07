@@ -645,6 +645,64 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                     </div>
                 )}
             </section>
+
+            <section className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Type className="w-3 h-3" /> Price Typography
+                </h3>
+
+                {/* Main Price */}
+                <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Main Price</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                Size (px)
+                                <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                            </label>
+                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={getVal('priceFontSize', 14)} onChange={e => updateStyle('priceFontSize', parseInt(e.target.value))} />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Weight</label>
+                            <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.priceFontWeight || 'font-bold'} onChange={e => update('priceFontWeight', e.target.value)}>
+                                <option value="font-normal">Normal</option>
+                                <option value="font-medium">Medium</option>
+                                <option value="font-semibold">Semibold</option>
+                                <option value="font-bold">Bold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <ColorInput label="Color" value={getVal('priceColor', '#0f172a')} onChange={val => updateStyle('priceColor', val)} />
+                </div>
+
+                {/* Compare Price */}
+                <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-1 mb-2">Compare Price</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                Size (px)
+                                <span className="text-[8px] text-slate-300 font-normal uppercase">{viewMode}</span>
+                            </label>
+                            <input type="number" className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={getVal('comparePriceFontSize', 12)} onChange={e => updateStyle('comparePriceFontSize', parseInt(e.target.value))} />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Weight</label>
+                            <select className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs"
+                                value={settings.comparePriceFontWeight || 'font-normal'} onChange={e => update('comparePriceFontWeight', e.target.value)}>
+                                <option value="font-normal">Normal</option>
+                                <option value="font-medium">Medium</option>
+                                <option value="font-semibold">Semibold</option>
+                                <option value="font-bold">Bold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <ColorInput label="Color" value={getVal('comparePriceColor', '#94a3b8')} onChange={val => updateStyle('comparePriceColor', val)} />
+                </div>
+            </section>
         </div>
     );
 }

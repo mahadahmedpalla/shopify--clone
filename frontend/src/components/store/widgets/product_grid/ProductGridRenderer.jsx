@@ -243,6 +243,19 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const buttonFontClass = getFontClass(buttonFontKey);
     const buttonFontStyle = getFontFamily(buttonFontKey);
 
+    // Price Styling
+    const priceStyle = {
+        fontSize: `${getVal('priceFontSize', 14)}px`,
+        fontWeight: getFontWeight(settings.priceFontWeight || 'font-bold'),
+        color: getVal('priceColor', '#0f172a')
+    };
+
+    const comparePriceStyle = {
+        fontSize: `${getVal('comparePriceFontSize', 12)}px`,
+        fontWeight: getFontWeight(settings.comparePriceFontWeight || 'font-normal'),
+        color: getVal('comparePriceColor', '#94a3b8')
+    };
+
     const addToCartStyle = {
         backgroundColor: getVal('buttonBgColor', '#4f46e5'),
         color: getVal('buttonTextColor', '#ffffff'),
@@ -355,9 +368,9 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
 
                                                     return (
                                                         <div className="flex flex-wrap items-baseline gap-2">
-                                                            <span className="text-sm font-bold text-slate-900">${parseFloat(finalPrice).toFixed(2)}</span>
+                                                            <span style={priceStyle}>${parseFloat(finalPrice).toFixed(2)}</span>
                                                             {showComparePrice && (hasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(finalPrice))) && (
-                                                                <span className="text-xs text-slate-400 line-through">
+                                                                <span style={comparePriceStyle} className="line-through">
                                                                     ${parseFloat(hasDiscount ? comparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
                                                                 </span>
                                                             )}

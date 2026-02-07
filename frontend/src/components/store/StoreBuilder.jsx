@@ -203,6 +203,7 @@ export function StoreBuilder() {
     const [store, setStore] = useState(null);
     const [customWidgets, setCustomWidgets] = useState([]);
     const [cartSettings, setCartSettings] = useState(null);
+    const [discounts, setDiscounts] = useState([]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -254,6 +255,10 @@ export function StoreBuilder() {
         // Fetch Custom Widgets
         const { data: customs } = await supabase.from('custom_widgets').select('*').eq('store_id', storeId);
         if (customs) setCustomWidgets(customs);
+
+        // Fetch Active Discounts (for preview)
+        const { data: activeDiscounts } = await supabase.from('discounts').select('*').eq('store_id', storeId).eq('is_active', true).lte('starts_at', new Date().toISOString());
+        setDiscounts(activeDiscounts || []);
     };
 
     const fetchPage = async () => {
@@ -595,6 +600,7 @@ export function StoreBuilder() {
                                                         store={store}
                                                         products={products}
                                                         categories={categories}
+                                                        storeDiscounts={discounts}
                                                         onDelete={
                                                             /* Lock Cart, Checkout & Shop Product Grid Widgets */
                                                             ((page?.slug === 'cart' && block.type === 'cart_list') ||
