@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { Box, ChevronLeft, ChevronRight, Star, Filter, ChevronDown, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
@@ -17,6 +17,8 @@ const slugify = (text) => {
 
 export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts }) {
     const [currentPage, setCurrentPage] = useState(1);
+    const [viewerSort, setViewerSort] = useState(null);
+    const [viewerCategory, setViewerCategory] = useState('all');
 
     // Filter products logic
     let displayProducts = products || [];
@@ -116,6 +118,43 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         }
     });
 
+
+
+    // --- VIEWER INTERACTION LOGIC (FILTERS) ---
+    // 1. Available Categories (Based on Merchant Rules)
+    // We derive these from 'displayProducts' BEFORE viewer filters are applied,
+    // so the filter options reflect what is actually in the merchant's grid.
+    const merchantFilteredProducts = [...displayProducts]; // Snapshot of merchant-approved products
+
+    const availableCategories = React.useMemo(() => {
+        if (!categories) return [];
+        const catIds = new Set(merchantFilteredProducts.map(p => p.category_id).filter(Boolean));
+        return categories.filter(c => catIds.has(c.id));
+    }, [merchantFilteredProducts, categories]);
+
+    // 2. Apply Viewer Category Filter
+    if (viewerCategory !== 'all') {
+        displayProducts = displayProducts.filter(p => p.category_id === viewerCategory);
+    }
+
+    // 3. Apply Viewer Sort (Overrides Merchant Sort if set)
+    if (viewerSort) {
+        displayProducts.sort((a, b) => {
+            switch (viewerSort) {
+                case 'price_asc':
+                    return parseFloat(a.price) - parseFloat(b.price);
+                case 'price_desc':
+                    return parseFloat(b.price) - parseFloat(a.price);
+                case 'name_asc':
+                    return a.name.localeCompare(b.name);
+                case 'newest':
+                default:
+                    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+            }
+        });
+    }
+
+
     // 3. Pagination vs Limit
     const enablePagination = settings.enablePagination || false;
     const itemsPerPage = settings.itemsPerPage || 12;
@@ -126,13 +165,22 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     if (enablePagination) {
         // Validation: Reset page if out of bounds (e.g. if category changed)
         if (currentPage > totalPages && totalPages > 0) {
-            setCurrentPage(1); // Cannot update state during render in strict mode usually, but mostly safe here or should be in useEffect. 
-            // In React, setting state during render is allowed if checks condition to avoid infinite loop.
-            // Better to simply clamp strictly for display:
+            // We need to reset page if filters change results count
+            // Since we can't set state easily in render, we just clamp for display
+            // and rely on useEffect to sync state if we wanted to be strict,
+            // but just clamping startIndex is enough for visual consistency.
+        } else if (currentPage > totalPages && totalPages === 0) {
+            // No pages
         }
-        const safePage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages));
 
-        const startIndex = (safePage - 1) * itemsPerPage;
+        // Strict Clamp for Slice
+        const effectivePage = Math.min(Math.max(1, currentPage), Math.max(1, totalPages));
+
+        // If effective page !== current page, we should probably conceptually be on page 1
+        // but for render purity we just calculate slice.
+        // If the user was on Page 5 and filters reduce to 1 page, they see Page 1.
+
+        const startIndex = (effectivePage - 1) * itemsPerPage;
         finalProducts = displayProducts.slice(startIndex, startIndex + itemsPerPage);
     } else {
         // Classic Limit
@@ -140,6 +188,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             finalProducts = displayProducts.slice(0, parseInt(settings.limit));
         }
     }
+
 
     // Layout (Columns) - Responsive default fallback
     const colsDesktop = settings.columns?.desktop || 4;
@@ -287,6 +336,76 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                 <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
                 {!enablePagination && <span className="text-sm font-bold text-indigo-600 cursor-pointer hover:underline">View All</span>}
             </div>
+
+            {/* --- VIEWER FILTERS UI --- */}
+            {(settings.showSortingFilter || settings.showCategoryFilter) && !isEditor && (
+                <div className="flex flex-wrap items-center gap-4 py-4 border-t border-b border-slate-100 mb-6">
+
+                    {/* Filter Icon / Label */}
+                    <div className="flex items-center text-slate-500 text-sm font-medium mr-2">
+                        <Filter className="w-4 h-4 mr-2" />
+                        Filters:
+                    </div>
+
+                    {/* Category Filter */}
+                    {settings.showCategoryFilter && (
+                        <div className="relative group">
+                            <select
+                                className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 pr-8 focus:ring-indigo-500 focus:border-indigo-500 block w-full outline-none cursor-pointer hover:bg-slate-100 transition-colors"
+                                value={viewerCategory}
+                                onChange={(e) => {
+                                    setViewerCategory(e.target.value);
+                                    setCurrentPage(1); // Reset page on filter change
+                                }}
+                            >
+                                <option value="all">All Styles</option>
+                                {availableCategories.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                <ChevronDown className="h-4 w-4" />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Sorting Filter */}
+                    {settings.showSortingFilter && (
+                        <div className="relative group">
+                            <select
+                                className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 pr-8 focus:ring-indigo-500 focus:border-indigo-500 block w-full outline-none cursor-pointer hover:bg-slate-100 transition-colors"
+                                value={viewerSort || ''}
+                                onChange={(e) => setViewerSort(e.target.value || null)}
+                            >
+                                <option value="">Default Sorting</option>
+                                <option value="newest">Newest First</option>
+                                <option value="price_asc">Price: Low to High</option>
+                                <option value="price_desc">Price: High to Low</option>
+                                <option value="name_asc">Name: A-Z</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                <ChevronDown className="h-4 w-4" />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Clear Filters Button */}
+                    {(viewerCategory !== 'all' || viewerSort !== null) && (
+                        <button
+                            onClick={() => {
+                                setViewerCategory('all');
+                                setViewerSort(null);
+                                setCurrentPage(1);
+                            }}
+                            className="ml-auto flex items-center text-xs font-bold text-red-500 hover:text-red-700 transition-colors"
+                        >
+                            <X className="w-3 h-3 mr-1" />
+                            Clear
+                        </button>
+                    )}
+                </div>
+            )}
+
 
             {finalProducts.length === 0 ? (
                 <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">

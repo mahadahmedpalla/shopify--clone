@@ -391,6 +391,8 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                                     { id: 'showPrice', label: 'Show Price', default: true },
                                     { id: 'showComparePrice', label: 'Compare Price', default: true },
                                     { id: 'showRating', label: 'Show Rating', default: false },
+                                    { id: 'showSortingFilter', label: 'Show Sorting Filter', default: false },
+                                    { id: 'showCategoryFilter', label: 'Show Category Filter', default: false },
                                     { id: 'showAddToCart', label: 'Add to Cart Button', default: true },
                                 ].map(item => (
                                     <div key={item.id} className="flex items-center justify-between">
