@@ -338,7 +338,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             </div>
 
             {/* --- VIEWER FILTERS UI --- */}
-            {(settings.showSortingFilter || settings.showCategoryFilter) && !isEditor && (
+            {(settings.showSortingFilter || settings.showCategoryFilter) && (
                 <div className="flex flex-wrap items-center gap-4 py-4 border-t border-b border-slate-100 mb-6">
 
                     {/* Filter Icon / Label */}
