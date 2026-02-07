@@ -152,6 +152,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
         const proposedAttrs = { ...selectedAttrs, [key]: value };
         setSelectedAttrs(proposedAttrs);
         setSelectedImage(0);
+        setQty(1); // Reset quantity to default on attribute change
     };
 
     // Helper to check if an option is available with CURRENT other selections
