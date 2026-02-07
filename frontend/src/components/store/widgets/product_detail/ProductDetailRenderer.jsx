@@ -165,7 +165,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
 
     // Determine button state
     const isSelectionComplete = attributeKeys.every(k => selectedAttrs[k]);
-    const isVariantValid = !!foundVariant;
+    const isVariantValid = attributeKeys.length === 0 || !!foundVariant;
     const buttonLabel = !isSelectionComplete
         ? 'Select Options'
         : !isVariantValid
