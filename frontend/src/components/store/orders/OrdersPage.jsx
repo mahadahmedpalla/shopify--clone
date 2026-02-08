@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { OrderDetailModal } from './OrderDetailModal';
+import { OrderCommentsModal } from './OrderCommentsModal';
 import {
     Search,
     Filter,
@@ -11,7 +12,8 @@ import {
     CheckCircle,
     Clock,
     AlertCircle,
-    MoreHorizontal
+    MoreHorizontal,
+    MessageSquare
 } from 'lucide-react';
 import { Skeleton } from '../../ui/Skeleton';
 
@@ -21,6 +23,7 @@ export function OrdersPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedCommentOrder, setSelectedCommentOrder] = useState(null);
 
     useEffect(() => {
         if (storeId) {
@@ -171,9 +174,21 @@ export function OrdersPage() {
                                             {order.currency} {order.total}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button className="text-gray-400 hover:text-indigo-600 transition-colors group-hover:translate-x-1 duration-200">
-                                                <ChevronRight className="h-5 w-5" />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedCommentOrder(order);
+                                                    }}
+                                                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all"
+                                                    title="Order Comments"
+                                                >
+                                                    <MessageSquare className="h-5 w-5" />
+                                                </button>
+                                                <button className="text-gray-400 hover:text-indigo-600 transition-colors group-hover:translate-x-1 duration-200">
+                                                    <ChevronRight className="h-5 w-5" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -195,6 +210,12 @@ export function OrdersPage() {
                 isOpen={!!selectedOrder}
                 onClose={() => setSelectedOrder(null)}
                 onOrderUpdated={fetchOrders}
+            />
+
+            <OrderCommentsModal
+                order={selectedCommentOrder}
+                isOpen={!!selectedCommentOrder}
+                onClose={() => setSelectedCommentOrder(null)}
             />
         </div>
     );
