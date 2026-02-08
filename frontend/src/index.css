@@ -140,6 +140,15 @@ body {
   animation-duration: 150ms;
 }
 
-.duration-200 {
-  animation-duration: 200ms;
+/* Scrollbar Hide Utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
 }

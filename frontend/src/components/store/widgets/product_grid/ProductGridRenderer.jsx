@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../../lib/supabase';
-import { Box, ChevronLeft, ChevronRight, Star, Filter, ChevronDown, X } from 'lucide-react';
+import { Box, ChevronLeft, ChevronRight, Star, Filter, ChevronDown, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
@@ -374,12 +374,43 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         }, 1);
     };
 
+    // Scroll Logic
+    const scrollContainerRef = useRef(null);
+    const scroll = (direction) => {
+        if (scrollContainerRef.current) {
+            const container = scrollContainerRef.current;
+            const scrollAmount = container.clientWidth * 0.8; // Scroll 80% of width
+            container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+        }
+    };
+
     return (
         <div className="space-y-8 bg-white" style={{ padding: `${sectionPadding}px` }}>
             {/* ... Header ... */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
-                {!enablePagination && <span className="text-sm font-bold text-indigo-600 cursor-pointer hover:underline">View All</span>}
+
+                <div className="flex items-center gap-4">
+                    {enableHorizontalScroll && (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => scroll('left')}
+                                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                aria-label="Scroll Left"
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={() => scroll('right')}
+                                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                                aria-label="Scroll Right"
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                    )}
+                    {!enablePagination && <span className="text-sm font-bold text-indigo-600 cursor-pointer hover:underline">View All</span>}
+                </div>
             </div>
 
             {/* --- VIEWER FILTERS UI --- */}
@@ -459,6 +490,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             ) : (
                 <>
                     <div
+                        ref={scrollContainerRef}
                         className={enableHorizontalScroll
                             ? `flex overflow-x-auto snap-x snap-mandatory pt-4 pb-4 -mx-4 px-4 scrollbar-hide`
                             : `grid ${getColsClass()}`}
@@ -562,7 +594,6 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                                         <Star className="w-3 h-3 fill-current" />
                                                         <span className="ml-1 text-slate-500 font-medium">
                                                             {productRatings[product.id]?.average ? productRatings[product.id].average.toFixed(1) : '0.0'}
-                                                            <span className="text-slate-300 ml-0.5">({productRatings[product.id]?.count || 0})</span>
                                                         </span>
                                                     </div>
                                                 )}
