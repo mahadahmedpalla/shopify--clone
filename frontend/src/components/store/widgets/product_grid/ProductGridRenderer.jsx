@@ -204,12 +204,14 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         6: 'grid-cols-6'
     };
 
-    const getColsClass = () => {
-        let columns = 4;
-        if (viewMode === 'mobile') columns = colsMobile;
-        else if (viewMode === 'tablet') columns = colsTablet;
-        else columns = colsDesktop;
+    const getColsCount = () => {
+        if (viewMode === 'mobile') return colsMobile;
+        if (viewMode === 'tablet') return colsTablet;
+        return colsDesktop;
+    };
 
+    const getColsClass = () => {
+        const columns = getColsCount();
         return colsMap[columns] || 'grid-cols-4';
     };
 
@@ -228,7 +230,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     // Layout
     const rowGap = getVal('rowGap', 36);
     const colGap = getVal('columnGap', 11);
-    const equalHeight = settings.equalHeight || false;
+    const equalHeight = settings.enableHorizontalScroll ? true : (settings.equalHeight || false); // Force equal height for horizontal scroll
+    const enableHorizontalScroll = settings.enableHorizontalScroll || false;
 
     // Content Toggles
     const showImage = settings.showImage !== false;
@@ -415,8 +418,12 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             ) : (
                 <>
                     <div
-                        className={`grid ${getColsClass()}`}
-                        style={{ gap: `${rowGap}px ${colGap}px` }}
+                        className={enableHorizontalScroll
+                            ? `flex overflow-x-auto snap-x snap-mandatory pt-4 pb-4 -mx-4 px-4 scrollbar-hide`
+                            : `grid ${getColsClass()}`}
+                        style={{
+                            gap: enableHorizontalScroll ? `${colGap}px` : `${rowGap}px ${colGap}px`
+                        }}
                     >
                         {finalProducts.map(product => {
                             const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
@@ -425,11 +432,21 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
 
                             const productImages = product.image_urls || product.images || [];
 
+                            // Horizontal Scroll Width Calculation
+                            const horizontalScrollStyle = enableHorizontalScroll ? {
+                                flex: `0 0 calc(${100 / getColsCount()}% - ${(colGap * (getColsCount() - 1)) / getColsCount()}px)`,
+                                width: `calc(${100 / getColsCount()}% - ${(colGap * (getColsCount() - 1)) / getColsCount()}px)`,
+                                scrollSnapAlign: 'start'
+                            } : {};
+
                             return (
                                 <Wrapper
                                     key={product.id}
-                                    className="group cursor-pointer transition-all"
-                                    style={cardStyle}
+                                    className={`group cursor-pointer transition-all ${enableHorizontalScroll ? '' : ''}`}
+                                    style={{
+                                        ...cardStyle,
+                                        ...horizontalScrollStyle
+                                    }}
                                     {...wrapperProps}
                                 >
                                     {showImage && (

@@ -427,6 +427,24 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                 <Columns className="w-3 h-3" /> Grid Columns
                             </h3>
+
+                            {/* Horizontal Scroll Toggle */}
+                            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
+                                <label className="text-[10px] font-bold text-slate-600 uppercase flex items-center gap-2">
+                                    <MoveHorizontal className="w-3 h-3" />
+                                    Horizontal Scroll
+                                </label>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={settings.enableHorizontalScroll || false}
+                                        onChange={e => update('enableHorizontalScroll', e.target.checked)}
+                                    />
+                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+
                             {/* Columns Control */}
                             <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">
