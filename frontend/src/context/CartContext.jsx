@@ -200,8 +200,19 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
         setCart(prev => prev.map(item => {
             if (item.id === id && item.variantId === variantId) {
                 // Check limit
-                if (item.maxStock !== undefined && quantity > item.maxStock) {
-                    return item; // Do nothing if exceeds
+                if (item.maxStock !== undefined) {
+                    const isDecreasing = quantity < item.quantity;
+                    const isOOS = item.maxStock === 0;
+
+                    // Case: Out of Stock -> Don't allow decreasing (must remove)
+                    if (isOOS && isDecreasing) {
+                        return item;
+                    }
+
+                    // Case: Exceeds Stock -> Only allow if decreasing
+                    if (quantity > item.maxStock && !isDecreasing) {
+                        return item; // Do nothing if trying to increase beyond limit
+                    }
                 }
                 return { ...item, quantity };
             }

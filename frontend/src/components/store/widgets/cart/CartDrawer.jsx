@@ -222,7 +222,8 @@ export function CartDrawer({ settings }) {
                                         <div className="flex items-center border border-slate-200 rounded-lg">
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.variantId, item.quantity - 1)}
-                                                className="p-1.5 hover:bg-slate-50 text-slate-500"
+                                                disabled={item.maxStock === 0}
+                                                className={`p-1.5 hover:bg-slate-50 text-slate-500 ${item.maxStock === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
                                             >
                                                 <Minus className="h-3 w-3" />
                                             </button>
