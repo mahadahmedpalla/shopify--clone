@@ -100,7 +100,12 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
     };
 
     // Helper to resolve responsive value
-    const getVal = (key, defaultVal) => getResponsiveValue(settings, viewMode, key, defaultVal);
+    const getVal = (key, defaultVal) => {
+        if (viewMode === 'desktop') {
+            return settings[key] !== undefined ? settings[key] : defaultVal;
+        }
+        return getResponsiveValue(settings, viewMode, key, defaultVal);
+    };
 
     // Helper to update style based on viewMode (DESKTOP-FIRST Architecture)
     const updateStyle = (key, val) => {
