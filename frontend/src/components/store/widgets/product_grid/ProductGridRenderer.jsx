@@ -492,7 +492,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                     <div
                         ref={scrollContainerRef}
                         className={enableHorizontalScroll
-                            ? `flex overflow-x-auto snap-x snap-mandatory pt-4 pb-4 -mx-4 px-4 scrollbar-hide`
+                            ? `flex overflow-x-auto snap-x snap-mandatory pt-4 pb-4 scrollbar-hide`
                             : `grid ${getColsClass()}`}
                         style={{
                             gap: enableHorizontalScroll ? `${colGap}px` : `${rowGap}px ${colGap}px`
@@ -589,7 +589,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                                         </div>
                                                     );
                                                 })()}
-                                                {showRating && (
+                                                {showRating && productRatings[product.id]?.average > 0 && (
                                                     <div className="flex items-center text-yellow-400 text-xs">
                                                         <Star className="w-3 h-3 fill-current" />
                                                         <span className="ml-1 text-slate-500 font-medium">
