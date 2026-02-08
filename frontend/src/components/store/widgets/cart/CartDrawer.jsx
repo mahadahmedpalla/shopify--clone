@@ -165,7 +165,15 @@ export function CartDrawer({ settings }) {
                                         <div className="flex justify-between items-start w-full">
                                             <div className={`flex flex-col ${getAlignClass()} flex-1`}>
                                                 <h4 className="font-bold text-slate-900 line-clamp-2 text-sm">{item.name}</h4>
-                                                {item.variantTitle && (
+                                                {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 ? (
+                                                    <div className="mt-1 space-y-0.5">
+                                                        {Object.entries(item.selectedOptions).map(([key, value]) => (
+                                                            <p key={key} className="text-xs text-slate-500 font-medium">
+                                                                <span className="opacity-70">{key}:</span> {value}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                ) : item.variantTitle && (
                                                     <p className="text-xs text-slate-500 mt-0.5 font-medium">{item.variantTitle}</p>
                                                 )}
                                             </div>
