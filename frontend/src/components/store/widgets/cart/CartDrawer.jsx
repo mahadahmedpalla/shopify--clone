@@ -166,11 +166,16 @@ export function CartDrawer({ settings }) {
                                             <div className={`flex flex-col ${getAlignClass()} flex-1`}>
                                                 <h4 className="font-bold text-slate-900 line-clamp-2 text-sm">{item.name}</h4>
                                                 {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 ? (
-                                                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                                                        {Object.entries(item.selectedOptions).map(([key, value]) => (
-                                                            <p key={key} className="text-xs text-slate-500 font-medium">
-                                                                <span className="opacity-70">{key}:</span> {value}
-                                                            </p>
+                                                    <div className="mt-1 flex flex-wrap items-center gap-y-1">
+                                                        {Object.entries(item.selectedOptions).map(([key, value], index, arr) => (
+                                                            <React.Fragment key={key}>
+                                                                <p className="text-xs text-slate-500 font-medium">
+                                                                    <span className="opacity-70">{key}:</span> {value}
+                                                                </p>
+                                                                {index < arr.length - 1 && (
+                                                                    <span className="mx-2 text-slate-300">•</span>
+                                                                )}
+                                                            </React.Fragment>
                                                         ))}
                                                     </div>
                                                 ) : item.variantTitle && (
