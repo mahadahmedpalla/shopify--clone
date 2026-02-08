@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-
+import {
+    AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Layout, Box,
+    List, Grid, Columns, Type as Typography,
+    ChevronDown, Check, MousePointerClick, Star, Filter, Eye, Palette
+} from 'lucide-react';
+import { ColorInput, getResponsiveValue, ViewModeBtn } from '../Shared';
 
 export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
     const [activeTab, setActiveTab] = useState('content'); // 'content', 'layout', 'style'
