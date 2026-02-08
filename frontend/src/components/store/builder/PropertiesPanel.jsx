@@ -8,6 +8,7 @@ import { ProductDetailProperties } from '../widgets/product_detail/ProductDetail
 import { ProductReviewsProperties } from '../widgets/product_reviews/ProductReviewsProperties';
 import { RelatedProductsProperties } from '../widgets/related_products/RelatedProductsProperties';
 import { CartListProperties } from '../widgets/cart_list/CartListProperties';
+import { CategoryListProperties } from '../widgets/category_list/CategoryListProperties';
 import { CheckoutProperties } from '../widgets/checkout/CheckoutProperties';
 import { ContainerProperties } from '../widgets/container/ContainerProperties';
 import { ImageProperties } from '../widgets/image/ImageProperties';
@@ -170,6 +171,13 @@ export function PropertiesPanel({
                     ) : selectedElement.type === 'cart_list' ? (
                         <CartListProperties
                             settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'category_list' ? (
+                        <CategoryListProperties
+                            settings={selectedElement.settings}
+                            categories={categories}
+                            viewMode={viewMode}
                             onUpdate={onUpdate}
                         />
                     ) : selectedElement.type === 'checkout_form' ? (

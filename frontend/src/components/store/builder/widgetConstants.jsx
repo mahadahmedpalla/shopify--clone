@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare
+    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare, List
 } from 'lucide-react';
 import { genId } from '../widgets/Shared';
 
@@ -28,6 +28,7 @@ export const WIDGET_CATEGORIES = [
         name: 'Shopify Core',
         widgets: [
             { type: 'product_grid', icon: <ShoppingBag className="h-4 w-4" />, label: 'Product Grid' },
+            { type: 'category_list', icon: <List className="h-4 w-4" />, label: 'Category List' },
             { type: 'cart_list', icon: <ShoppingCart className="h-4 w-4" />, label: 'Cart Items' },
             { type: 'product_detail', icon: <Search className="h-4 w-4" />, label: 'Product Info' },
             { type: 'product_reviews', icon: <MessageSquare className="h-4 w-4" />, label: 'Reviews' },
@@ -149,6 +150,28 @@ export const getWidgetDefaults = (type) => {
             tablet: 3,
             mobile: 2
         }
+    } : type === 'category_list' ? {
+        title: 'Shop by Category',
+        categorySource: 'all', // 'all', 'selected'
+        selectedCategories: [],
+        sortBy: 'manual',
+        layoutType: 'horizontal', // 'horizontal', 'grid'
+        columns: { desktop: 6, tablet: 4, mobile: 2 },
+        rowGap: 16,
+        columnGap: 16,
+        sectionPadding: 20,
+        showImage: true,
+        showTitle: true,
+        textAlign: 'center',
+        aspectRatio: 'auto',
+        imageFit: 'cover',
+        hoverEffect: 'none',
+        cardBackgroundColor: 'transparent',
+        cardBorderRadius: 0,
+        cardPadding: 0,
+        titleFontSize: 14,
+        titleFontWeight: 'font-medium',
+        titleColor: '#1e293b'
     } : type === 'product_reviews' ? {
         layoutMode: 'chart',
         allowVerifiedOnly: false,
