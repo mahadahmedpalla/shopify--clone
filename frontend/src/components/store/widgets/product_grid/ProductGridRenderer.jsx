@@ -325,7 +325,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             price: product.price,
             images: product.images || product.image_urls || [],
             image: product.images?.[0] || product.image_urls?.[0],
-            store_id: store?.id
+            store_id: store?.id,
+            maxStock: product.quantity // Pass available stock limit
         }, 1);
     };
 
