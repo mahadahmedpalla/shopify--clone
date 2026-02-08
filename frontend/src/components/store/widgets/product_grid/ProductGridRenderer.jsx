@@ -360,98 +360,104 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                 style={{ ...cardStyle, ...styleOverrides }}
                 {...wrapperProps}
             >
-                {showImage && (
-                    <div
-                        className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
-                        style={{
-                            width: '100%',
-                            borderRadius: `${imageRadius}px`
-                        }}
-                    >
-                        {productImages[0] ? (
-                            <img
-                                src={getOptimizedUrl(productImages[0], 600)}
-                                alt={product.name}
-                                className={`w-full h-full object-${imageFit} transition-transform duration-700 group-hover:scale-105`}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                <Box className="w-12 h-12 opacity-50" />
-                            </div>
-                        )}
+                {(() => {
+                    const { price: finalPrice, compareAtPrice: finalCompareAtPrice } = calculateBestPrice(product, storeDiscounts || []);
+                    const isOnSale = finalCompareAtPrice > finalPrice;
 
-                        {product.compare_at_price > product.price && (
-                            <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">
-                                SALE
-                            </div>
-                        )}
-
-                        {/* Add To Cart: On Hover OR Slider Mode (Overlay) */}
-                        {showAddToCart && (addToCartBehavior === 'hover' || layoutMode === 'slider') && (
-                            <div className={`
-                                absolute inset-x-4 bottom-4 transition-all duration-300
-                                ${layoutMode === 'slider'
-                                    ? 'translate-y-0 opacity-100' // Always visible on slider overlay (or hover if preferred, but user implied visible) 
-                                    : 'translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
-                                }
-                            `}>
-                                <button
-                                    onClick={(e) => handleAddToCart(e, product)}
-                                    className="flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all active:scale-95"
-                                    style={addToCartStyle}
+                    return (
+                        <>
+                            {showImage && (
+                                <div
+                                    className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
+                                    style={{
+                                        width: '100%',
+                                        borderRadius: `${imageRadius}px`
+                                    }}
                                 >
-                                    Add to Cart
-                                </button>
+                                    {productImages[0] ? (
+                                        <img
+                                            src={getOptimizedUrl(productImages[0], 600)}
+                                            alt={product.name}
+                                            className={`w-full h-full object-${imageFit} transition-transform duration-700 group-hover:scale-105`}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                            <Box className="w-12 h-12 opacity-50" />
+                                        </div>
+                                    )}
+
+                                    {isOnSale && (
+                                        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">
+                                            SALE
+                                        </div>
+                                    )}
+
+                                    {/* Add To Cart: Only on Hover (if configured) */}
+                                    {showAddToCart && addToCartBehavior === 'hover' && (
+                                        <div className="absolute inset-x-4 bottom-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                            <button
+                                                onClick={(e) => handleAddToCart(e, product)}
+                                                className="flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all active:scale-95"
+                                                style={addToCartStyle}
+                                            >
+                                                Add to Cart
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <div style={{ padding: `${cardContentPadding}px` }} className="flex flex-col flex-1">
+                                {showTitle && (
+                                    <h3 className={`mb-1 transition-colors group-hover:text-indigo-600 ${titleFontClass}`} style={titleStyle}>
+                                        {product.name}
+                                    </h3>
+                                )}
+
+                                {showRating && (
+                                    <div className="flex items-center gap-1 mb-2">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star
+                                                key={i}
+                                                className={`w-3 h-3 ${i < Math.round(product.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`}
+                                            />
+                                        ))}
+                                        <span className="text-xs text-slate-400 ml-1">({product.rating || 0})</span>
+                                    </div>
+                                )}
+
+                                <div className="mt-auto pt-2 flex items-end justify-between gap-4">
+                                    <div className="flex items-baseline gap-2 flex-wrap">
+                                        {showPrice && (
+                                            <span style={priceStyle}>
+                                                {store?.currency || '$'}{finalPrice}
+                                            </span>
+                                        )}
+                                        {showComparePrice && isOnSale && (
+                                            <span style={comparePriceStyle} className="line-through">
+                                                {store?.currency || '$'}{finalCompareAtPrice}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Always Visible Add To Cart */}
+                                    {showAddToCart && addToCartBehavior === 'always' && (
+                                        <button
+                                            onClick={(e) => handleAddToCart(e, product)}
+                                            className="flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
+                                            style={{
+                                                ...addToCartStyle,
+                                                width: 'auto'
+                                            }}
+                                        >
+                                            Add
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        )}
-                    </div>
-                )}
-
-                <div style={{ padding: `${cardContentPadding}px` }} className="flex flex-col flex-1">
-                    {showTitle && (
-                        <h3 className={`mb-1 transition-colors group-hover:text-indigo-600 ${titleFontClass}`} style={titleStyle}>
-                            {product.name}
-                        </h3>
-                    )}
-
-                    {showRating && (
-                        <div className="flex items-center gap-1 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                                <Star key={i} className={`w-3 h-3 ${i < 4 ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`} />
-                            ))}
-                            <span className="text-xs text-slate-400 ml-1">(4.8)</span>
-                        </div>
-                    )}
-
-                    <div className="mt-auto pt-2 flex items-end justify-between gap-4">
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                            {showPrice && (
-                                <span style={priceStyle}>
-                                    {store?.currency || '$'}{product.price}
-                                </span>
-                            )}
-                            {showComparePrice && product.compare_at_price > product.price && (
-                                <span style={comparePriceStyle} className="line-through">
-                                    {store?.currency || '$'}{product.compare_at_price}
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Always Visible Add To Cart (Only if NOT Slider mode, as Slider forces overlay) */}
-                        {showAddToCart && addToCartBehavior === 'always' && layoutMode !== 'slider' && (
-                            <button
-                                onClick={(e) => handleAddToCart(e, product)}
-                                className="flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
-                                style={{
-                                    ...addToCartStyle,
-                                    width: 'auto'
-                                }}
-                            >
-                                Add
-                            </button>
-                        )}
-                    </div>
-                </div>
+                        </>
+                    );
+                })()}
             </Wrapper>
         );
     };
