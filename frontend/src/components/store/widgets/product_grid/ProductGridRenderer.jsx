@@ -364,12 +364,13 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         if (isEditor) return;
 
         // Calculate Best Price (Discount Logic)
-        const { finalPrice } = calculateBestPrice(product, storeDiscounts);
+        const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
 
         addToCart({
             id: product.id,
             name: product.name,
             price: finalPrice, // Use the discounted price
+            compareAtPrice: hasDiscount ? comparePrice : (product.compare_price || product.comparePrice), // Pass original/compare price
             images: product.images || product.image_urls || [],
             image: product.images?.[0] || product.image_urls?.[0],
             store_id: store?.id,
