@@ -199,6 +199,22 @@ export function CartDrawer({ settings }) {
                                                     </p>
                                                 )}
                                             </div>
+
+                                        )}
+
+                                        {/* Stock Warnings */}
+                                        {item.maxStock !== undefined && (
+                                            <div className="mt-1">
+                                                {item.maxStock === 0 ? (
+                                                    <p className="text-xs text-red-600 font-bold bg-red-50 px-2 py-1 rounded-md inline-block">
+                                                        Out of stock
+                                                    </p>
+                                                ) : item.quantity > item.maxStock ? (
+                                                    <p className="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded-md inline-block">
+                                                        Only {item.maxStock} items left
+                                                    </p>
+                                                ) : null}
+                                            </div>
                                         )}
                                     </div>
 
@@ -276,18 +292,21 @@ export function CartDrawer({ settings }) {
                                 setIsOpen(false);
                                 navigate(`/s/${storeSubUrl}/checkout`);
                             }}
-                            className="w-full py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            disabled={cart.some(item => item.maxStock !== undefined && item.quantity > item.maxStock)}
+                            className="w-full py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
                             style={{
                                 backgroundColor: settings?.checkoutBtnBg || '#4f46e5',
                                 color: settings?.checkoutBtnColor || '#ffffff',
                                 fontWeight: settings?.checkoutBtnWeight === 'extrabold' ? 800 : settings?.checkoutBtnWeight === 'bold' ? 700 : settings?.checkoutBtnWeight === 'medium' ? 500 : 400
                             }}
                         >
-                            CHECKOUT <span className="ml-2">→</span>
+                            {cart.some(item => item.maxStock !== undefined && item.quantity > item.maxStock)
+                                ? 'FIX STOCK ISSUES TO CHECKOUT'
+                                : <>CHECKOUT <span className="ml-2">→</span></>}
                         </button>
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
