@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Box, ChevronLeft, ChevronRight, Star, Filter, ChevronDown, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
@@ -19,19 +19,6 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const [currentPage, setCurrentPage] = useState(1);
     const [viewerSort, setViewerSort] = useState(null);
     const [viewerCategory, setViewerCategory] = useState('all');
-
-    // Slider Logic
-    const sliderRef = useRef(null);
-    const scrollSlider = (direction) => {
-        if (!sliderRef.current) return;
-        const container = sliderRef.current;
-        const scrollAmount = container.clientWidth * 0.75; // Scroll 75% of view width
-
-        container.scrollBy({
-            left: direction === 'left' ? -scrollAmount : scrollAmount,
-            behavior: 'smooth'
-        });
-    };
 
     // Filter products logic
     let displayProducts = products || [];
@@ -274,12 +261,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         display: equalHeight ? 'flex' : 'block',
         flexDirection: equalHeight ? 'column' : 'initial',
         overflow: 'hidden', // Ensure content/image doesn't overflow radius
-        overflow: 'hidden', // Ensure content/image doesn't overflow radius
         padding: `${cardWrapperPadding}px`
     };
-
-    // Layout Mode (Responsive)
-    const layoutMode = getVal('layoutMode', 'grid');
 
     // Helper for Fonts
     const getFontFamily = (key) => {
@@ -345,121 +328,6 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             store_id: store?.id,
             maxStock: product.quantity // Pass available stock limit
         }, 1);
-    };
-
-    const renderCard = (product, styleOverrides = {}, classNameOverrides = "") => {
-        const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
-        const Wrapper = isEditor ? 'div' : Link;
-        const wrapperProps = isEditor ? {} : { to: linkPath };
-        const productImages = product.image_urls || product.images || [];
-
-        return (
-            <Wrapper
-                key={product.id}
-                className={`group cursor-pointer transition-all ${classNameOverrides}`}
-                style={{ ...cardStyle, ...styleOverrides }}
-                {...wrapperProps}
-            >
-                {(() => {
-                    const { price: finalPrice, compareAtPrice: finalCompareAtPrice } = calculateBestPrice(product, storeDiscounts || []);
-                    const isOnSale = finalCompareAtPrice > finalPrice;
-
-                    return (
-                        <>
-                            {showImage && (
-                                <div
-                                    className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
-                                    style={{
-                                        width: '100%',
-                                        borderRadius: `${imageRadius}px`
-                                    }}
-                                >
-                                    {productImages[0] ? (
-                                        <img
-                                            src={getOptimizedUrl(productImages[0], 600)}
-                                            alt={product.name}
-                                            className={`w-full h-full object-${imageFit} transition-transform duration-700 group-hover:scale-105`}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                            <Box className="w-12 h-12 opacity-50" />
-                                        </div>
-                                    )}
-
-                                    {isOnSale && (
-                                        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">
-                                            SALE
-                                        </div>
-                                    )}
-
-                                    {/* Add To Cart: Only on Hover (if configured) */}
-                                    {showAddToCart && addToCartBehavior === 'hover' && (
-                                        <div className="absolute inset-x-4 bottom-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                                            <button
-                                                onClick={(e) => handleAddToCart(e, product)}
-                                                className="flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all active:scale-95"
-                                                style={addToCartStyle}
-                                            >
-                                                Add to Cart
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div style={{ padding: `${cardContentPadding}px` }} className="flex flex-col flex-1">
-                                {showTitle && (
-                                    <h3 className={`mb-1 transition-colors group-hover:text-indigo-600 ${titleFontClass}`} style={titleStyle}>
-                                        {product.name}
-                                    </h3>
-                                )}
-
-                                {showRating && (
-                                    <div className="flex items-center gap-1 mb-2">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                className={`w-3 h-3 ${i < Math.round(product.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`}
-                                            />
-                                        ))}
-                                        <span className="text-xs text-slate-400 ml-1">({product.rating || 0})</span>
-                                    </div>
-                                )}
-
-                                <div className="mt-auto pt-2 flex items-end justify-between gap-4">
-                                    <div className="flex items-baseline gap-2 flex-wrap">
-                                        {showPrice && (
-                                            <span style={priceStyle}>
-                                                {store?.currency || '$'}{finalPrice}
-                                            </span>
-                                        )}
-                                        {showComparePrice && isOnSale && (
-                                            <span style={comparePriceStyle} className="line-through">
-                                                {store?.currency || '$'}{finalCompareAtPrice}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Always Visible Add To Cart */}
-                                    {showAddToCart && addToCartBehavior === 'always' && (
-                                        <button
-                                            onClick={(e) => handleAddToCart(e, product)}
-                                            className="flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
-                                            style={{
-                                                ...addToCartStyle,
-                                                width: 'auto'
-                                            }}
-                                        >
-                                            Add
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    );
-                })()}
-            </Wrapper>
-        );
     };
 
     return (
@@ -546,62 +414,119 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                 </div>
             ) : (
                 <>
-                    {layoutMode === 'slider' ? (
-                        <div className="relative group">
-                            {/* Navigation Buttons (Desktop) */}
-                            {finalProducts.length > (viewMode === 'mobile' ? colsMobile : (viewMode === 'tablet' ? colsTablet : colsDesktop)) && (
-                                <>
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); scrollSlider('left'); }}
-                                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-md text-slate-700 opacity-0 group-hover:opacity-100 transition-all -ml-2 hover:bg-slate-50 disabled:opacity-0"
-                                        aria-label="Scroll left"
+                    <div
+                        className={`grid ${getColsClass()}`}
+                        style={{ gap: `${rowGap}px ${colGap}px` }}
+                    >
+                        {finalProducts.map(product => {
+                            const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
+                            const Wrapper = isEditor ? 'div' : Link;
+                            const wrapperProps = isEditor ? {} : { to: linkPath };
+
+                            const productImages = product.image_urls || product.images || [];
+
+                            return (
+                                <Wrapper
+                                    key={product.id}
+                                    className="group cursor-pointer transition-all"
+                                    style={cardStyle}
+                                    {...wrapperProps}
+                                >
+                                    {showImage && (
+                                        <div
+                                            className={`bg-slate-100 overflow-hidden relative ${getAspectClass(aspectRatio)}`}
+                                            style={{
+                                                width: '100%',
+                                                // If not auto, aspect class handles it. If auto, we let img determine height or use minimal defaults.
+                                                borderRadius: `${imageRadius}px`
+                                                // Note: We might need margin if Image Radius + Card Padding interactions are complex, 
+                                                // but usually Image is edge-to-edge if padding is 0. 
+                                                // If padding > 0, the image is inside the padding? 
+                                                // Current Structure: Image is sibling to Content Div. 
+                                                // Usually if card has padding, the image should be inside? 
+                                                // The current structure is [Image] [Content].
+                                                // So 'cardContentPadding' should apply to Content Div only? 
+                                                // User asked for "card content padding". 
+                                                // If they want image to be edge-to-edge, content padding refers to the text area. 
+                                                // If they want whole card padding, that's different.
+                                                // Behaving as "Content Area Padding" is safer for "Card with Image" layouts.
+                                            }}
+                                        >
+                                            {/* Placeholder / Loading State handled by browser with bg-slate-100 */}
+                                            {productImages?.[0] ? (
+                                                <img
+                                                    src={getOptimizedUrl(productImages[0], 500)} // Request smaller 500px width
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    width="500"
+                                                    height={aspectRatio === 'auto' ? undefined : 667}
+                                                    className={`w-full h-full group-hover:scale-105 transition-transform duration-500`}
+                                                    style={{ objectFit: imageFit }}
+                                                    alt={product.name}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <Box className="h-8 w-8" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div
+                                        className={`${equalHeight ? 'flex flex-col flex-1' : ''}`}
+                                        style={{ padding: `${cardContentPadding}px` }}
                                     >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); scrollSlider('right'); }}
-                                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-md text-slate-700 opacity-0 group-hover:opacity-100 transition-all -mr-2 hover:bg-slate-50"
-                                        aria-label="Scroll right"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </>
-                            )}
+                                        {showTitle && (
+                                            <h4 style={titleStyle} className={`leading-tight mb-1 line-clamp-2 ${titleFontClass}`}>
+                                                {product.name}
+                                            </h4>
+                                        )}
 
-                            <div
-                                ref={sliderRef}
-                                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 -mx-4 px-4 pt-2"
-                                style={{
-                                    gap: `${colGap}px`,
-                                }}
-                            >
-                                {finalProducts.map(product => {
-                                    // Calculate responsive width for slider items
-                                    let columns = 4;
-                                    if (viewMode === 'mobile') columns = colsMobile;
-                                    else if (viewMode === 'tablet') columns = colsTablet;
-                                    else columns = colsDesktop;
+                                        {(showPrice || showRating) && (
+                                            <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
+                                                {showPrice && (() => {
+                                                    // Calculate Best Price (Discount Logic)
+                                                    const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
 
-                                    const totalGap = (columns - 1) * colGap;
-                                    const itemWidth = `calc((100% - ${totalGap}px) / ${columns})`;
+                                                    return (
+                                                        <div className="flex flex-wrap items-baseline gap-2">
+                                                            <span style={priceStyle}>${parseFloat(finalPrice).toFixed(2)}</span>
+                                                            {showComparePrice && (hasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(finalPrice))) && (
+                                                                <span style={comparePriceStyle} className="line-through">
+                                                                    ${parseFloat(hasDiscount ? comparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+                                                {showRating && (
+                                                    <div className="flex items-center text-yellow-400 text-xs">
+                                                        <Star className="w-3 h-3 fill-current" />
+                                                        <span className="ml-1 text-slate-500 font-medium">4.5</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
-                                    return renderCard(product, {
-                                        width: itemWidth,
-                                        flexShrink: 0,
-                                        display: equalHeight ? 'flex' : 'block',
-                                        flexDirection: equalHeight ? 'column' : 'initial'
-                                    }, "snap-start");
-                                })}
-                            </div>
-                        </div>
-                    ) : (
-                        <div
-                            className={`grid ${getColsClass()}`}
-                            style={{ gap: `${rowGap}px ${colGap}px` }}
-                        >
-                            {finalProducts.map(product => renderCard(product))}
-                        </div>
-                    )}
+                                        {showAddToCart && (
+                                            <div className={`
+                                                mt-4 transition-all duration-300
+                                                ${addToCartBehavior === 'hover' ? 'opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0' : ''}
+                                            `}>
+                                                <button
+                                                    onClick={(e) => handleAddToCart(e, product)}
+                                                    className={`uppercase tracking-wide flex items-center justify-center transition-colors text-xs font-bold ${buttonFontClass}`}
+                                                    style={addToCartStyle}
+                                                >
+                                                    Add to Cart
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Wrapper>
+                            );
+                        })}
+                    </div>
 
                     {/* Pagination Controls */}
                     {enablePagination && totalPages > 1 && (
