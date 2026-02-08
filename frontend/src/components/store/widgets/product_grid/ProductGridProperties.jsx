@@ -3,7 +3,7 @@ import {
     AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Layout, Box,
     List, Grid, Columns, Type as Typography,
     ChevronDown, Check, MousePointerClick, Star, Filter, Eye, Palette,
-    LayoutTemplate, Paintbrush, MoveHorizontal
+    LayoutTemplate, Paintbrush, MoveHorizontal, LayoutGrid
 } from 'lucide-react';
 import { ColorInput, getResponsiveValue, ViewModeBtn } from '../Shared';
 
