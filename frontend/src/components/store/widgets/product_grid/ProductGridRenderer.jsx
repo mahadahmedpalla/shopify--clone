@@ -363,10 +363,13 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         e.stopPropagation();
         if (isEditor) return;
 
+        // Calculate Best Price (Discount Logic)
+        const { finalPrice } = calculateBestPrice(product, storeDiscounts);
+
         addToCart({
             id: product.id,
             name: product.name,
-            price: product.price,
+            price: finalPrice, // Use the discounted price
             images: product.images || product.image_urls || [],
             image: product.images?.[0] || product.image_urls?.[0],
             store_id: store?.id,
