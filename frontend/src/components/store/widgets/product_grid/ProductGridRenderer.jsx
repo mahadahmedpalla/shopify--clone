@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../../../lib/supabase';
 import { Box, ChevronLeft, ChevronRight, Star, Filter, ChevronDown, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
@@ -19,6 +20,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     const [currentPage, setCurrentPage] = useState(1);
     const [viewerSort, setViewerSort] = useState(null);
     const [viewerCategory, setViewerCategory] = useState('all');
+    const [productRatings, setProductRatings] = useState({});
 
     // Filter products logic
     let displayProducts = products || [];
@@ -136,6 +138,45 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
     if (viewerCategory !== 'all') {
         displayProducts = displayProducts.filter(p => p.category_id === viewerCategory);
     }
+
+    // Fetch Ratings
+    useEffect(() => {
+        const fetchRatings = async () => {
+            if (!displayProducts || displayProducts.length === 0) return;
+            const productIds = displayProducts.map(p => p.id);
+            if (productIds.length === 0) return;
+
+            try {
+                const { data, error } = await supabase
+                    .from('product_reviews')
+                    .select('product_id, rating')
+                    .in('product_id', productIds);
+
+                if (error) throw error;
+
+                const ratingsMap = {};
+                productIds.forEach(id => { ratingsMap[id] = { count: 0, sum: 0, average: 0 }; });
+
+                if (data) {
+                    data.forEach(r => {
+                        if (ratingsMap[r.product_id]) {
+                            ratingsMap[r.product_id].count++;
+                            ratingsMap[r.product_id].sum += r.rating;
+                        }
+                    });
+                    Object.keys(ratingsMap).forEach(id => {
+                        if (ratingsMap[id].count > 0) {
+                            ratingsMap[id].average = ratingsMap[id].sum / ratingsMap[id].count;
+                        }
+                    });
+                }
+                setProductRatings(ratingsMap);
+            } catch (err) {
+                console.error("Error fetching ratings:", err);
+            }
+        };
+        fetchRatings(); // Fetch on mount/change
+    }, [displayProducts]); // Re-run when products change
 
     // 3. Apply Viewer Sort (Overrides Merchant Sort if set)
     if (viewerSort) {
@@ -519,7 +560,10 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                                 {showRating && (
                                                     <div className="flex items-center text-yellow-400 text-xs">
                                                         <Star className="w-3 h-3 fill-current" />
-                                                        <span className="ml-1 text-slate-500 font-medium">4.5</span>
+                                                        <span className="ml-1 text-slate-500 font-medium">
+                                                            {productRatings[product.id]?.average ? productRatings[product.id].average.toFixed(1) : '0.0'}
+                                                            <span className="text-slate-300 ml-0.5">({productRatings[product.id]?.count || 0})</span>
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
