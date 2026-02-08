@@ -274,8 +274,12 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         display: equalHeight ? 'flex' : 'block',
         flexDirection: equalHeight ? 'column' : 'initial',
         overflow: 'hidden', // Ensure content/image doesn't overflow radius
+        overflow: 'hidden', // Ensure content/image doesn't overflow radius
         padding: `${cardWrapperPadding}px`
     };
+
+    // Layout Mode (Responsive)
+    const layoutMode = getVal('layoutMode', 'grid');
 
     // Helper for Fonts
     const getFontFamily = (key) => {
@@ -382,8 +386,15 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             </div>
                         )}
 
-                        {showAddToCart && addToCartBehavior === 'hover' && (
-                            <div className="absolute inset-x-4 bottom-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                        {/* Add To Cart: On Hover OR Slider Mode (Overlay) */}
+                        {showAddToCart && (addToCartBehavior === 'hover' || layoutMode === 'slider') && (
+                            <div className={`
+                                absolute inset-x-4 bottom-4 transition-all duration-300
+                                ${layoutMode === 'slider'
+                                    ? 'translate-y-0 opacity-100' // Always visible on slider overlay (or hover if preferred, but user implied visible) 
+                                    : 'translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+                                }
+                            `}>
                                 <button
                                     onClick={(e) => handleAddToCart(e, product)}
                                     className="flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all active:scale-95"
@@ -426,7 +437,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             )}
                         </div>
 
-                        {showAddToCart && addToCartBehavior === 'always' && (
+                        {/* Always Visible Add To Cart (Only if NOT Slider mode, as Slider forces overlay) */}
+                        {showAddToCart && addToCartBehavior === 'always' && layoutMode !== 'slider' && (
                             <button
                                 onClick={(e) => handleAddToCart(e, product)}
                                 className="flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 whitespace-nowrap"
@@ -528,119 +540,120 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                 </div>
             ) : (
                 <>
-                    {settings.layoutMode === 'slider' ? (
-                        <div className="relative group">
-                            {/* Navigation Buttons (Desktop) */}
-                            {finalProducts.length > (viewMode === 'mobile' ? colsMobile : (viewMode === 'tablet' ? colsTablet : colsDesktop)) && (
-                                <>
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); scrollSlider('left'); }}
-                                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-md text-slate-700 opacity-0 group-hover:opacity-100 transition-all -ml-2 hover:bg-slate-50 disabled:opacity-0"
-                                        aria-label="Scroll left"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); scrollSlider('right'); }}
-                                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-md text-slate-700 opacity-0 group-hover:opacity-100 transition-all -mr-2 hover:bg-slate-50"
-                                        aria-label="Scroll right"
-                                    >
-                                        <ChevronRight className="w-5 h-5" />
-                                    </button>
-                                </>
-                            )}
+                    <>
+                        {layoutMode === 'slider' ? (
+                            <div className="relative group">
+                                {/* Navigation Buttons (Desktop) */}
+                                {finalProducts.length > (viewMode === 'mobile' ? colsMobile : (viewMode === 'tablet' ? colsTablet : colsDesktop)) && (
+                                    <>
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); scrollSlider('left'); }}
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-md text-slate-700 opacity-0 group-hover:opacity-100 transition-all -ml-2 hover:bg-slate-50 disabled:opacity-0"
+                                            aria-label="Scroll left"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); scrollSlider('right'); }}
+                                            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-md text-slate-700 opacity-0 group-hover:opacity-100 transition-all -mr-2 hover:bg-slate-50"
+                                            aria-label="Scroll right"
+                                        >
+                                            <ChevronRight className="w-5 h-5" />
+                                        </button>
+                                    </>
+                                )}
 
-                            <div
-                                ref={sliderRef}
-                                className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 -mx-4 px-4 pt-2"
-                                style={{
-                                    gap: `${colGap}px`,
-                                }}
-                            >
-                                {finalProducts.map(product => {
-                                    // Calculate responsive width for slider items
-                                    let columns = 4;
-                                    if (viewMode === 'mobile') columns = colsMobile;
-                                    else if (viewMode === 'tablet') columns = colsTablet;
-                                    else columns = colsDesktop;
+                                <div
+                                    ref={sliderRef}
+                                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 -mx-4 px-4 pt-2"
+                                    style={{
+                                        gap: `${colGap}px`,
+                                    }}
+                                >
+                                    {finalProducts.map(product => {
+                                        // Calculate responsive width for slider items
+                                        let columns = 4;
+                                        if (viewMode === 'mobile') columns = colsMobile;
+                                        else if (viewMode === 'tablet') columns = colsTablet;
+                                        else columns = colsDesktop;
 
-                                    const totalGap = (columns - 1) * colGap;
-                                    const itemWidth = `calc((100% - ${totalGap}px) / ${columns})`;
+                                        const totalGap = (columns - 1) * colGap;
+                                        const itemWidth = `calc((100% - ${totalGap}px) / ${columns})`;
 
-                                    return renderCard(product, {
-                                        width: itemWidth,
-                                        flexShrink: 0,
-                                        display: equalHeight ? 'flex' : 'block',
-                                        flexDirection: equalHeight ? 'column' : 'initial'
-                                    }, "snap-start");
-                                })}
+                                        return renderCard(product, {
+                                            width: itemWidth,
+                                            flexShrink: 0,
+                                            display: equalHeight ? 'flex' : 'block',
+                                            flexDirection: equalHeight ? 'column' : 'initial'
+                                        }, "snap-start");
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div
-                            className={`grid ${getColsClass()}`}
-                            style={{ gap: `${rowGap}px ${colGap}px` }}
-                        >
-                            {finalProducts.map(product => renderCard(product))}
-                        </div>
-                    )}
+                        ) : (
+                            <div
+                                className={`grid ${getColsClass()}`}
+                                style={{ gap: `${rowGap}px ${colGap}px` }}
+                            >
+                                {finalProducts.map(product => renderCard(product))}
+                            </div>
+                        )}
 
-                    {/* Pagination Controls */}
-                    {enablePagination && totalPages > 1 && (
-                        <div className="flex items-center justify-center space-x-4 pt-8">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
-                            >
-                                <ChevronLeft className="h-5 w-5" />
-                            </button>
-                            <span className="text-sm font-bold text-slate-600">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
-                            >
-                                <ChevronRight className="h-5 w-5" />
-                            </button>
-                        </div>
-                    )}
-                </>
+                        {/* Pagination Controls */}
+                        {enablePagination && totalPages > 1 && (
+                            <div className="flex items-center justify-center space-x-4 pt-8">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                                >
+                                    <ChevronLeft className="h-5 w-5" />
+                                </button>
+                                <span className="text-sm font-bold text-slate-600">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                                >
+                                    <ChevronRight className="h-5 w-5" />
+                                </button>
+                            </div>
+                        )}
+                    </>
             )}
-        </div>
-    );
+                </div>
+            );
 }
 
-// Helpers
-function getShadowStyle(size) {
+            // Helpers
+            function getShadowStyle(size) {
     switch (size) {
         case 'sm': return '0 1px 2px 0 rgb(0 0 0 / 0.05)';
-        case 'md': return '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)';
-        case 'lg': return '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)';
-        case 'xl': return '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)';
-        default: return 'none';
+            case 'md': return '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)';
+            case 'lg': return '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)';
+            case 'xl': return '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)';
+            default: return 'none';
     }
 }
 
-function getFontWeight(weight) {
+            function getFontWeight(weight) {
     switch (weight) {
         case 'font-normal': return 400;
-        case 'font-medium': return 500;
-        case 'font-semibold': return 600;
-        case 'font-bold': return 700;
-        default: return 500;
+            case 'font-medium': return 500;
+            case 'font-semibold': return 600;
+            case 'font-bold': return 700;
+            default: return 500;
     }
 }
 
-function getAspectClass(ratio) {
+            function getAspectClass(ratio) {
     switch (ratio) {
         case 'square': return 'aspect-square';
-        case 'portrait': return 'aspect-[4/5]';
-        case 'standard': return 'aspect-[3/4]';
-        case 'landscape': return 'aspect-video';
-        case 'auto':
-        default: return '';
+            case 'portrait': return 'aspect-[4/5]';
+            case 'standard': return 'aspect-[3/4]';
+            case 'landscape': return 'aspect-video';
+            case 'auto':
+            default: return '';
     }
 }

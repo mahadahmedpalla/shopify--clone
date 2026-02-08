@@ -431,19 +431,22 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                                 <Columns className="w-3 h-3" /> Grid Settings
                             </h3>
 
-                            {/* Layout Mode */}
+                            {/* Layout Mode - RESPONSIVE */}
                             <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Layout Mode</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center justify-between">
+                                    Layout Mode
+                                    {hasOverride('layoutMode') && <OverrideBadge />}
+                                </label>
                                 <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
                                     <button
-                                        onClick={() => update('layoutMode', 'grid')}
-                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${(!settings.layoutMode || settings.layoutMode === 'grid') ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                        onClick={() => updateStyle('layoutMode', 'grid')}
+                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${(!getVal('layoutMode') || getVal('layoutMode') === 'grid') ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
                                     >
                                         Grid
                                     </button>
                                     <button
-                                        onClick={() => update('layoutMode', 'slider')}
-                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${settings.layoutMode === 'slider' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                        onClick={() => updateStyle('layoutMode', 'slider')}
+                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${getVal('layoutMode') === 'slider' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
                                     >
                                         Slider
                                     </button>
