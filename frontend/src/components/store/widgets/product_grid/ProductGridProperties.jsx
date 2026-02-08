@@ -427,6 +427,29 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
                             <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                 <Columns className="w-3 h-3" /> Grid Columns
                             </h3>
+                            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Columns className="w-3 h-3" /> Grid Settings
+                            </h3>
+
+                            {/* Layout Mode */}
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Layout Mode</label>
+                                <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
+                                    <button
+                                        onClick={() => update('layoutMode', 'grid')}
+                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${(!settings.layoutMode || settings.layoutMode === 'grid') ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        Grid
+                                    </button>
+                                    <button
+                                        onClick={() => update('layoutMode', 'slider')}
+                                        className={`flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all ${settings.layoutMode === 'slider' ? 'bg-white shadow text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        Slider
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Columns Control */}
                             <div>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex items-center">
