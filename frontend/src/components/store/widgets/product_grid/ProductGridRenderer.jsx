@@ -391,7 +391,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                 <h3 className="text-2xl font-bold text-slate-900">{settings.title || 'Featured Products'}</h3>
 
                 <div className="flex items-center gap-4">
-                    {enableHorizontalScroll && (
+                    {enableHorizontalScroll && settings.showScrollArrows !== false && (
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => scroll('left')}
@@ -488,7 +488,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                     <p className="text-slate-400 font-medium">No products found in this collection.</p>
                 </div>
             ) : (
-                <>
+                <div className="max-w-full overflow-hidden">
                     <div
                         ref={scrollContainerRef}
                         className={enableHorizontalScroll
@@ -619,34 +619,35 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                             );
                         })}
                     </div>
+                </div>
+            )}
 
-                    {/* Pagination Controls */}
-                    {enablePagination && totalPages > 1 && (
-                        <div className="flex items-center justify-center space-x-4 pt-8">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
-                            >
-                                <ChevronLeft className="h-5 w-5" />
-                            </button>
-                            <span className="text-sm font-bold text-slate-600">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
-                            >
-                                <ChevronRight className="h-5 w-5" />
-                            </button>
-                        </div>
-                    )}
-                </>
+            {/* Pagination Controls */}
+            {enablePagination && totalPages > 1 && (
+                <div className="flex items-center justify-center space-x-4 pt-8">
+                    <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                    >
+                        <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <span className="text-sm font-bold text-slate-600">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+                    >
+                        <ChevronRight className="h-5 w-5" />
+                    </button>
+                </div>
             )}
         </div>
     );
 }
+
 
 // Helpers
 function getShadowStyle(size) {

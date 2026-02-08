@@ -430,10 +430,24 @@ export function ProductGridProperties({ settings, onUpdate, categories, products
 
                             {/* Horizontal Scroll Toggle */}
                             <div className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100 mb-4">
-                                <label className="text-[10px] font-bold text-slate-600 uppercase flex items-center gap-2">
-                                    <MoveHorizontal className="w-3 h-3" />
-                                    Horizontal Scroll
-                                </label>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-600 uppercase flex items-center gap-2">
+                                        <MoveHorizontal className="w-3 h-3" />
+                                        Horizontal Scroll
+                                    </label>
+
+                                    {settings.enableHorizontalScroll && (
+                                        <label className="flex items-center gap-2 cursor-pointer mt-2 pt-2 border-t border-slate-200">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-3 h-3"
+                                                checked={settings.showScrollArrows !== false}
+                                                onChange={e => update('showScrollArrows', e.target.checked)}
+                                            />
+                                            <span className="text-xs text-slate-500">Show Arrows</span>
+                                        </label>
+                                    )}
+                                </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
                                         type="checkbox"
