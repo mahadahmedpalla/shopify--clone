@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
     AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Layout, Box,
     List, Grid, Columns, Type as Typography,
-    ChevronDown, Check, MousePointerClick, Star, Filter, Eye, Palette
+    ChevronDown, Check, MousePointerClick, Star, Filter, Eye, Palette,
+    LayoutTemplate, Paintbrush, MoveHorizontal
 } from 'lucide-react';
 import { ColorInput, getResponsiveValue, ViewModeBtn } from '../Shared';
 
