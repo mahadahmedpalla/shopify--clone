@@ -72,24 +72,38 @@ export function TextRenderer({ settings, viewMode, isEditor }) {
         textWrap: textFlow === 'balance' ? 'balance' : (textFlow === 'pretty' ? 'pretty' : 'wrap'),
     };
 
-    // Simple parser for *bold*, _italic_, ~underline~
+    // Simple parser for *bold*, _italic_, ~underline~ with escaping support
     const renderFormattedText = (content) => {
         if (!content) return null;
-        // Regex splits by markers, keeping the markers in the result to identify them
-        // [\s\S] matches any character including newlines
-        const parts = content.split(/(\*[\s\S]+?\*|_{1}[\s\S]+?_{1}|~[\s\S]+?~)/g);
 
+        // 1. Replace escaped characters with placeholders
+        // We use specific tokens that are unlikely to appear in user text
+        const safeContent = content
+            .replace(/\\\*/g, '___ESC_AST___')
+            .replace(/\\_/g, '___ESC_UND___')
+            .replace(/\\~/g, '___ESC_TIL___');
+
+        // 2. Split by markers
+        // [\s\S] matches any character including newlines
+        const parts = safeContent.split(/(\*[\s\S]+?\*|_{1}[\s\S]+?_{1}|~[\s\S]+?~)/g);
+
+        // 3. Render and restore escaped chars
         return parts.map((part, index) => {
+            const restore = (str) => str
+                .replace(/___ESC_AST___/g, '*')
+                .replace(/___ESC_UND___/g, '_')
+                .replace(/___ESC_TIL___/g, '~');
+
             if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-                return <strong key={index} className="font-bold">{part.slice(1, -1)}</strong>;
+                return <strong key={index} className="font-bold">{restore(part.slice(1, -1))}</strong>;
             }
             if (part.startsWith('_') && part.endsWith('_') && part.length > 2) {
-                return <em key={index} className="italic">{part.slice(1, -1)}</em>;
+                return <em key={index} className="italic">{restore(part.slice(1, -1))}</em>;
             }
             if (part.startsWith('~') && part.endsWith('~') && part.length > 2) {
-                return <u key={index} className="underline underline-offset-2">{part.slice(1, -1)}</u>;
+                return <u key={index} className="underline underline-offset-2">{restore(part.slice(1, -1))}</u>;
             }
-            return part;
+            return restore(part);
         });
     };
 

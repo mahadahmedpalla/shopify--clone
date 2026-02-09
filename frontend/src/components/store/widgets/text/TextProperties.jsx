@@ -52,7 +52,7 @@ export function TextProperties({ settings, onUpdate, viewMode }) {
                             placeholder="Type your text here..."
                         />
                         <p className="text-[10px] text-slate-400 mt-1">
-                            Line breaks preserved. Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>.
+                            Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>. Use <code>\</code> to escape (e.g. <code>\*</code>).
                         </p>
                     </div>
                 </div>
