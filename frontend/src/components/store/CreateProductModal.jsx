@@ -216,6 +216,9 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="Describe your product features..."
                                 />
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                    Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>. Use <code>\</code> to escape.
+                                </p>
                             </div>
 
                             <Input

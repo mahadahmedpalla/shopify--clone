@@ -1,11 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { ShoppingCart, Share2, Minus, Plus, Box, ZoomIn, ArrowRight, ArrowLeft } from 'lucide-react';
-import { useCart } from '../../../../context/CartContext';
-import { supabase } from '../../../../lib/supabase';
-import { calculateBestPrice } from '../../../../utils/discountUtils';
-
+import { renderFormattedText } from '../../Shared';
 
 export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store, storeDiscounts }) {
+    // ...
+    {/* Description */ }
+    {
+        showDesc && (
+            <div className={`mb-8 w-full ${descWidth === 'compact' ? 'max-w-md' : 'max-w-full'} ${alignment === 'center' ? 'mx-auto' : ''}`}>
+                <div className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">
+                    {renderFormattedText(displayProduct.description || 'No description available.')}
+                </div>
+            </div>
+        )
+    }
     const { addToCart } = useCart();
     const [qty, setQty] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
@@ -281,9 +287,9 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                         {/* Description */}
                         {showDesc && (
                             <div className={`mb-8 w-full ${descWidth === 'compact' ? 'max-w-md' : 'max-w-full'} ${alignment === 'center' ? 'mx-auto' : ''}`}>
-                                <p className="text-slate-600 leading-relaxed text-base">
-                                    {displayProduct.description || 'No description available.'}
-                                </p>
+                                <div className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">
+                                    {renderFormattedText(displayProduct.description || 'No description available.')}
+                                </div>
                             </div>
                         )}
 
