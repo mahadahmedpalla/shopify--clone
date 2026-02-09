@@ -213,7 +213,7 @@ export function CategoryListProperties({ settings, onUpdate, categories, viewMod
                         </div>
                     </div>
 
-                    {settings.layout === 'grid' && (
+                    {(settings.layout === 'grid' || settings.layout === 'horizontal') && (
                         <div>
                             <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Columns</label>
                             <div className="flex items-center justify-between text-xs font-bold text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
