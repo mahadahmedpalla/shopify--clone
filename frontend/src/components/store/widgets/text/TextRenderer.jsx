@@ -72,39 +72,72 @@ export function TextRenderer({ settings, viewMode, isEditor }) {
         textWrap: textFlow === 'balance' ? 'balance' : (textFlow === 'pretty' ? 'pretty' : 'wrap'),
     };
 
-    // Simple parser for *bold*, _italic_, ~underline~ with escaping support
+    // Advanced parser for nested formatting (*bold*, _italic_, ~underline~) with escaping support
     const renderFormattedText = (content) => {
         if (!content) return null;
 
-        // 1. Replace escaped characters with placeholders
-        // We use specific tokens that are unlikely to appear in user text
+        // 1. Replace escaped characters with SAFE placeholders (no special chars)
         const safeContent = content
-            .replace(/\\\*/g, '___ESC_AST___')
-            .replace(/\\_/g, '___ESC_UND___')
-            .replace(/\\~/g, '___ESC_TIL___');
+            .replace(/\\\*/g, '::AST::')
+            .replace(/\\_/g, '::UND::')
+            .replace(/\\~/g, '::TIL::');
 
-        // 2. Split by markers
-        // [\s\S] matches any character including newlines
-        const parts = safeContent.split(/(\*[\s\S]+?\*|_{1}[\s\S]+?_{1}|~[\s\S]+?~)/g);
+        // Helper to restore escaped chars
+        const restore = (str) => str
+            .replace(/::AST::/g, '*')
+            .replace(/::UND::/g, '_')
+            .replace(/::TIL::/g, '~');
 
-        // 3. Render and restore escaped chars
-        return parts.map((part, index) => {
-            const restore = (str) => str
-                .replace(/___ESC_AST___/g, '*')
-                .replace(/___ESC_UND___/g, '_')
-                .replace(/___ESC_TIL___/g, '~');
+        // Recursive parser function
+        const parse = (text, matchers) => {
+            if (!matchers.length) return [restore(text)];
 
-            if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
-                return <strong key={index} className="font-bold">{restore(part.slice(1, -1))}</strong>;
+            const currentMatcher = matchers[0];
+            const remainingMatchers = matchers.slice(1);
+
+            // Regex for current marker
+            const parts = text.split(currentMatcher.regex);
+
+            return parts.map((part, index) => {
+                // If it matches the full wrapper structure (e.g. *...*)
+                if (currentMatcher.test(part)) {
+                    // Extract inner content and recurse with remaining matchers
+                    // We also allow the same matcher to be used again inside? 
+                    // No, usually markdown structure is hierarchical or we just pass the full pipeline again
+                    // For simplicity and preventing infinite loops, we pass the FULL pipeline again to allow *bold _italic_* and _italic *bold*_
+                    // But we must be careful. Let's try passing 'matchers' again to support arbitrary nesting.
+                    // To prevent infinite recursion on the SAME string, we strip markers.
+
+                    const innerContent = part.slice(1, -1);
+                    // Recurse on inner content
+                    return currentMatcher.wrapper(parse(innerContent, matchers), index);
+                }
+
+                // Not a match, process with next matcher
+                return parse(part, remainingMatchers);
+            }).flat();
+        };
+
+        // Matchers Pipeline
+        const matchers = [
+            {
+                regex: /(\*[\s\S]+?\*)/g, // Bold
+                test: s => s.startsWith('*') && s.endsWith('*') && s.length >= 2,
+                wrapper: (children, key) => <strong key={key} className="font-bold">{children}</strong>
+            },
+            {
+                regex: /(_{1}[\s\S]+?_{1})/g, // Italic
+                test: s => s.startsWith('_') && s.endsWith('_') && s.length >= 2,
+                wrapper: (children, key) => <em key={key} className="italic">{children}</em>
+            },
+            {
+                regex: /(~[\s\S]+?~)/g, // Underline
+                test: s => s.startsWith('~') && s.endsWith('~') && s.length >= 2,
+                wrapper: (children, key) => <u key={key} className="underline underline-offset-2">{children}</u>
             }
-            if (part.startsWith('_') && part.endsWith('_') && part.length > 2) {
-                return <em key={index} className="italic">{restore(part.slice(1, -1))}</em>;
-            }
-            if (part.startsWith('~') && part.endsWith('~') && part.length > 2) {
-                return <u key={index} className="underline underline-offset-2">{restore(part.slice(1, -1))}</u>;
-            }
-            return restore(part);
-        });
+        ];
+
+        return parse(safeContent, matchers);
     };
 
     return (
