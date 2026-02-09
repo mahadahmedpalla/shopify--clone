@@ -10,6 +10,7 @@ const RelatedProductsRenderer = React.lazy(() => import('./related_products/Rela
 const CartListRenderer = React.lazy(() => import('./cart_list/CartListRenderer').then(module => ({ default: module.CartListRenderer })));
 const CheckoutRenderer = React.lazy(() => import('./checkout/CheckoutRenderer').then(module => ({ default: module.CheckoutRenderer })));
 const ContainerRenderer = React.lazy(() => import('./container/ContainerRenderer').then(module => ({ default: module.ContainerRenderer })));
+const CategoryListRenderer = React.lazy(() => import('./category_list/CategoryListRenderer').then(module => ({ default: module.CategoryListRenderer })));
 
 // Smart Fallback Component with Layout-aware Skeletons
 const WidgetSkeleton = ({ type }) => {
@@ -105,6 +106,9 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                         return <CheckoutRenderer settings={settings} isEditor={isEditor} store={store} />;
                     case 'product_detail':
                         return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} storeDiscounts={storeDiscounts} />;
+                    case 'category_list':
+                        return <CategoryListRenderer settings={settings} categories={categories} viewMode={viewMode} store={store} isEditor={isEditor} />;
+
                     default:
                         return (
                             <div className="p-8 border border-dashed border-slate-200 bg-slate-50 text-center text-slate-400 text-xs italic">

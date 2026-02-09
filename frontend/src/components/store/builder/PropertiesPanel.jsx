@@ -11,6 +11,8 @@ import { CartListProperties } from '../widgets/cart_list/CartListProperties';
 import { CheckoutProperties } from '../widgets/checkout/CheckoutProperties';
 import { ContainerProperties } from '../widgets/container/ContainerProperties';
 import { ImageProperties } from '../widgets/image/ImageProperties';
+import { CategoryListProperties } from '../widgets/category_list/CategoryListProperties';
+
 
 export function PropertiesPanel({
     previewMode,
@@ -176,6 +178,13 @@ export function PropertiesPanel({
                         <CheckoutProperties
                             settings={selectedElement.settings}
                             onUpdate={onUpdate}
+                        />
+                    ) : selectedElement.type === 'category_list' ? (
+                        <CategoryListProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                            categories={categories}
+                            viewMode={viewMode}
                         />
                     ) : (
                         <div className="space-y-4">

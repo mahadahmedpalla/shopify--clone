@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare
+    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare, Boxes
 } from 'lucide-react';
 import { genId } from '../widgets/Shared';
 
@@ -28,6 +28,8 @@ export const WIDGET_CATEGORIES = [
         name: 'Shopify Core',
         widgets: [
             { type: 'product_grid', icon: <ShoppingBag className="h-4 w-4" />, label: 'Product Grid' },
+            { type: 'category_list', icon: <Boxes className="h-4 w-4" />, label: 'Category List' },
+
             { type: 'cart_list', icon: <ShoppingCart className="h-4 w-4" />, label: 'Cart Items' },
             { type: 'product_detail', icon: <Search className="h-4 w-4" />, label: 'Product Info' },
             { type: 'product_reviews', icon: <MessageSquare className="h-4 w-4" />, label: 'Reviews' },
@@ -194,6 +196,24 @@ export const getWidgetDefaults = (type) => {
         primaryTextColor: '#ffffff',
         backgroundColor: '#ffffff',
         textColor: '#0f172a'
+    } : type === 'category_list' ? {
+        layout: 'horizontal',
+        columns: { desktop: 6, tablet: 4, mobile: 2 },
+        rowGap: 16,
+        columnGap: 16,
+        showImage: true,
+        showTitle: true,
+        imageRatio: 'circle',
+        imageFit: 'cover',
+        hoverEffect: 'none',
+        contentAlignment: 'center',
+        titleFontSize: 14,
+        titleFontWeight: 'font-medium',
+        titleColor: '#1e293b',
+        sectionPaddingTop: 20,
+        sectionPaddingBottom: 20,
+        sectionPaddingX: 20,
+        sectionBackgroundColor: 'transparent',
     } : {
         title: type === 'hero' ? 'New Hero Banner' : 'New Title',
         content: 'Sample content for your ' + type
