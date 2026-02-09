@@ -8,7 +8,6 @@ const ProductDetailRenderer = React.lazy(() => import('./product_detail/ProductD
 const ProductReviewsRenderer = React.lazy(() => import('./product_reviews/ProductReviewsRenderer').then(module => ({ default: module.ProductReviewsRenderer })));
 const RelatedProductsRenderer = React.lazy(() => import('./related_products/RelatedProductsRenderer').then(module => ({ default: module.RelatedProductsRenderer })));
 const CartListRenderer = React.lazy(() => import('./cart_list/CartListRenderer').then(module => ({ default: module.CartListRenderer })));
-const CategoryListRenderer = React.lazy(() => import('./category_list/CategoryListRenderer').then(module => ({ default: module.CategoryListRenderer })));
 const CheckoutRenderer = React.lazy(() => import('./checkout/CheckoutRenderer').then(module => ({ default: module.CheckoutRenderer })));
 const ContainerRenderer = React.lazy(() => import('./container/ContainerRenderer').then(module => ({ default: module.ContainerRenderer })));
 
@@ -102,8 +101,6 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                         );
                     case 'cart_list':
                         return <CartListRenderer settings={settings} isEditor={isEditor} viewMode={viewMode} />;
-                    case 'category_list':
-                        return <CategoryListRenderer settings={settings} categories={categories} viewMode={viewMode} isEditor={isEditor} />;
                     case 'checkout_form':
                         return <CheckoutRenderer settings={settings} isEditor={isEditor} store={store} />;
                     case 'product_detail':

@@ -1,11 +1,88 @@
 import React, { useState } from 'react';
-import {
-    AlignLeft, AlignCenter, AlignRight, Type, Image as ImageIcon, Layout, Box,
-    List, Grid, Columns, Type as Typography,
-    ChevronDown, Check, MousePointerClick, Star, Filter, Eye, Palette,
-    LayoutTemplate, Paintbrush, MoveHorizontal, LayoutGrid
-} from 'lucide-react';
+import { LayoutGrid, FolderTree, ListChecks, Ban, Layers, Box, Columns, Type, Image as ImageIcon, Palette, MousePointerClick, MoveHorizontal, LayoutTemplate, Paintbrush } from 'lucide-react';
 import { ColorInput, getResponsiveValue, ViewModeBtn } from '../Shared';
+
+// Generic MultiSelect Component
+const MultiSelect = ({ label, options, values, onChange, placeholder = "Select items..." }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState("");
+
+    const filteredOptions = options.filter(opt =>
+        opt.label.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const toggleOption = (id) => {
+        const newValues = values.includes(id)
+            ? values.filter(v => v !== id)
+            : [...values, id];
+        onChange(newValues);
+    };
+
+    return (
+        <div className="relative">
+            <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">{label}</label>
+            <div
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs min-h-[34px] flex flex-wrap gap-1 cursor-pointer"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                {values.length === 0 && <span className="text-slate-400">{placeholder}</span>}
+                {values.map(val => {
+                    const opt = options.find(o => o.id === val);
+                    return opt ? (
+                        <span key={val} className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] items-center flex">
+                            {opt.label}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleOption(val);
+                                }}
+                                className="ml-1 hover:text-indigo-900"
+                            >
+                                ×
+                            </button>
+                        </span>
+                    ) : null;
+                })}
+            </div>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-60 overflow-hidden flex flex-col">
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        className="w-full px-3 py-2 border-b border-slate-100 text-xs focus:outline-none"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                        autoFocus
+                    />
+                    <div className="overflow-y-auto flex-1">
+                        {filteredOptions.length === 0 ? (
+                            <div className="p-3 text-xs text-slate-400 text-center">No matches found</div>
+                        ) : (
+                            filteredOptions.map(opt => (
+                                <div
+                                    key={opt.id}
+                                    className={`px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 flex items-center ${values.includes(opt.id) ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-slate-600'}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleOption(opt.id);
+                                    }}
+                                >
+                                    <div className={`w-3 h-3 rounded border mr-2 flex items-center justify-center ${values.includes(opt.id) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>
+                                        {values.includes(opt.id) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                    </div>
+                                    {opt.label}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+            {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
+        </div>
+    );
+};
 
 export function ProductGridProperties({ settings, onUpdate, categories, products, viewMode }) {
     const [activeTab, setActiveTab] = useState('content'); // 'content', 'layout', 'style'
