@@ -69,38 +69,96 @@ export function CategoryListProperties({ settings, onUpdate, categories, viewMod
             {/* --- CONTENT TAB --- */}
             {activeTab === 'content' && (
                 <div className="space-y-6">
+                    {/* Source Selector */}
+                    <div>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Category Source</label>
+                        <select
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm mb-4"
+                            value={settings.categorySource || 'all'}
+                            onChange={(e) => onUpdate({ ...settings, categorySource: e.target.value })}
+                        >
+                            <option value="all">All Categories</option>
+                            <option value="selected">Manual Selection</option>
+                        </select>
+                    </div>
+
+                    {/* Category List (Hierarchical) */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase">Categories</label>
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className="rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
-                                    checked={categories.length > 0 && settings.selectedCategories?.length === categories.length}
-                                    onChange={(e) => handleSelectAll(e.target.checked)}
-                                />
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">Select All</span>
+                            <label className="text-[10px] font-bold text-slate-400 uppercase">
+                                {settings.categorySource === 'all' ? 'All Categories Included' : 'Select Categories'}
                             </label>
-                        </div>
-
-                        <div className="border border-slate-200 rounded-lg max-h-60 overflow-y-auto divide-y divide-slate-100 bg-white">
-                            {categories.map(cat => (
-                                <div key={cat.id} className="flex items-center p-2 hover:bg-slate-50">
+                            {settings.categorySource === 'selected' && (
+                                <label className="flex items-center space-x-2 cursor-pointer">
                                     <input
                                         type="checkbox"
-                                        checked={(settings.selectedCategories || []).includes(cat.id)}
-                                        onChange={() => handleCategorySelect(cat.id)}
-                                        className="rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 h-4 w-4 mr-3"
+                                        className="rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                        checked={categories.length > 0 && settings.selectedCategories?.length === categories.length}
+                                        onChange={(e) => handleSelectAll(e.target.checked)}
                                     />
-                                    <span className="text-sm text-slate-700">{cat.name}</span>
-                                </div>
-                            ))}
-                            {categories.length === 0 && (
-                                <p className="p-4 text-center text-xs text-slate-400 italic">No categories found in store.</p>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">Select All</span>
+                                </label>
                             )}
                         </div>
+
+                        <div className={`border border-slate-200 rounded-lg max-h-60 overflow-y-auto bg-white ${settings.categorySource === 'all' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                            {(() => {
+                                // Build Tree
+                                const buildTree = (cats) => {
+                                    const map = {};
+                                    cats.forEach(c => map[c.id] = { ...c, children: [] });
+                                    const roots = [];
+                                    cats.forEach(c => {
+                                        if (c.parent_id && map[c.parent_id]) {
+                                            map[c.parent_id].children.push(map[c.id]);
+                                        } else {
+                                            roots.push(map[c.id]);
+                                        }
+                                    });
+                                    return roots;
+                                };
+                                const tree = buildTree(categories);
+
+                                const renderItem = (cat, depth = 0) => (
+                                    <React.Fragment key={cat.id}>
+                                        <div className="flex items-center hover:bg-slate-50 border-b border-slate-50 last:border-0 py-2 pr-2 transition-colors"
+                                            style={{ paddingLeft: `${(depth * 24) + 12}px` }}> {/* Indentation */}
+
+                                            {/* Thread line for children */}
+                                            {depth > 0 && (
+                                                <div className="absolute left-0 w-px bg-slate-200 h-full" style={{ left: `${(depth * 24) + 4}px` }} />
+                                            )}
+
+                                            <input
+                                                type="checkbox"
+                                                checked={(settings.selectedCategories || []).includes(cat.id)}
+                                                onChange={() => handleCategorySelect(cat.id)}
+                                                disabled={settings.categorySource === 'all'}
+                                                className="rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 h-4 w-4 mr-3 shrink-0"
+                                            />
+                                            <span className={`text-sm truncate ${depth === 0 ? 'font-semibold text-slate-800' : 'text-slate-600'}`}>
+                                                {cat.name}
+                                            </span>
+                                        </div>
+                                        {cat.children && cat.children.length > 0 && (
+                                            <div className="relative">
+                                                {cat.children.map(child => renderItem(child, depth + 1))}
+                                            </div>
+                                        )}
+                                    </React.Fragment>
+                                );
+
+                                if (categories.length === 0) {
+                                    return <p className="p-4 text-center text-xs text-slate-400 italic">No categories found in store.</p>;
+                                }
+
+                                return tree.map(root => renderItem(root));
+                            })()}
+                        </div>
                         <p className="text-[10px] text-slate-400 mt-2">
-                            Drag and drop categories in the list above is not yet supported. Selection order determines manual sort order.
+                            {settings.categorySource === 'all'
+                                ? "Switch to 'Manual Selection' above to include/exclude specific categories."
+                                : "Drag and drop is not supported. Selection order determines manual sort order."}
                         </p>
                     </div>
 

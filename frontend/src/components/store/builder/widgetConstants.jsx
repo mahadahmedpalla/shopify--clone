@@ -197,6 +197,7 @@ export const getWidgetDefaults = (type) => {
         backgroundColor: '#ffffff',
         textColor: '#0f172a'
     } : type === 'category_list' ? {
+        categorySource: 'all',
         layout: 'horizontal',
         columns: { desktop: 6, tablet: 4, mobile: 2 },
         rowGap: 16,

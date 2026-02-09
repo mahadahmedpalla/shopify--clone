@@ -11,15 +11,21 @@ export function CategoryListRenderer({ settings, categories, viewMode, store, is
     let displayCategories = [];
 
     // Source Logic
-    if (settings.categorySource === 'selected' && settings.selectedCategories?.length > 0) {
-        // Filter by selection
-        displayCategories = categories.filter(c => settings.selectedCategories.includes(c.id));
+    // Source Logic
+    if (settings.categorySource === 'selected') {
+        if (settings.selectedCategories?.length > 0) {
+            // Filter by selection
+            displayCategories = categories.filter(c => settings.selectedCategories.includes(c.id));
 
-        // Manual Sort based on selection order (if using manual sort)
-        if (settings.sortBy === 'manual') {
-            displayCategories.sort((a, b) => {
-                return settings.selectedCategories.indexOf(a.id) - settings.selectedCategories.indexOf(b.id);
-            });
+            // Manual Sort based on selection order (if using manual sort)
+            if (settings.sortBy === 'manual') {
+                displayCategories.sort((a, b) => {
+                    return settings.selectedCategories.indexOf(a.id) - settings.selectedCategories.indexOf(b.id);
+                });
+            }
+        } else {
+            // Selected mode but empty selection -> Show nothing
+            displayCategories = [];
         }
     } else {
         // "All" or fallback
