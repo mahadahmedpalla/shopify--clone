@@ -51,7 +51,9 @@ export function TextProperties({ settings, onUpdate, viewMode }) {
                             onChange={(e) => onUpdate({ ...settings, text: e.target.value })}
                             placeholder="Type your text here..."
                         />
-                        <p className="text-[10px] text-slate-400 mt-1">Line breaks are preserved.</p>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                            Line breaks preserved. Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>.
+                        </p>
                     </div>
                 </div>
             )}

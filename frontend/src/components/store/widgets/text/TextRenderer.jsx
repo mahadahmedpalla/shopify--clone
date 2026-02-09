@@ -72,10 +72,31 @@ export function TextRenderer({ settings, viewMode, isEditor }) {
         textWrap: textFlow === 'balance' ? 'balance' : (textFlow === 'pretty' ? 'pretty' : 'wrap'),
     };
 
+    // Simple parser for *bold*, _italic_, ~underline~
+    const renderFormattedText = (content) => {
+        if (!content) return null;
+        // Regex splits by markers, keeping the markers in the result to identify them
+        // [\s\S] matches any character including newlines
+        const parts = content.split(/(\*[\s\S]+?\*|_{1}[\s\S]+?_{1}|~[\s\S]+?~)/g);
+
+        return parts.map((part, index) => {
+            if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+                return <strong key={index} className="font-bold">{part.slice(1, -1)}</strong>;
+            }
+            if (part.startsWith('_') && part.endsWith('_') && part.length > 2) {
+                return <em key={index} className="italic">{part.slice(1, -1)}</em>;
+            }
+            if (part.startsWith('~') && part.endsWith('~') && part.length > 2) {
+                return <u key={index} className="underline underline-offset-2">{part.slice(1, -1)}</u>;
+            }
+            return part;
+        });
+    };
+
     return (
         <div style={containerStyle} className="w-full relative">
             <div style={textStyle}>
-                {text}
+                {renderFormattedText(text)}
             </div>
         </div>
     );
