@@ -51,9 +51,14 @@ export function TextProperties({ settings, onUpdate, viewMode }) {
                             onChange={(e) => onUpdate({ ...settings, text: e.target.value })}
                             placeholder="Type your text here..."
                         />
-                        <p className="text-[10px] text-slate-400 mt-1">
-                            Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>. Use <code>\</code> to escape (e.g. <code>\*</code>).
-                        </p>
+                        <div className="mt-3 text-[10px] text-slate-500 bg-white p-2.5 rounded border border-slate-200 shadow-sm leading-relaxed">
+                            <ul className="space-y-1">
+                                <li><span className="font-mono bg-slate-100 px-1 rounded text-slate-700">Shift+Enter</span> : To change line</li>
+                                <li><strong>*bold*</strong> : For making text bold</li>
+                                <li><em>_italic_</em> : For making text italic</li>
+                                <li><u>~underline~</u> : For making text underline</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             )}
