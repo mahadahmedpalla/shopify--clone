@@ -13,6 +13,8 @@ import { ContainerProperties } from '../widgets/container/ContainerProperties';
 import { ImageProperties } from '../widgets/image/ImageProperties';
 import { CategoryListProperties } from '../widgets/category_list/CategoryListProperties';
 
+import { HeadingProperties } from '../widgets/heading/HeadingProperties';
+
 
 export function PropertiesPanel({
     previewMode,
@@ -184,6 +186,12 @@ export function PropertiesPanel({
                             settings={selectedElement.settings}
                             onUpdate={onUpdate}
                             categories={categories}
+                            viewMode={viewMode}
+                        />
+                    ) : selectedElement.type === 'heading' ? (
+                        <HeadingProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
                             viewMode={viewMode}
                         />
                     ) : (

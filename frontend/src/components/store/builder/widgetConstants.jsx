@@ -215,6 +215,28 @@ export const getWidgetDefaults = (type) => {
         sectionPaddingBottom: 20,
         sectionPaddingX: 20,
         sectionBackgroundColor: 'transparent',
+    } : type === 'heading' ? {
+        text: 'New Heading',
+        htmlTag: 'h2',
+        alignment: 'center',
+        fontSize: 32,
+        fontWeight: '700',
+        textColor: '#1e293b',
+        fontFamily: 'Inter, sans-serif',
+        lineHeight: 1.2,
+        letterSpacing: 0,
+        textTransform: 'none',
+        useGradient: false,
+        textShadow: false,
+        backgroundColor: 'transparent',
+        backgroundOpacity: 100,
+        borderRadius: 0,
+        paddingY: 20,
+        paddingX: 20,
+        marginTop: 0,
+        marginBottom: 0,
+        enableLink: false,
+        linkUrl: ''
     } : {
         title: type === 'hero' ? 'New Hero Banner' : 'New Title',
         content: 'Sample content for your ' + type
