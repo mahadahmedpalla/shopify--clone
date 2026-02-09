@@ -98,6 +98,29 @@ export function CategoryListRenderer({ settings, categories, viewMode, store, is
 
 
     // --- 3. Interaction Helpers ---
+    // Helper: Convert name to slug (hyphens, lowercase)
+    const slugify = (text) => {
+        return text
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/[\s\W-]+/g, '-') // Replace spaces and non-word chars with -
+            .replace(/^-+|-+$/g, ''); // Remove leading/trailing -
+    };
+
+    // Recursive path builder
+    const getCategoryPath = (categoryId) => {
+        const cat = categories.find(c => c.id === categoryId);
+        if (!cat) return '';
+
+        const slug = slugify(cat.name);
+        if (cat.parent_id) {
+            const parentPath = getCategoryPath(cat.parent_id);
+            return parentPath ? `${parentPath}/${slug}` : slug;
+        }
+        return slug;
+    };
+
     const scrollContainerRef = useRef(null);
     const scroll = (direction) => {
         if (scrollContainerRef.current) {
@@ -164,7 +187,10 @@ export function CategoryListRenderer({ settings, categories, viewMode, store, is
                 style={{ gap: layout === 'horizontal' ? `${colGap}px` : `${rowGap}px ${colGap}px` }}
             >
                 {displayCategories.map(cat => {
-                    const linkPath = `/s/${store?.sub_url || 'preview'}/shop?category=${cat.id}`;
+                    const fullPath = getCategoryPath(cat.id);
+                    const linkPath = fullPath
+                        ? `/s/${store?.sub_url || 'preview'}/shop/${fullPath}`
+                        : `/s/${store?.sub_url || 'preview'}/shop?category=${cat.id}`;
 
                     // Fixed Aspect Ratio Classes
                     let aspectClass = '';
