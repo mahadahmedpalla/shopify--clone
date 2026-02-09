@@ -29,14 +29,15 @@ export function Loader() {
     );
 }
 
-return (
-    <button
-        onClick={onClick}
-        className={`p-1.5 rounded-md transition-all ${active ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
-    >
-        {icon}
-    </button>
-);
+export function ViewModeBtn({ active, onClick, icon }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`p-1.5 rounded-md transition-all ${active ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+        >
+            {icon}
+        </button>
+    );
 }
 
 // Advanced parser for nested formatting (*bold*, _italic_, ~underline~) with escaping support
