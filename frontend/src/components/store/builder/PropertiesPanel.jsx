@@ -14,6 +14,7 @@ import { ImageProperties } from '../widgets/image/ImageProperties';
 import { CategoryListProperties } from '../widgets/category_list/CategoryListProperties';
 
 import { HeadingProperties } from '../widgets/heading/HeadingProperties';
+import { TextProperties } from '../widgets/text/TextProperties';
 
 
 export function PropertiesPanel({
@@ -190,6 +191,12 @@ export function PropertiesPanel({
                         />
                     ) : selectedElement.type === 'heading' ? (
                         <HeadingProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                            viewMode={viewMode}
+                        />
+                    ) : selectedElement.type === 'text' ? (
+                        <TextProperties
                             settings={selectedElement.settings}
                             onUpdate={onUpdate}
                             viewMode={viewMode}

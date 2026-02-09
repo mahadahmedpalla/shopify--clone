@@ -13,6 +13,8 @@ const ContainerRenderer = React.lazy(() => import('./container/ContainerRenderer
 const CategoryListRenderer = React.lazy(() => import('./category_list/CategoryListRenderer').then(module => ({ default: module.CategoryListRenderer })));
 const HeadingRenderer = React.lazy(() => import('./heading/HeadingRenderer').then(module => ({ default: module.HeadingRenderer })));
 
+const TextRenderer = React.lazy(() => import('./text/TextRenderer').then(module => ({ default: module.TextRenderer })));
+
 // Smart Fallback Component with Layout-aware Skeletons
 const WidgetSkeleton = ({ type }) => {
     // Base classes for the skeleton animation
@@ -47,7 +49,7 @@ const WidgetSkeleton = ({ type }) => {
     }
 
     // Text/Heading content
-    if (type === 'heading' || type === 'rich_text') {
+    if (type === 'heading' || type === 'text') {
         return (
             <div className="px-12 py-12 flex justify-center">
                 <div className="h-12 w-3/4 bg-slate-100 rounded-lg animate-pulse" />
@@ -97,6 +99,8 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                         return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} isEditor={isEditor} storeDiscounts={storeDiscounts} />;
                     case 'heading':
                         return <HeadingRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
+                    case 'text':
+                        return <TextRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'cart_list':
                         return <CartListRenderer settings={settings} isEditor={isEditor} viewMode={viewMode} />;
                     case 'checkout_form':

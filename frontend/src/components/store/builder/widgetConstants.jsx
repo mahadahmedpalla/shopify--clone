@@ -237,6 +237,25 @@ export const getWidgetDefaults = (type) => {
         marginBottom: 0,
         enableLink: false,
         linkUrl: ''
+    } : type === 'text' ? {
+        text: 'This is a text block. You can write your content here.',
+        alignment: 'left',
+        maxWidthMode: 'full',
+        customWidth: 600,
+        textFlow: 'wrap',
+        fontSize: 16,
+        fontWeight: '400',
+        textColor: '#334155',
+        fontFamily: 'Inter, sans-serif',
+        lineHeight: 1.6,
+        letterSpacing: 0,
+        backgroundColor: 'transparent',
+        backgroundOpacity: 100,
+        borderRadius: 0,
+        paddingY: 0,
+        paddingX: 0,
+        marginTop: 0,
+        marginBottom: 0
     } : {
         title: type === 'hero' ? 'New Hero Banner' : 'New Title',
         content: 'Sample content for your ' + type
