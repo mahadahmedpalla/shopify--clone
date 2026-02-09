@@ -27,14 +27,14 @@ export function HeadingProperties({ settings, onUpdate, viewMode }) {
     return (
         <div className="space-y-6">
             {/* TABS */}
-            <div className="flex bg-slate-100 p-1 rounded-lg">
+            <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-lg">
                 {['content', 'typography', 'style', 'spacing'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${activeTab === tab ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${activeTab === tab ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
-                        {tab.slice(0, 4)}..
+                        {tab}
                     </button>
                 ))}
             </div>
@@ -54,21 +54,26 @@ export function HeadingProperties({ settings, onUpdate, viewMode }) {
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">HTML Tag</label>
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">HTML Tag & Presets</label>
                         <div className="grid grid-cols-6 gap-2">
                             {['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map(tag => (
                                 <button
                                     key={tag}
-                                    onClick={() => onUpdate({ ...settings, htmlTag: tag })}
+                                    onClick={() => {
+                                        // Auto-scale font size based on tag
+                                        const sizes = { h1: 48, h2: 32, h3: 24, h4: 20, h5: 16, h6: 14 };
+                                        onUpdate({ ...settings, htmlTag: tag, fontSize: sizes[tag] });
+                                    }}
                                     className={`py-2 rounded-md text-xs font-bold uppercase border ${(settings.htmlTag || 'h2') === tag
-                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                                        ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
+                                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
                                         }`}
                                 >
                                     {tag}
                                 </button>
                             ))}
                         </div>
+                        <p className="text-[10px] text-slate-400 mt-1">Selecting a tag auto-updates font size.</p>
                     </div>
 
                     <div className="border-t border-slate-100 pt-4">
