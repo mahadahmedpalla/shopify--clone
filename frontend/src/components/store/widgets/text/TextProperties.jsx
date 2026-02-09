@@ -57,6 +57,7 @@ export function TextProperties({ settings, onUpdate, viewMode }) {
                                 <li><strong>*bold*</strong> : For making text bold</li>
                                 <li><em>_italic_</em> : For making text italic</li>
                                 <li><u>~underline~</u> : For making text underline</li>
+                                <li>Use <span className="font-mono bg-slate-100 px-1 rounded text-slate-700 mx-1">\</span> to escape (e.g. <code>\*text\*</code> shows *text*)</li>
                             </ul>
                         </div>
                     </div>
