@@ -196,7 +196,6 @@ function PublicError({ message }) {
             <h1 className="text-4xl font-black tracking-tight">Wait, something is missing</h1>
             <p className="text-slate-500 max-w-sm">{message}</p>
             <p className="text-[10px] text-slate-300 uppercase tracking-widest font-bold">The storefront might be private or the link is incorrect.</p>
-            <Link to="/"><Button variant="secondary" className="border-slate-200">Back to Dashboard</Button></Link>
         </div>
     );
 }
