@@ -154,7 +154,7 @@ export function OrderTrackingRenderer({ settings }) {
                         <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4">
                             <div>
                                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Order ID</div>
-                                <div className="font-mono text-sm text-slate-700">{orderData.id}</div>
+                                <div className="font-mono text-sm text-slate-700">{orderData.id.slice(0, 8)}</div>
                             </div>
                             <div className={`px-4 py-2 rounded-full border flex items-center gap-2 capitalize font-medium ${getStatusColor(orderData.status)}`}>
                                 {getStatusIcon(orderData.status)}
