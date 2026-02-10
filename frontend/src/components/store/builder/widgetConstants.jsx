@@ -21,6 +21,7 @@ export const WIDGET_CATEGORIES = [
             { type: 'hero', icon: <Layout className="h-4 w-4" />, label: 'Hero Banner' },
             { type: 'hero_slideshow', icon: <Play className="h-4 w-4" />, label: 'Hero Slideshow' },
             { type: 'section', icon: <Layout className="h-4 w-4" />, label: 'Section' },
+            { type: 'footer', icon: <Columns className="h-4 w-4" />, label: 'Footer' },
             { type: 'spacer', icon: <Box className="h-4 w-4" />, label: 'Spacer' },
         ]
     },
