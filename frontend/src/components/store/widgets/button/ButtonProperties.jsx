@@ -330,14 +330,40 @@ export function ButtonProperties({ settings, onUpdate, viewMode }) {
                             />
                         </div>
                         {settings.useGradient && (
-                            <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Gradient String</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-mono"
-                                    value={settings.gradient || 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'}
-                                    onChange={(e) => handleChange('gradient', e.target.value)}
-                                />
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Gradient Presets</label>
+                                <div className="grid grid-cols-5 gap-2">
+                                    {[
+                                        { name: 'Ocean', value: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' },
+                                        { name: 'Purple', value: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)' },
+                                        { name: 'Sunset', value: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)' },
+                                        { name: 'Emerald', value: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
+                                        { name: 'Cherry', value: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)' },
+                                        { name: 'Midnight', value: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' },
+                                        { name: 'Gold', value: 'linear-gradient(135deg, #facc15 0%, #eab308 100%)' },
+                                        { name: 'Subtle', value: 'linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%)' },
+                                        { name: 'Berry', value: 'linear-gradient(135deg, #db2777 0%, #9333ea 100%)' },
+                                        { name: 'Teal', value: 'linear-gradient(135deg, #2dd4bf 0%, #0ea5e9 100%)' }
+                                    ].map((preset) => (
+                                        <button
+                                            key={preset.name}
+                                            onClick={() => handleChange('gradient', preset.value)}
+                                            className={`h-8 w-8 rounded-full shadow-sm ring-2 ring-offset-2 transition-all hover:scale-110 ${settings.gradient === preset.value ? 'ring-indigo-600' : 'ring-transparent hover:ring-slate-200'}`}
+                                            style={{ background: preset.value }}
+                                            title={preset.name}
+                                        />
+                                    ))}
+                                </div>
+                                <div>
+                                    <label className="text-[9px] text-slate-400 block mb-1">Custom Gradient String</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-mono text-slate-600"
+                                        value={settings.gradient || ''}
+                                        onChange={(e) => handleChange('gradient', e.target.value)}
+                                        placeholder="linear-gradient(...)"
+                                    />
+                                </div>
                             </div>
                         )}
 
