@@ -206,13 +206,13 @@ export function PropertiesPanel({
                     ) : selectedElement.type === 'button' ? (
                         <ButtonProperties
                             settings={selectedElement.settings}
-                            onUpdate={handleUpdateSettings}
+                            onUpdate={onUpdate}
                             viewMode={viewMode}
                         />
                     ) : selectedElement.type === 'order_tracking' ? (
                         <OrderTrackingProperties
                             settings={selectedElement.settings}
-                            onUpdate={handleUpdateSettings}
+                            onUpdate={onUpdate}
                         />
                     ) : (
                         <div className="space-y-4">
