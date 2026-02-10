@@ -16,6 +16,7 @@ import { CategoryListProperties } from '../widgets/category_list/CategoryListPro
 import { HeadingProperties } from '../widgets/heading/HeadingProperties';
 import { TextProperties } from '../widgets/text/TextProperties';
 import { ButtonProperties } from '../widgets/button/ButtonProperties';
+import { OrderTrackingProperties } from '../widgets/order-tracking/OrderTrackingProperties';
 
 
 export function PropertiesPanel({
@@ -205,8 +206,13 @@ export function PropertiesPanel({
                     ) : selectedElement.type === 'button' ? (
                         <ButtonProperties
                             settings={selectedElement.settings}
-                            onUpdate={onUpdate}
+                            onUpdate={handleUpdateSettings}
                             viewMode={viewMode}
+                        />
+                    ) : selectedElement.type === 'order_tracking' ? (
+                        <OrderTrackingProperties
+                            settings={selectedElement.settings}
+                            onUpdate={handleUpdateSettings}
                         />
                     ) : (
                         <div className="space-y-4">

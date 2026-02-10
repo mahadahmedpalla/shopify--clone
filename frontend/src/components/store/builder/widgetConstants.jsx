@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare, Boxes, MousePointer
-} from 'lucide-react';
+import { Layout, Type, Image as ImageIcon, Box, Play, Grid, List, MousePointer, Package } from 'lucide-react';
 import { genId } from '../widgets/Shared';
 
 export const WIDGET_CATEGORIES = [
@@ -12,6 +10,7 @@ export const WIDGET_CATEGORIES = [
             { type: 'text', icon: <Type className="h-4 w-4" />, label: 'Text Block' },
             { type: 'heading', icon: <Type className="h-5 w-5" />, label: 'Heading' },
             { type: 'button', icon: <MousePointer className="h-4 w-4" />, label: 'Button' },
+            { type: 'order_tracking', icon: <Package className="h-4 w-4" />, label: 'Order Tracking' },
             { type: 'image', icon: <ImageIcon className="h-4 w-4" />, label: 'Image' },
         ]
     },
@@ -174,7 +173,6 @@ export const getWidgetDefaults = (type) => {
         aspectRatio: 'auto', // auto, 1/1, 4/3, 16/9, 3/4, custom
         customRatio: 1.5,
         widthMode: 'auto', // auto, full, custom
-        width: '100%',
         heightMode: 'auto', // auto, fixed
         height: '300px',
         // Layout
