@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, Square, Layout, List, MousePointer, Package, CreditCard, Image, Grid, AlignLeft, Box, Search, Play, Phone, Mail, ShoppingBag, ShoppingCart, MessageSquare, Columns } from 'lucide-react';
+import { Type, Square, Layout, List, MousePointer, Package, CreditCard, Image as ImageIcon, Grid, AlignLeft, Box, Search, Play, Phone, Mail, ShoppingBag, ShoppingCart, MessageSquare, Columns } from 'lucide-react';
 import { genId } from '../widgets/Shared';
 
 export const WIDGET_CATEGORIES = [
