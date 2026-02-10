@@ -8,7 +8,7 @@ import {
 import { supabase } from '../../../../lib/supabase';
 import { deleteStoreFiles } from '../../../../lib/storageHelper';
 
-export function ImageProperties({ settings, onChange, viewMode = 'desktop', storeId }) {
+export function ImageProperties({ settings, onChange, viewMode = 'desktop', storeId, isTheme = false, developerId = null }) {
     const { storeId: paramStoreId } = useParams();
     const activeStoreId = storeId || paramStoreId;
     const [activeTab, setActiveTab] = useState('content'); // content, sizing, style, interaction
@@ -38,22 +38,34 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
 
             const fileExt = file.name.split('.').pop();
             const fileName = `${Math.random()}.${fileExt}`;
-            // Use standardized store-id isolation: storeId/filename
-            const folder = activeStoreId ? `${activeStoreId}/widget-images` : `widget-images`;
+
+            // Determine Bucket and Path
+            let bucketName = 'store-images';
+            let folder = '';
+
+            if (isTheme) {
+                if (!developerId) throw new Error("Developer ID missing for theme upload");
+                bucketName = 'themes';
+                // Folder: developerId / themeId / fileName
+                folder = `${developerId}/${activeStoreId}`;
+            } else {
+                bucketName = 'store-images';
+                folder = activeStoreId ? `${activeStoreId}/widget-images` : `widget-images`;
+            }
+
             const filePath = `${folder}/${fileName}`;
 
             let { error: uploadError } = await supabase.storage
-                .from('store-images')
+                .from(bucketName)
                 .upload(filePath, file);
 
             if (uploadError) {
-                // Try creating bucket if it doesn't exist (optional handling)
                 console.error(uploadError);
                 throw uploadError;
             }
 
             const { data } = supabase.storage
-                .from('store-images')
+                .from(bucketName)
                 .getPublicUrl(filePath);
 
             updateSetting('src', data.publicUrl);
@@ -71,8 +83,25 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
         if (!confirm('Are you sure you want to delete this image? This will remove it from storage permanently.')) return;
 
         try {
+            // Determine Bucket
+            const bucketName = isTheme ? 'themes' : 'store-images';
+
             // Delete from storage bucket
-            await deleteStoreFiles('store-images', [imageUrl], activeStoreId);
+            await deleteStoreFiles(bucketName, [imageUrl], isTheme ? null : activeStoreId); // isTheme doesn't use the simple prefix check logic of deleteStoreFiles maybe?
+            // Actually deleteStoreFiles might assume 'store-images' or specific structure. 
+            // Let's use raw supabase delete for themes to be safe or update helper.
+
+            if (isTheme) {
+                // Parse path from URL for themes bucket
+                const urlObj = new URL(imageUrl);
+                const pathPart = urlObj.pathname.split(`/${bucketName}/`)[1];
+                if (pathPart) {
+                    await supabase.storage.from(bucketName).remove([decodeURIComponent(pathPart)]);
+                }
+            } else {
+                await deleteStoreFiles('store-images', [imageUrl], activeStoreId);
+            }
+
             // Clear from settings
             updateSetting('src', '');
         } catch (err) {

@@ -9,7 +9,7 @@ import { supabase } from '../../../../lib/supabase';
 import { deleteStoreFiles, extractPathFromUrl } from '../../../../lib/storageHelper';
 import { ColorInput } from '../Shared';
 
-export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop', storePages = [] }) {
+export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop', storePages = [], isTheme = false, developerId = null }) {
     const { storeId: paramStoreId } = useParams();
     const activeStoreId = storeId || paramStoreId;
     const [activeTab, setActiveTab] = useState('slides'); // slides, settings, style
@@ -88,16 +88,28 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
     const handleImageUpload = async (file, slideIndex) => {
         if (!file) return;
         const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-        const folder = activeStoreId ? `${activeStoreId}/slideshow` : 'slideshow';
+
+        let bucketName = 'store-assets';
+        let folder = '';
+
+        if (isTheme) {
+            if (!developerId) throw new Error("Developer ID missing");
+            bucketName = 'themes';
+            folder = `${developerId}/${activeStoreId}`;
+        } else {
+            bucketName = 'store-assets';
+            folder = activeStoreId ? `${activeStoreId}/slideshow` : 'slideshow';
+        }
+
         const filePath = `${folder}/${fileName}`;
 
-        const { error } = await supabase.storage.from('store-assets').upload(filePath, file);
+        const { error } = await supabase.storage.from(bucketName).upload(filePath, file);
         if (error) {
             console.error('Upload error:', error);
             return;
         }
 
-        const { data } = supabase.storage.from('store-assets').getPublicUrl(filePath);
+        const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
         // Uses the responsive key logic to upload per-device image if needed
         handleSlideUpdate(slideIndex, 'image', data.publicUrl);
     };
@@ -111,8 +123,17 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
         if (!confirm('Are you sure you want to delete this image? This will remove it from storage permanently.')) return;
 
         try {
-            // Correctly call the helper with bucket, array of URLs, and storeId for tracking
-            await deleteStoreFiles('store-assets', [imageUrl], activeStoreId);
+            const bucketName = isTheme ? 'themes' : 'store-assets';
+            // Correctly call the helper with bucket, array of URLs, and storeId for tracking (null for themes)
+            await deleteStoreFiles(bucketName, [imageUrl], isTheme ? null : activeStoreId);
+
+            if (isTheme) {
+                const urlObj = new URL(imageUrl);
+                const pathPart = urlObj.pathname.split(`/${bucketName}/`)[1];
+                if (pathPart) {
+                    await supabase.storage.from(bucketName).remove([decodeURIComponent(pathPart)]);
+                }
+            }
 
             // Clear from state
             handleSlideUpdate(slideIndex, 'image', '');

@@ -30,7 +30,9 @@ export function PropertiesPanel({
     viewMode,
     storePages,
     onSaveCustom,
-    storeId
+    storeId,
+    isTheme = false,
+    developerId = null
 }) {
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [presetName, setPresetName] = useState('');
@@ -125,6 +127,8 @@ export function PropertiesPanel({
                             onChange={onUpdate}
                             viewMode={viewMode}
                             storeId={storeId}
+                            isTheme={isTheme}
+                            developerId={developerId}
                         />
                     ) : selectedElement.type === 'navbar' ? (
                         <NavbarProperties
@@ -142,6 +146,8 @@ export function PropertiesPanel({
                             viewMode={viewMode}
                             onUpdate={onUpdate}
                             storeId={storeId}
+                            isTheme={isTheme}
+                            developerId={developerId}
                         />
                     ) : selectedElement.type === 'hero_slideshow' ? (
                         <HeroSlideshowProperties
@@ -150,6 +156,8 @@ export function PropertiesPanel({
                             storeId={storeId}
                             viewMode={viewMode}
                             storePages={storePages}
+                            isTheme={isTheme}
+                            developerId={developerId}
                         />
                     ) : selectedElement.type === 'product_grid' ? (
                         <ProductGridProperties

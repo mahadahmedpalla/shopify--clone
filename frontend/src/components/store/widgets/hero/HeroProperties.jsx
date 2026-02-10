@@ -8,8 +8,10 @@ import {
     ArrowUp, ArrowDown, Move, Smartphone, Tablet
 } from 'lucide-react';
 
-export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
+export function HeroProperties({ settings, onUpdate, viewMode, storeId, isTheme = false, developerId = null }) {
     const { storeId: paramStoreId } = useParams();
+    // For Themes, storeId might be the themeId passed down. 
+    // If isTheme is true, activeStoreId acts as the Theme ID for paths.
     const activeStoreId = storeId || paramStoreId;
 
     const update = (key, val) => {
@@ -37,8 +39,22 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
         if (!confirm('Are you sure you want to delete this banner image? This will remove it from storage permanently.')) return;
 
         try {
+            // Determine Bucket
+            const bucketName = isTheme ? 'themes' : 'store-assets';
+
             // Delete from storage bucket
-            await deleteStoreFiles('store-assets', [imageUrl], activeStoreId);
+            // If isTheme, pass null for storeId to skip storage tracking
+            await deleteStoreFiles(bucketName, [imageUrl], isTheme ? null : activeStoreId);
+
+            // Manual cleanup for themes bucket if helper doesn't cover it (helper covers if path is correct)
+            if (isTheme) {
+                const urlObj = new URL(imageUrl);
+                const pathPart = urlObj.pathname.split(`/${bucketName}/`)[1];
+                if (pathPart) {
+                    await supabase.storage.from(bucketName).remove([decodeURIComponent(pathPart)]);
+                }
+            }
+
             // Clear from state
             update('backgroundImage', '');
         } catch (err) {
@@ -100,17 +116,30 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId }) {
 
                                     const fileExt = file.name.split('.').pop();
                                     const fileName = `${Math.random()}.${fileExt}`;
-                                    // Use standardized store-id isolation: storeId/filename
-                                    const filePath = storeId ? `${storeId}/${fileName}` : `${fileName}`;
+
+                                    // Determine Bucket and Path
+                                    let bucketName = 'store-assets';
+                                    let folder = '';
+
+                                    if (isTheme) {
+                                        if (!developerId) throw new Error("Developer ID missing");
+                                        bucketName = 'themes';
+                                        folder = `${developerId}/${activeStoreId}`;
+                                    } else {
+                                        bucketName = 'store-assets';
+                                        folder = activeStoreId ? `${activeStoreId}` : ``;
+                                    }
+
+                                    const filePath = folder ? `${folder}/${fileName}` : fileName;
 
                                     const { error } = await supabase.storage
-                                        .from('store-assets')
+                                        .from(bucketName)
                                         .upload(filePath, file);
 
                                     if (error) return alert('Upload failed: ' + error.message);
 
                                     const { data: { publicUrl } } = supabase.storage
-                                        .from('store-assets')
+                                        .from(bucketName)
                                         .getPublicUrl(filePath);
 
                                     update('backgroundImage', publicUrl);

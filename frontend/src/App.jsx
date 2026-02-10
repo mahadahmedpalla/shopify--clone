@@ -21,6 +21,8 @@ import { ShippingPage } from './components/store/shipping/ShippingPage';
 import { OrdersPage } from './components/store/orders/OrdersPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { StoreSettingsPage } from './components/store/settings/StoreSettingsPage';
+import { ThemeDashboard } from './pages/ThemeDashboard';
+import { ThemeBuilder } from './components/theme/ThemeBuilder';
 // ... existing imports ...
 
 
@@ -93,6 +95,10 @@ function App() {
             </DashboardLayout>
           } />
 
+          <Route path="/theme-dashboard" element={
+            <ThemeDashboard />
+          } />
+
           {/* Store Sub-Dashboard Routes */}
           <Route path="/store/:storeId" element={<StoreLayout />}>
             <Route index element={<Navigate to="categories" replace />} />
@@ -110,6 +116,10 @@ function App() {
 
           {/* Full Screen Builder Route */}
           <Route path="/store/:storeId/builder/:pageId" element={<StoreBuilder />} />
+
+          {/* Theme Builder Routes */}
+          <Route path="/theme-builder/:themeId" element={<ThemeBuilder />} />
+          <Route path="/theme-builder/:themeId/:pageId" element={<ThemeBuilder />} />
         </Route>
       </Routes>
     </BrowserRouter>
