@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare, Boxes
+    Type, Image as ImageIcon, Layout, Box, Play, ShoppingBag, ShoppingCart, Search, MessageSquare, Boxes, MousePointer
 } from 'lucide-react';
 import { genId } from '../widgets/Shared';
 
@@ -11,6 +11,7 @@ export const WIDGET_CATEGORIES = [
             { type: 'navbar', icon: <Box className="h-4 w-4" />, label: 'Navbar' },
             { type: 'text', icon: <Type className="h-4 w-4" />, label: 'Text Block' },
             { type: 'heading', icon: <Type className="h-5 w-5" />, label: 'Heading' },
+            { type: 'button', icon: <MousePointer className="h-4 w-4" />, label: 'Button' },
             { type: 'image', icon: <ImageIcon className="h-4 w-4" />, label: 'Image' },
         ]
     },
@@ -256,6 +257,44 @@ export const getWidgetDefaults = (type) => {
         paddingX: 0,
         marginTop: 0,
         marginBottom: 0
+    } : type === 'button' ? {
+        text: 'Click Me',
+        linkUrl: '',
+        openInNewTab: false,
+        iconName: '',
+        iconPosition: 'left',
+        iconGap: { desktop: 8, tablet: 8, mobile: 8 },
+
+        alignment: { desktop: 'center', tablet: 'center', mobile: 'center' },
+        widthMode: { desktop: 'auto', tablet: 'auto', mobile: 'auto' }, // auto, fixed, full
+        customWidth: { desktop: 150, tablet: 150, mobile: 150 },
+
+        marginTop: { desktop: 0, tablet: 0, mobile: 0 },
+        marginBottom: { desktop: 0, tablet: 0, mobile: 0 },
+        marginLeft: { desktop: 0, tablet: 0, mobile: 0 },
+        marginRight: { desktop: 0, tablet: 0, mobile: 0 },
+        paddingY: { desktop: 12, tablet: 12, mobile: 10 },
+        paddingX: { desktop: 24, tablet: 24, mobile: 20 },
+
+        fontSize: { desktop: 16, tablet: 16, mobile: 14 },
+        fontWeight: { desktop: '600', tablet: '600', mobile: '600' },
+        fontFamily: 'Inter, sans-serif',
+        letterSpacing: { desktop: 0, tablet: 0, mobile: 0 },
+
+        backgroundColor: '#4f46e5',
+        textColor: '#ffffff',
+        borderColor: 'transparent',
+        borderWidth: 0,
+        borderStyle: 'solid',
+        borderRadius: 8,
+        shadow: 'none',
+        useGradient: false,
+        gradient: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+
+        hoverBackgroundColor: '#4338ca',
+        hoverTextColor: '#ffffff',
+        hoverScale: 1.05,
+        hoverShadow: 'md'
     } : {
         title: type === 'hero' ? 'New Hero Banner' : 'New Title',
         content: 'Sample content for your ' + type

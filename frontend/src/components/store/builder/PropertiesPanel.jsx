@@ -15,6 +15,7 @@ import { CategoryListProperties } from '../widgets/category_list/CategoryListPro
 
 import { HeadingProperties } from '../widgets/heading/HeadingProperties';
 import { TextProperties } from '../widgets/text/TextProperties';
+import { ButtonProperties } from '../widgets/button/ButtonProperties';
 
 
 export function PropertiesPanel({
@@ -197,6 +198,12 @@ export function PropertiesPanel({
                         />
                     ) : selectedElement.type === 'text' ? (
                         <TextProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                            viewMode={viewMode}
+                        />
+                    ) : selectedElement.type === 'button' ? (
+                        <ButtonProperties
                             settings={selectedElement.settings}
                             onUpdate={onUpdate}
                             viewMode={viewMode}
