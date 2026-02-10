@@ -9,9 +9,21 @@ export function OrderTrackingRenderer({ settings }) {
     const [orderData, setOrderData] = useState(null);
     const [comments, setComments] = useState([]);
 
+    const isValidUUID = (uuid) => {
+        const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return regex.test(uuid);
+    };
+
     const handleTrack = async (e) => {
         e.preventDefault();
-        if (!orderId.trim()) return;
+        const trimmedId = orderId.trim();
+
+        if (!trimmedId) return;
+
+        if (!isValidUUID(trimmedId)) {
+            setError("Invalid Order ID format. It should look like: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
+            return;
+        }
 
         setLoading(true);
         setError(null);
