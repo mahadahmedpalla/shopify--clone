@@ -16,6 +16,7 @@ import { CategoryListProperties } from '../widgets/category_list/CategoryListPro
 import { HeadingProperties } from '../widgets/heading/HeadingProperties';
 import { TextProperties } from '../widgets/text/TextProperties';
 import { ButtonProperties } from '../widgets/button/ButtonProperties';
+import { FooterProperties } from '../widgets/footer/FooterProperties';
 import { OrderTrackingProperties } from '../widgets/order-tracking/OrderTrackingProperties';
 
 
@@ -205,6 +206,12 @@ export function PropertiesPanel({
                         />
                     ) : selectedElement.type === 'button' ? (
                         <ButtonProperties
+                            settings={selectedElement.settings}
+                            onUpdate={onUpdate}
+                            viewMode={viewMode}
+                        />
+                    ) : selectedElement.type === 'footer' ? (
+                        <FooterProperties
                             settings={selectedElement.settings}
                             onUpdate={onUpdate}
                             viewMode={viewMode}

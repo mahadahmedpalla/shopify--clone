@@ -16,6 +16,7 @@ const HeadingRenderer = React.lazy(() => import('./heading/HeadingRenderer').the
 const TextRenderer = React.lazy(() => import('./text/TextRenderer').then(module => ({ default: module.TextRenderer })));
 const ButtonRenderer = React.lazy(() => import('./button/ButtonRenderer').then(module => ({ default: module.ButtonRenderer })));
 const OrderTrackingRenderer = React.lazy(() => import('./order-tracking/OrderTrackingRenderer').then(module => ({ default: module.OrderTrackingRenderer })));
+const FooterRenderer = React.lazy(() => import('./footer/FooterRenderer').then(module => ({ default: module.FooterRenderer })));
 
 // Smart Fallback Component with Layout-aware Skeletons
 const WidgetSkeleton = ({ type }) => {
@@ -105,6 +106,8 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                         return <TextRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'button':
                         return <ButtonRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
+                    case 'footer':
+                        return <FooterRenderer {...props} />;
                     case 'order_tracking':
                         return <OrderTrackingRenderer settings={settings} />;
                     case 'cart_list':
