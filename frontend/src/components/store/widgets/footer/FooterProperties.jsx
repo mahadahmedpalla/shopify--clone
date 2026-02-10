@@ -207,22 +207,24 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase block">Links</label>
                                                 {(col.links || []).map((link, lIdx) => (
-                                                    <div key={lIdx} className="flex gap-2">
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Label"
-                                                            value={link.text}
-                                                            onChange={(e) => updateLink(index, lIdx, 'text', e.target.value)}
-                                                            className="w-1/3 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
-                                                        />
+                                                    <div key={lIdx} className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Label"
+                                                                value={link.text}
+                                                                onChange={(e) => updateLink(index, lIdx, 'text', e.target.value)}
+                                                                className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-xs"
+                                                            />
+                                                            <button onClick={() => removeLink(index, lIdx)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                                                        </div>
                                                         <input
                                                             type="text"
                                                             placeholder="URL"
                                                             value={link.url}
                                                             onChange={(e) => updateLink(index, lIdx, 'url', e.target.value)}
-                                                            className="flex-1 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
+                                                            className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-600"
                                                         />
-                                                        <button onClick={() => removeLink(index, lIdx)} className="text-slate-400 hover:text-red-500"><Trash2 className="h-3 w-3" /></button>
                                                     </div>
                                                 ))}
                                                 <button onClick={() => addLinkToColumn(index)} className="text-xs text-indigo-600 font-bold hover:underline">+ Add Link</button>
