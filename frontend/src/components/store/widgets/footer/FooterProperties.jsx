@@ -98,8 +98,8 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-1 py-3 text-xs font-medium border-b-2 transition-colors flex flex-col items-center gap-1 ${activeTab === tab.id
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-700'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -213,7 +213,7 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
                                                             placeholder="Label"
                                                             value={link.text}
                                                             onChange={(e) => updateLink(index, lIdx, 'text', e.target.value)}
-                                                            className="flex-1 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
+                                                            className="w-1/3 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
                                                         />
                                                         <input
                                                             type="text"
