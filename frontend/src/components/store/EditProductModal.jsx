@@ -11,7 +11,8 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
     const [formData, setFormData] = useState({
         category_id: '',
         price: '',
-        quantity: ''
+        quantity: '',
+        description: ''
     });
 
     useEffect(() => {
@@ -19,7 +20,8 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
             setFormData({
                 category_id: product.category_id || '',
                 price: product.price ? product.price.toString() : '0',
-                quantity: product.quantity ? product.quantity.toString() : '0'
+                quantity: product.quantity ? product.quantity.toString() : '0',
+                description: product.description || ''
             });
         }
     }, [product]);
@@ -38,6 +40,7 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                     category_id: formData.category_id || null,
                     price: parseFloat(formData.price),
                     quantity: parseInt(formData.quantity) || 0,
+                    description: formData.description,
                     updated_at: new Date()
                 })
                 .eq('id', product.id);
@@ -120,6 +123,20 @@ export function EditProductModal({ isOpen, product, categories, onClose, onSucce
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        {/* Description Field */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border h-24"
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                placeholder="Product description..."
+                            />
+                            <div className="mt-1 text-[10px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-200">
+                                <p>Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>. Escape with <code>\</code>.</p>
+                            </div>
                         </div>
 
                         <Input

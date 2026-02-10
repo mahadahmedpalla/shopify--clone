@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
@@ -216,57 +215,60 @@ export function CreateProductModal({ isOpen, onClose, onSuccess, storeId, catego
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="Describe your product features..."
                                 />
-                            </div>
-
-                            <Input
-                                label="Price ($)"
-                                type="number"
-                                step="0.01"
-                                value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                required
-                                placeholder="0.00"
-                            />
-
-                            <Input
-                                label="Initial Quantity"
-                                type="number"
-                                value={formData.quantity}
-                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                required
-                                placeholder="0"
-                            />
-
-                            <div className="sm:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                <select
-                                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    value={formData.category_id}
-                                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                                >
-                                    <option value="">No Category</option>
-                                    {getFlattenedOptions(categories).map(cat => (
-                                        <option key={cat.id} value={cat.id}>
-                                            {'\u00A0'.repeat(cat.depth * 4)} {cat.depth > 0 ? '↳ ' : ''} {cat.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {error && (
-                                <div className="sm:col-span-2">
-                                    <p className="text-sm text-red-600 mt-2 p-2 bg-red-50 rounded border border-red-100">{error}</p>
+                                <div className="mt-1 text-[10px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-200">
+                                    <p>Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>. Escape with <code>\</code>.</p>
                                 </div>
-                            )}
-
-                            <div className="sm:col-span-2 mt-4 flex space-x-3 flex-row-reverse">
-                                <Button type="submit" className="flex-1 sm:flex-initial" isLoading={loading}>
-                                    Create Product
-                                </Button>
-                                <Button type="button" variant="secondary" className="flex-1 sm:flex-initial" onClick={handleClose}>
-                                    Cancel
-                                </Button>
                             </div>
+                        </div>
+
+                        <Input
+                            label="Price ($)"
+                            type="number"
+                            step="0.01"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            required
+                            placeholder="0.00"
+                        />
+
+                        <Input
+                            label="Initial Quantity"
+                            type="number"
+                            value={formData.quantity}
+                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                            required
+                            placeholder="0"
+                        />
+
+                        <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select
+                                className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                value={formData.category_id}
+                                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                            >
+                                <option value="">No Category</option>
+                                {getFlattenedOptions(categories).map(cat => (
+                                    <option key={cat.id} value={cat.id}>
+                                        {'\u00A0'.repeat(cat.depth * 4)} {cat.depth > 0 ? '↳ ' : ''} {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {error && (
+                            <div className="sm:col-span-2">
+                                <p className="text-sm text-red-600 mt-2 p-2 bg-red-50 rounded border border-red-100">{error}</p>
+                            </div>
+                        )}
+
+                        <div className="sm:col-span-2 mt-4 flex space-x-3 flex-row-reverse">
+                            <Button type="submit" className="flex-1 sm:flex-initial" isLoading={loading}>
+                                Create Product
+                            </Button>
+                            <Button type="button" variant="secondary" className="flex-1 sm:flex-initial" onClick={handleClose}>
+                                Cancel
+                            </Button>
                         </div>
                     </form>
                 </div>

@@ -3,6 +3,7 @@ import { ShoppingCart, Share2, Minus, Plus, Box, ZoomIn, ArrowRight, ArrowLeft }
 import { useCart } from '../../../../context/CartContext';
 import { supabase } from '../../../../lib/supabase';
 import { calculateBestPrice } from '../../../../utils/discountUtils';
+import { renderFormattedText } from '../../../../utils/formatText';
 
 
 export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store, storeDiscounts }) {
@@ -282,7 +283,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                         {showDesc && (
                             <div className={`mb-8 w-full ${descWidth === 'compact' ? 'max-w-md' : 'max-w-full'} ${alignment === 'center' ? 'mx-auto' : ''}`}>
                                 <p className="text-slate-600 leading-relaxed text-base">
-                                    {displayProduct.description || 'No description available.'}
+                                    {renderFormattedText(displayProduct.description || 'No description available.')}
                                 </p>
                             </div>
                         )}
