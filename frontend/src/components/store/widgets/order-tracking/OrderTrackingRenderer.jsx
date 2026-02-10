@@ -10,7 +10,8 @@ export function OrderTrackingRenderer({ settings }) {
     const [comments, setComments] = useState([]);
 
     const isValidUUID = (uuid) => {
-        const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        // Allow full UUID or partial hex string (min 8 chars)
+        const regex = /^[0-9a-f]{8,}/i;
         return regex.test(uuid);
     };
 
@@ -21,7 +22,7 @@ export function OrderTrackingRenderer({ settings }) {
         if (!trimmedId) return;
 
         if (!isValidUUID(trimmedId)) {
-            setError("Invalid Order ID format. It should look like: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
+            setError("Invalid Order ID. Please enter at least the first 8 characters.");
             return;
         }
 
