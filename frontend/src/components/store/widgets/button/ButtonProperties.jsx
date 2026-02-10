@@ -11,24 +11,24 @@ export function ButtonProperties({ settings, onUpdate, viewMode }) {
     };
 
     const handleResponsiveChange = (key, value) => {
-        const responsive = settings.responsive || {};
-        const currentMode = responsive[viewMode] || {};
+        const current = settings[key] || {};
+        // Ensure we preserve existing values if it's already an object, or init if not
+        const newVal = (current && typeof current === 'object' && !Array.isArray(current))
+            ? { ...current, [viewMode]: value }
+            : { desktop: current, [viewMode]: value };
 
         onUpdate({
             ...settings,
-            responsive: {
-                ...responsive,
-                [viewMode]: {
-                    ...currentMode,
-                    [key]: value
-                }
-            }
+            [key]: newVal
         });
     };
 
     const getVal = (key, defaultVal) => {
-        if (viewMode === 'desktop') return settings[key] !== undefined ? settings[key] : defaultVal;
-        return settings.responsive?.[viewMode]?.[key] !== undefined ? settings.responsive?.[viewMode]?.[key] : (settings[key] || defaultVal);
+        const val = settings[key];
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+            return val[viewMode] !== undefined ? val[viewMode] : (val.desktop !== undefined ? val.desktop : defaultVal);
+        }
+        return val !== undefined ? val : defaultVal;
     };
 
     // Icon Search

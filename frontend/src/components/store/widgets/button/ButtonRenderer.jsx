@@ -17,8 +17,11 @@ export function ButtonRenderer({ settings, viewMode, isEditor }) {
 
     // 2. Responsive Values helper
     const getVal = (key, defaultVal) => {
-        if (viewMode === 'desktop') return settings[key] !== undefined ? settings[key] : defaultVal;
-        return getResponsiveValue(settings, viewMode, key, defaultVal);
+        const val = settings[key];
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+            return val[viewMode] !== undefined ? val[viewMode] : (val.desktop !== undefined ? val.desktop : defaultVal);
+        }
+        return val !== undefined ? val : defaultVal;
     };
 
     // 3. Layout & Dimenstions
