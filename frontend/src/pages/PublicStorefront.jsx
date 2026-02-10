@@ -67,7 +67,7 @@ export function PublicStorefront() {
                 supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'cart').single(),
 
                 // Current Page Content
-                supabase.from('store_pages').select('*').eq('store_id', storeData.id).eq('slug', activeSlug).single(),
+                supabase.from('store_pages').select('*').eq('store_id', storeData.id).eq('slug', activeSlug).eq('is_published', true).single(),
 
                 // Products (for shared renderer)
                 supabase.from('products').select('*').eq('store_id', storeData.id).eq('is_active', true),

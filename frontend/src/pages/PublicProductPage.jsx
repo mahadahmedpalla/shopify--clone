@@ -64,7 +64,7 @@ export function PublicProductPage() {
                 supabase.from('discounts').select('*').eq('store_id', storeData.id).eq('is_active', true).lte('starts_at', now),
 
                 // PDP Content
-                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'pdp').single(),
+                supabase.from('store_pages').select('content, is_published').eq('store_id', storeData.id).eq('slug', 'pdp').single(),
 
                 // Home Page (Fallback for Navbar)
                 supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'home').single()
@@ -80,8 +80,13 @@ export function PublicProductPage() {
             if (discountResult.data) setDiscounts(discountResult.data);
 
             // Process Page Content
-            if (pdpPageResult.data?.content) {
-                setPageContent(pdpPageResult.data.content);
+            if (pdpPageResult.data) {
+                if (pdpPageResult.data.is_published === false) {
+                    throw new Error('This page is not published');
+                }
+                if (pdpPageResult.data.content) {
+                    setPageContent(pdpPageResult.data.content);
+                }
             } else {
                 // Fallback Layout
                 const homeNavbar = homePageResult.data?.content?.find(b => b.type === 'navbar');
