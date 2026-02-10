@@ -330,39 +330,75 @@ export function ButtonProperties({ settings, onUpdate, viewMode }) {
                             />
                         </div>
                         {settings.useGradient && (
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase block">Gradient Presets</label>
-                                <div className="grid grid-cols-5 gap-2">
-                                    {[
-                                        { name: 'Ocean', value: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' },
-                                        { name: 'Purple', value: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)' },
-                                        { name: 'Sunset', value: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)' },
-                                        { name: 'Emerald', value: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' },
-                                        { name: 'Cherry', value: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)' },
-                                        { name: 'Midnight', value: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' },
-                                        { name: 'Gold', value: 'linear-gradient(135deg, #facc15 0%, #eab308 100%)' },
-                                        { name: 'Subtle', value: 'linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%)' },
-                                        { name: 'Berry', value: 'linear-gradient(135deg, #db2777 0%, #9333ea 100%)' },
-                                        { name: 'Teal', value: 'linear-gradient(135deg, #2dd4bf 0%, #0ea5e9 100%)' }
-                                    ].map((preset) => (
-                                        <button
-                                            key={preset.name}
-                                            onClick={() => handleChange('gradient', preset.value)}
-                                            className={`h-8 w-8 rounded-full shadow-sm ring-2 ring-offset-2 transition-all hover:scale-110 ${settings.gradient === preset.value ? 'ring-indigo-600' : 'ring-transparent hover:ring-slate-200'}`}
-                                            style={{ background: preset.value }}
-                                            title={preset.name}
-                                        />
-                                    ))}
-                                </div>
-                                <div>
-                                    <label className="text-[9px] text-slate-400 block mb-1">Custom Gradient String</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-mono text-slate-600"
-                                        value={settings.gradient || ''}
-                                        onChange={(e) => handleChange('gradient', e.target.value)}
-                                        placeholder="linear-gradient(...)"
+                            <div className="space-y-4 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase block border-b border-slate-200 pb-2 mb-3">Gradient Controls</label>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <ColorInput
+                                        label="Start Color"
+                                        value={settings.gradientStart || '#4f46e5'}
+                                        onChange={(v) => {
+                                            const start = v;
+                                            const end = settings.gradientEnd || '#7c3aed';
+                                            const deg = settings.gradientDeg || 135;
+                                            onUpdate({
+                                                ...settings,
+                                                gradientStart: start,
+                                                gradientEnd: end,
+                                                gradientDeg: deg,
+                                                gradient: `linear-gradient(${deg}deg, ${start} 0%, ${end} 100%)`
+                                            });
+                                        }}
                                     />
+                                    <ColorInput
+                                        label="End Color"
+                                        value={settings.gradientEnd || '#7c3aed'}
+                                        onChange={(v) => {
+                                            const start = settings.gradientStart || '#4f46e5';
+                                            const end = v;
+                                            const deg = settings.gradientDeg || 135;
+                                            onUpdate({
+                                                ...settings,
+                                                gradientStart: start,
+                                                gradientEnd: end,
+                                                gradientDeg: deg,
+                                                gradient: `linear-gradient(${deg}deg, ${start} 0%, ${end} 100%)`
+                                            });
+                                        }}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1 flex justify-between">
+                                        <span>Angle</span>
+                                        <span>{settings.gradientDeg || 135}°</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="360"
+                                        value={settings.gradientDeg || 135}
+                                        onChange={(e) => {
+                                            const start = settings.gradientStart || '#4f46e5';
+                                            const end = settings.gradientEnd || '#7c3aed';
+                                            const deg = parseInt(e.target.value);
+                                            onUpdate({
+                                                ...settings,
+                                                gradientStart: start,
+                                                gradientEnd: end,
+                                                gradientDeg: deg,
+                                                gradient: `linear-gradient(${deg}deg, ${start} 0%, ${end} 100%)`
+                                            });
+                                        }}
+                                        className="w-full accent-indigo-600"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-[9px] text-slate-400 block mb-1">Generated CSS</label>
+                                    <div className="text-[10px] font-mono text-slate-500 bg-white p-2 rounded border border-slate-200 break-all">
+                                        {settings.gradient || 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'}
+                                    </div>
                                 </div>
                             </div>
                         )}
