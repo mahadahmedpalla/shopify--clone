@@ -193,12 +193,13 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
 
                                         {/* Content Editors */}
                                         {col.type === 'text' && (
-                                            <div>
-                                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Text Content</label>
+                                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Text Content</label>
                                                 <textarea
                                                     value={col.content}
                                                     onChange={(e) => updateColumn(index, 'content', e.target.value)}
-                                                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs min-h-[80px]"
+                                                    className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs min-h-[80px] font-sans"
+                                                    placeholder="Enter text..."
                                                 />
                                             </div>
                                         )}
@@ -307,15 +308,53 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
                             />
                         </div>
                     </div>
+                    {/* Global Alignment */}
                     <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Max Width</label>
-                        <input
-                            type="text"
-                            placeholder="1280px"
-                            value={settings.maxWidth || '1280px'}
-                            onChange={(e) => handleUpdate({ maxWidth: e.target.value })}
-                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs"
-                        />
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Column Alignment</label>
+                        <div className="flex bg-slate-50 border border-slate-200 rounded p-1">
+                            {['left', 'center', 'right'].map(align => (
+                                <button
+                                    key={align}
+                                    onClick={() => handleUpdate({ alignment: align })}
+                                    className={`flex-1 py-1 rounded text-xs capitalize ${settings.alignment === align ? 'bg-white shadow-sm text-indigo-600 font-medium' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    {align}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Section Padding Sliders */}
+                    <div className="space-y-4 pt-4 border-t border-slate-100">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase block">Section Padding (px)</label>
+
+                        <div>
+                            <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                                <span>Horizontal (X)</span>
+                                <span>{settings.paddingX || 24}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0" max="100" step="4"
+                                value={settings.paddingX || 24}
+                                onChange={(e) => handleUpdate({ paddingX: parseInt(e.target.value) })}
+                                className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            />
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                                <span>Vertical (Y)</span>
+                                <span>{settings.paddingY || 64}px</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0" max="128" step="4"
+                                value={settings.paddingY || 64}
+                                onChange={(e) => handleUpdate({ paddingY: parseInt(e.target.value) })}
+                                className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -327,13 +366,7 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
                         <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Background</label>
                         <ColorInput value={settings.backgroundColor || '#f8fafc'} onChange={(v) => handleUpdate({ backgroundColor: v })} />
                     </div>
-                    <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Padding Y</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <input type="text" placeholder="Top (64px)" value={settings.paddingTop || ''} onChange={(e) => handleUpdate({ paddingTop: e.target.value })} className="px-2 py-1 bg-slate-50 border rounded text-xs" />
-                            <input type="text" placeholder="Bottom (64px)" value={settings.paddingBottom || ''} onChange={(e) => handleUpdate({ paddingBottom: e.target.value })} className="px-2 py-1 bg-slate-50 border rounded text-xs" />
-                        </div>
-                    </div>
+
                     <div>
                         <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                             <input type="checkbox" checked={settings.borderTop || false} onChange={(e) => handleUpdate({ borderTop: e.target.checked })} />
@@ -370,14 +403,14 @@ export function FooterProperties({ settings, onUpdate, viewMode = 'desktop' }) {
                         <h4 className="text-xs font-bold text-indigo-600 uppercase mb-2">Headings</h4>
                         <div className="grid grid-cols-2 gap-3">
                             <ColorInput label="Color" value={settings.headingColor || '#1e293b'} onChange={(v) => handleUpdate({ headingColor: v })} />
-                            <input type="text" placeholder="Size (16px)" value={settings.headingSize || ''} onChange={(e) => handleUpdate({ headingSize: e.target.value })} className="px-2 py-1 bg-slate-50 border rounded text-xs" />
+                            <input type="number" placeholder="Size (16px)" value={settings.headingSize || 16} onChange={(e) => handleUpdate({ headingSize: parseInt(e.target.value) })} className="px-2 py-1 bg-slate-50 border rounded text-xs" />
                         </div>
                     </div>
                     <div>
                         <h4 className="text-xs font-bold text-indigo-600 uppercase mb-2">Text</h4>
                         <div className="grid grid-cols-2 gap-3">
                             <ColorInput label="Color" value={settings.textColor || '#64748b'} onChange={(v) => handleUpdate({ textColor: v })} />
-                            <input type="text" placeholder="Size (14px)" value={settings.textSize || ''} onChange={(e) => handleUpdate({ textSize: e.target.value })} className="px-2 py-1 bg-slate-50 border rounded text-xs" />
+                            <input type="number" placeholder="Size (14px)" value={settings.textSize || 14} onChange={(e) => handleUpdate({ textSize: parseInt(e.target.value) })} className="px-2 py-1 bg-slate-50 border rounded text-xs" />
                         </div>
                     </div>
                     <div>

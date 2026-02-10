@@ -8,8 +8,8 @@ export function FooterRenderer({ settings = {}, viewMode = 'desktop' }) {
     // Global Styles
     const containerStyle = {
         backgroundColor: settings.backgroundColor || '#f8fafc',
-        paddingTop: settings.paddingTop || '64px',
-        paddingBottom: settings.paddingBottom || '64px',
+        paddingTop: settings.paddingY !== undefined ? `${settings.paddingY}px` : (settings.paddingTop || '64px'),
+        paddingBottom: settings.paddingY !== undefined ? `${settings.paddingY}px` : (settings.paddingBottom || '64px'),
         borderTopWidth: settings.borderTop ? '1px' : '0',
         borderTopColor: settings.borderColor || '#e2e8f0',
         color: settings.textColor || '#64748b'
@@ -29,8 +29,8 @@ export function FooterRenderer({ settings = {}, viewMode = 'desktop' }) {
         rowGap: `${settings.rowGap || 32}px`,
         maxWidth: settings.maxWidth || '1280px',
         margin: '0 auto',
-        paddingLeft: '24px', // Standard container padding
-        paddingRight: '24px'
+        paddingLeft: settings.paddingX !== undefined ? `${settings.paddingX}px` : '24px',
+        paddingRight: settings.paddingX !== undefined ? `${settings.paddingX}px` : '24px'
     };
 
     // Accordion State for Mobile
