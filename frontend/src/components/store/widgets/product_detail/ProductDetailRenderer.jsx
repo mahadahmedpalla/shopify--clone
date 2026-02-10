@@ -282,7 +282,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                         {/* Description */}
                         {showDesc && (
                             <div className={`mb-8 w-full ${descWidth === 'compact' ? 'max-w-md' : 'max-w-full'} ${alignment === 'center' ? 'mx-auto' : ''}`}>
-                                <p className="text-slate-600 leading-relaxed text-base">
+                                <p className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">
                                     {renderFormattedText(displayProduct.description || 'No description available.')}
                                 </p>
                             </div>
