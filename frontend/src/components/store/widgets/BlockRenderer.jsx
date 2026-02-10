@@ -107,7 +107,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'button':
                         return <ButtonRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'footer':
-                        return <FooterRenderer {...props} />;
+                        return <FooterRenderer settings={settings} viewMode={viewMode} store={store} />;
                     case 'order_tracking':
                         return <OrderTrackingRenderer settings={settings} />;
                     case 'cart_list':
