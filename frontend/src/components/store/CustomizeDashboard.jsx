@@ -22,8 +22,11 @@ import {
     CheckCircle,
     FileText,
     Settings,
-    Palette
+    Palette,
+    ToggleLeft,
+    ToggleRight
 } from 'lucide-react';
+import { CreatePageModal } from './CreatePageModal';
 
 const SYSTEM_PAGES = [
     { name: 'Home', slug: 'home', icon: <Home className="h-4 w-4" />, description: 'Your store front door' },
@@ -108,6 +111,7 @@ export function CustomizeDashboard() {
     const [pages, setPages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [store, setStore] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -153,9 +157,66 @@ export function CustomizeDashboard() {
         if (newPages.length > 0) {
             const { error } = await supabase.from('store_pages').insert(newPages);
             if (error) alert('Failed to create pages: ' + error.message);
-            else fetchData(); // Changed from fetchPages to fetchData
+            else fetchData();
         }
-        setLoading(false); // Ensure loading is set to false after operation
+        setLoading(false);
+    };
+
+    const handleCreatePage = async (name, slug) => {
+        setLoading(true);
+        const newPage = {
+            store_id: storeId,
+            name: name,
+            slug: slug,
+            type: 'custom',
+            content: [DEFAULT_NAVBAR, { id: 'c1', type: 'heading', settings: { text: name, size: 'h1' } }],
+            is_published: true
+        };
+
+        const { error } = await supabase.from('store_pages').insert([newPage]);
+        if (error) {
+            alert('Failed to create page: ' + error.message);
+        } else {
+            setShowCreateModal(false);
+            fetchData();
+        }
+        setLoading(false);
+    };
+
+    const handleToggleStatus = async (page) => {
+        const newStatus = !page.is_published;
+
+        // Optimistic update
+        setPages(pages.map(p => p.id === page.id ? { ...p, is_published: newStatus } : p));
+
+        const { error } = await supabase
+            .from('store_pages')
+            .update({ is_published: newStatus })
+            .eq('id', page.id);
+
+        if (error) {
+            console.error('Error updating status:', error);
+            // Revert on error
+            setPages(pages.map(p => p.id === page.id ? { ...p, is_published: !newStatus } : p));
+            alert('Failed to update status');
+        }
+    };
+
+    const handleDeletePage = async (pageId) => {
+        if (!window.confirm('Are you sure you want to delete this page? This action cannot be undone.')) return;
+
+        setLoading(true);
+        const { error } = await supabase
+            .from('store_pages')
+            .delete()
+            .eq('id', pageId);
+
+        if (error) {
+            alert('Failed to delete page: ' + error.message);
+        } else {
+            fetchData();
+        }
+        setLoading(false);
     };
 
     const getPageStatus = (slug) => {
@@ -190,7 +251,7 @@ export function CustomizeDashboard() {
                         <Globe className="h-4 w-4 mr-2" />
                         Init System Pages
                     </Button>
-                    <Button onClick={() => alert('Custom Pages coming soon!')}>
+                    <Button onClick={() => setShowCreateModal(true)}>
                         <Plus className="h-4 w-4 mr-2" />
                         Create Page
                     </Button>
@@ -224,7 +285,16 @@ export function CustomizeDashboard() {
                                             </div>
                                         </div>
                                         <div className="flex items-center space-x-6">
-                                            <div className="text-right">
+                                            <div className="text-right flex items-center space-x-3">
+                                                {pageId && (
+                                                    <button
+                                                        onClick={() => handleToggleStatus(page)}
+                                                        className={`p-1 rounded-lg transition-colors ${page.is_published ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
+                                                        title={page.is_published ? 'Published' : 'Draft'}
+                                                    >
+                                                        {page.is_published ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
+                                                    </button>
+                                                )}
                                                 <span className={`text-[10px] font-bold uppercase tracking-widest ${status === 'Published' ? 'text-green-500' : 'text-slate-400'}`}>
                                                     {status}
                                                 </span>
@@ -261,6 +331,69 @@ export function CustomizeDashboard() {
                                 );
                             })}
                         </div>
+
+                    </Card>
+
+                    {/* Custom Pages */}
+                    <Card className="p-0 overflow-hidden border-slate-200">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Custom Pages</h3>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                            {pages.filter(p => p.type === 'custom').length === 0 && (
+                                <div className="p-8 text-center text-slate-400 text-sm">
+                                    No custom pages yet. Click "Create Page" to add one.
+                                </div>
+                            )}
+                            {pages.filter(p => p.type === 'custom').map((page) => (
+                                <div key={page.id} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-500 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-colors">
+                                            <FileText className="h-4 w-4" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800">{page.name}</h4>
+                                            <p className="text-xs text-slate-400">/{page.slug}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-4">
+                                        <button
+                                            onClick={() => handleToggleStatus(page)}
+                                            className={`p-1 rounded-lg transition-colors ${page.is_published ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
+                                            title={page.is_published ? 'Published' : 'Draft'}
+                                        >
+                                            {page.is_published ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
+                                        </button>
+
+                                        <div className="flex items-center space-x-2 border-l border-slate-100 pl-4">
+                                            <a
+                                                href={`/s/${store?.sub_url}/${page.slug}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                title="View Page"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </a>
+                                            <button
+                                                onClick={() => navigate(`/store/${storeId}/builder/${page.id}`)}
+                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                title="Design Page"
+                                            >
+                                                <Palette className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeletePage(page.id)}
+                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                title="Delete Page"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </Card>
 
                     <Card className="p-0 overflow-hidden border-slate-200">
@@ -269,7 +402,8 @@ export function CustomizeDashboard() {
                         </div>
                         <div className="divide-y divide-slate-100">
                             {LEGAL_PAGES.map((sys) => {
-                                const pageId = getPageId(sys.slug);
+                                const page = pages.find(p => p.slug === sys.slug);
+                                const pageId = page?.id;
                                 const status = getPageStatus(sys.slug);
                                 return (
                                     <div key={sys.slug} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
@@ -280,6 +414,15 @@ export function CustomizeDashboard() {
                                             <h4 className="text-sm font-bold text-slate-800">{sys.name}</h4>
                                         </div>
                                         <div className="flex items-center space-x-3">
+                                            {pageId && (
+                                                <button
+                                                    onClick={() => handleToggleStatus(page)}
+                                                    className={`p-1 rounded-lg transition-colors ${page.is_published ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
+                                                    title={page.is_published ? 'Published' : 'Draft'}
+                                                >
+                                                    {page.is_published ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
+                                                </button>
+                                            )}
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{status}</span>
                                             <button
                                                 onClick={() => pageId && navigate(`/store/${storeId}/builder/${pageId}`)}
@@ -323,6 +466,13 @@ export function CustomizeDashboard() {
                     </Card>
                 </div>
             </div>
+
+            <CreatePageModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSubmit={handleCreatePage}
+                loading={loading}
+            />
         </div>
     );
 }
