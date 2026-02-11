@@ -25,6 +25,7 @@ import {
 import { CartProvider } from '../../context/CartContext';
 import { CartDrawer } from '../store/widgets/cart/CartDrawer';
 import { Loader, ViewModeBtn, genId } from '../store/widgets/Shared';
+import { ThemePageManager } from './ThemePageManager';
 
 // Modular Builder Components
 // We reuse the existing builder components as they are largely data-agnostic (props driven)
@@ -366,22 +367,134 @@ export function ThemeBuilder() {
         ? canvasContent.find(w => w.type === 'cart_list')?.settings
         : cartSettings) || cartSettings;
 
+    const toggleInclude = async (slug, isIncluded) => {
+        // Find existing or create placeholder
+        const existingPage = themePages.find(p => p.slug === slug);
+        let error = null;
+
+        if (existingPage) {
+            const { error: updateError } = await supabase
+                .from('theme_pages')
+                .update({ is_included: isIncluded })
+                .eq('id', existingPage.id);
+            error = updateError;
+        } else {
+            // Upsert with default content if new system page
+            const { error: upsertError } = await supabase
+                .from('theme_pages')
+                .upsert({
+                    theme_id: themeId,
+                    slug: slug,
+                    name: slug.charAt(0).toUpperCase() + slug.slice(1) + ' Page', // Simple name
+                    type: 'system',
+                    is_included: isIncluded,
+                    content: [] // Empty default
+                }, { onConflict: 'theme_id, slug' });
+            error = upsertError;
+        }
+
+        if (error) {
+            alert('Failed to update page status: ' + error.message);
+        } else {
+            fetchThemeData(); // Reload pages
+        }
+    };
+
+    const handleCreatePage = async (name) => {
+        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        if (!slug) return alert('Invalid page name');
+
+        const { error } = await supabase
+            .from('theme_pages')
+            .insert({
+                theme_id: themeId,
+                name: name,
+                slug: slug,
+                type: 'custom',
+                content: [],
+                is_included: true
+            });
+
+        if (error) {
+            alert('Failed to create page: ' + error.message);
+        } else {
+            fetchThemeData();
+            // Automatically switch? Maybe not needed, let them select.
+        }
+    };
+
+    const handleDeletePage = async (pageId) => {
+        const { error } = await supabase
+            .from('theme_pages')
+            .delete()
+            .eq('id', pageId);
+
+        if (error) {
+            alert('Failed to delete page: ' + error.message);
+        } else {
+            fetchThemeData();
+            if (activePage?.id === pageId) {
+                // Navigate to home if current deleted
+                const home = themePages.find(p => p.slug === 'home');
+                if (home) navigate(`/theme-builder/${themeId}/page/${home.id}`);
+                else navigate(`/theme-builder/${themeId}`);
+            }
+        }
+    };
+
+    const [isPageManagerOpen, setIsPageManagerOpen] = useState(false);
+
     if (loading) return <Loader />;
 
     return (
         <ErrorBoundary>
-            <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans select-none">
-                <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-50 shadow-2xl">
+            <div className="h-screen w-screen flex flex-col bg-slate-100 overflow-hidden font-sans select-none relative">
+                <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-50 shadow-2xl relative">
                     <div className="flex items-center space-x-4">
                         <button onClick={() => navigate(`/theme-dashboard`)} className="p-2 text-slate-400 hover:text-white transition-colors">
                             <ChevronLeft className="h-5 w-5" />
                         </button>
                         <div className="h-6 w-[1px] bg-slate-800" />
-                        <div>
-                            <h1 className="text-sm font-bold text-white leading-tight">{page?.name}</h1>
-                            <p className="text-[10px] text-slate-500 font-medium tracking-tight">/{page?.slug}</p>
+                        <div
+                            className="group cursor-pointer flex items-center gap-2 hover:bg-slate-800 rounded-lg px-2 py-1 transition-colors"
+                            onClick={() => setIsPageManagerOpen(!isPageManagerOpen)}
+                        >
+                            <div>
+                                <h1 className="text-sm font-bold text-white leading-tight flex items-center gap-2">
+                                    {page?.name}
+                                    <span className="text-xs text-slate-500 font-normal">deployment: {page?.is_included !== false ? 'Included' : 'Excluded'}</span>
+                                </h1>
+                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">/{page?.slug}</p>
+                            </div>
+                            <div className="text-slate-500 group-hover:text-white transition-colors">
+                                <Layout className="h-4 w-4" />
+                            </div>
                         </div>
                     </div>
+
+                    {/* Page Manager Popover */}
+                    {isPageManagerOpen && (
+                        <div className="absolute top-14 left-0 h-[calc(100vh-3.5rem)] z-50">
+                            <ThemePageManager
+                                pages={themePages}
+                                activePageId={page?.id}
+                                onSelectPage={(p) => {
+                                    if (p.id) {
+                                        navigate(`/theme-builder/${themeId}/page/${p.id}`);
+                                    } else if (p.slug === 'home') {
+                                        navigate(`/theme-builder/${themeId}`);
+                                    } else {
+                                        alert("Please enable/include this page first to edit it.");
+                                    }
+                                    setIsPageManagerOpen(false);
+                                }}
+                                onCreatePage={handleCreatePage}
+                                onDeletePage={handleDeletePage}
+                                onToggleInclude={toggleInclude}
+                                onClose={() => setIsPageManagerOpen(false)}
+                            />
+                        </div>
+                    )}
 
                     <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1 border border-slate-700">
                         <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
@@ -423,7 +536,7 @@ export function ThemeBuilder() {
                     </div>
                 </header>
 
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex overflow-hidden relative">
                     {!['cart', 'checkout'].includes(page?.slug) && (
                         <WidgetSidebar
                             previewMode={previewMode}
