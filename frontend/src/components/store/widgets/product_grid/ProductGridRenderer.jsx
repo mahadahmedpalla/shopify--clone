@@ -147,11 +147,11 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             if (productIds.length === 0) return;
 
             // MOCK RATINGS CHECK
-            if (store?.settings?.mock?.reviews?.active) {
-                const mockRating = store.settings.mock.reviews.rating || 5;
+            if (store?.settings?.mock?.ratings?.active) {
+                const mockRating = store.settings.mock.ratings.average || 5;
                 const ratingsMap = {};
                 productIds.forEach(id => {
-                    ratingsMap[id] = { count: 120, sum: 120 * mockRating, average: mockRating };
+                    ratingsMap[id] = { count: store.settings.mock.ratings.count || 12, sum: (store.settings.mock.ratings.count || 12) * mockRating, average: mockRating };
                 });
                 setProductRatings(ratingsMap);
                 return;

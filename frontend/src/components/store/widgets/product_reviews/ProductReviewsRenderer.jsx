@@ -50,7 +50,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId, sto
     useEffect(() => {
         if (productId) fetchReviews();
         setCurrentPage(1); // Reset page on filter/sort change
-    }, [productId, sortOrder, filterRating]);
+    }, [productId, sortOrder, filterRating, store?.settings?.mock?.ratings?.active]);
 
     // PAGINATION LOGIC
     const totalPages = Math.ceil(reviews.length / reviewsPerPage);
