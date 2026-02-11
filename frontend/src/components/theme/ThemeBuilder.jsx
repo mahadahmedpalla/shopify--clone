@@ -677,6 +677,7 @@ export function ThemeBuilder() {
                     />
                 </div>
                 {/* Assets Modal */}
+                {console.log('Rendering ThemeAssetsModal. mockSettings:', mockSettings)}
                 <ThemeAssetsModal
                     isOpen={isAssetsModalOpen}
                     onClose={() => setIsAssetsModalOpen(false)}
