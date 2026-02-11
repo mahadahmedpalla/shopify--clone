@@ -18,7 +18,30 @@ export function ThemeDashboard() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
     const [selectedThemeId, setSelectedThemeId] = useState(null);
-    const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false }); // Mock settings for dashboard too (visual only for now)
+    const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false });
+
+    // Load mock settings when a theme is selected
+    useEffect(() => {
+        if (selectedThemeId) {
+            try {
+                const saved = localStorage.getItem(`mock_settings_${selectedThemeId}`);
+                if (saved) {
+                    setMockSettings(JSON.parse(saved));
+                } else {
+                    setMockSettings({ enableDiscounts: false, enableRatings: false });
+                }
+            } catch (e) {
+                console.error("Error loading mock settings", e);
+            }
+        }
+    }, [selectedThemeId]);
+
+    // Save mock settings when they change (only if a theme is selected)
+    useEffect(() => {
+        if (selectedThemeId) {
+            localStorage.setItem(`mock_settings_${selectedThemeId}`, JSON.stringify(mockSettings));
+        }
+    }, [mockSettings, selectedThemeId]);
 
     // Registration Form State
     const [regForm, setRegForm] = useState({ developer_name: '', website: '' });

@@ -200,7 +200,20 @@ export function ThemeBuilder() {
     const [customWidgets, setCustomWidgets] = useState([]); // TODO: Add theme_widgets table
     const [cartSettings, setCartSettings] = useState(null);
     const [discounts, setDiscounts] = useState([]); // No theme discounts yet
-    const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false });
+    const [mockSettings, setMockSettings] = useState(() => {
+        try {
+            const saved = localStorage.getItem(`mock_settings_${themeId}`);
+            return saved ? JSON.parse(saved) : { enableDiscounts: false, enableRatings: false };
+        } catch (e) {
+            return { enableDiscounts: false, enableRatings: false };
+        }
+    });
+
+    useEffect(() => {
+        if (themeId) {
+            localStorage.setItem(`mock_settings_${themeId}`, JSON.stringify(mockSettings));
+        }
+    }, [mockSettings, themeId]);
     const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
 
     const sensors = useSensors(
