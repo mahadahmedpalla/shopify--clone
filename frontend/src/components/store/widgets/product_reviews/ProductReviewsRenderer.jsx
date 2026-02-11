@@ -16,7 +16,7 @@ const StarRating = ({ rating, max = 5, size = "w-4 h-4", color = "text-yellow-40
     );
 };
 
-export const ProductReviewsRenderer = ({ style, content, productId, storeId, store }) => {
+export const ProductReviewsRenderer = ({ style, content, productId, storeId }) => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(false);
     const [summary, setSummary] = useState({ avg: 0, count: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
@@ -50,7 +50,7 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId, sto
     useEffect(() => {
         if (productId) fetchReviews();
         setCurrentPage(1); // Reset page on filter/sort change
-    }, [productId, sortOrder, filterRating, store?.settings?.mock?.ratings?.active]);
+    }, [productId, sortOrder, filterRating]);
 
     // PAGINATION LOGIC
     const totalPages = Math.ceil(reviews.length / reviewsPerPage);
@@ -60,34 +60,6 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId, sto
 
     const fetchReviews = async () => {
         setLoading(true);
-
-        const mockSettings = store?.settings?.mock?.ratings;
-        if (mockSettings?.active) {
-            // -- MOCK MODE --
-            const mockAvg = mockSettings?.average || 4.5;
-            const mockCount = mockSettings?.count || 12;
-
-            // Generate deterministic mock reviews
-            const mocks = Array(mockCount).fill(0).map((_, i) => ({
-                id: `mock-${i}`,
-                customer_name: `Customer ${i + 1}`,
-                rating: i < Math.floor(mockCount * 0.7) ? 5 : 4, // Mostly exemplary
-                review_text: "This is a sample review to demonstrate the layout. The product is great!",
-                created_at: new Date().toISOString(),
-                is_verified: true,
-                media_urls: []
-            }));
-
-            setReviews(mocks);
-            setSummary({
-                avg: mockAvg,
-                count: mockCount,
-                distribution: { 5: Math.floor(mockCount * 0.7), 4: Math.ceil(mockCount * 0.3), 3: 0, 2: 0, 1: 0 }
-            });
-            setLoading(false);
-            return;
-        }
-
         try {
             let query = supabase
                 .from('product_reviews')
@@ -275,14 +247,8 @@ export const ProductReviewsRenderer = ({ style, content, productId, storeId, sto
                     {/* Right: Actions */}
                     <div className="flex flex-col items-end space-y-4">
                         <button
-                            onClick={() => {
-                                if (store?.settings?.mock?.ratings?.active) {
-                                    alert("Review submission is disabled in Mock Mode.");
-                                    return;
-                                }
-                                setShowForm(!showForm);
-                            }}
-                            className={`px-8 py-3 rounded-full font-bold text-white shadow-lg shadow-indigo-200 transition-all transform hover:scale-105 active:scale-95 ${store?.settings?.mock?.ratings?.active ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => setShowForm(!showForm)}
+                            className="px-8 py-3 rounded-full font-bold text-white shadow-lg shadow-indigo-200 transition-all transform hover:scale-105 active:scale-95"
                             style={{ backgroundColor: buttonColor }}
                         >
                             Write a Review

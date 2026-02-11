@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ThemeDataManager } from './ThemeDataManager';
-
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
@@ -20,10 +18,8 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
-    Save, Eye, Smartphone, Monitor, Tablet, Minimize, Maximize, ChevronLeft, Layout, Globe, Lock, Database
+    Save, Eye, Smartphone, Monitor, Tablet, Minimize, Maximize, ChevronLeft, Layout, Globe, Lock
 } from 'lucide-react';
-
-// ...
 
 // Context & Helper Imports
 import { CartProvider } from '../../context/CartContext';
@@ -202,7 +198,6 @@ export function ThemeBuilder() {
     const [customWidgets, setCustomWidgets] = useState([]); // TODO: Add theme_widgets table
     const [cartSettings, setCartSettings] = useState(null);
     const [discounts, setDiscounts] = useState([]); // No theme discounts yet
-    const [isDataManagerOpen, setIsDataManagerOpen] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -227,20 +222,8 @@ export function ThemeBuilder() {
         const { data: pagesData } = await supabase.from('theme_pages').select('*').eq('theme_id', themeId);
         setThemePages(pagesData || []);
 
-        // Mock discounts from settings
-        const mockDiscount = themeData?.settings?.mock?.discount;
-        if (mockDiscount?.active) {
-            setDiscounts([{
-                id: 'mock-discount',
-                code: 'MOCK-SALE',
-                value: mockDiscount.value || 0,
-                type: 'percentage',
-                applies_to: 'all',
-                is_active: true
-            }]);
-        } else {
-            setDiscounts([]);
-        }
+        // Mock discounts for now
+        setDiscounts([]);
     };
 
     const fetchPage = async () => {
@@ -536,17 +519,6 @@ export function ThemeBuilder() {
                         </div>
                     )}
 
-                    {/* Data Manager Overlay */}
-                    {isDataManagerOpen && (
-                        <div className="absolute top-0 left-0 h-full z-40 bg-white shadow-2xl animate-in slide-in-from-left-64 duration-300 border-r border-slate-200 w-[500px]">
-                            <ThemeDataManager
-                                themeId={themeId}
-                                onClose={() => setIsDataManagerOpen(false)}
-                                refreshData={fetchThemeData}
-                            />
-                        </div>
-                    )}
-
                     <div className="flex items-center bg-slate-800/50 rounded-lg p-1 space-x-1 border border-slate-700">
                         <ViewModeBtn active={viewMode === 'desktop'} onClick={() => setViewMode('desktop')} icon={<Monitor className="h-4 w-4" />} />
                         <ViewModeBtn active={viewMode === 'tablet'} onClick={() => setViewMode('tablet')} icon={<Tablet className="h-4 w-4" />} />
@@ -571,15 +543,6 @@ export function ThemeBuilder() {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => setIsDataManagerOpen(!isDataManagerOpen)}
-                            className={`bg-slate-800 border-slate-700 text-slate-300 hover:text-white ${isDataManagerOpen ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : ''}`}
-                        >
-                            <Database className="h-4 w-4 mr-2" />
-                            Mock Data
-                        </Button>
                         {theme && (
                             <Button
                                 variant="outline"

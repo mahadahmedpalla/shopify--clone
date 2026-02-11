@@ -6,7 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Plus, Paintbrush, Globe, Layout, Edit } from 'lucide-react';
 import { CreateThemeModal } from '../components/theme/CreateThemeModal';
-import { ThemeDataManager } from '../components/theme/ThemeDataManager';
+import { ThemeAssetsModal } from '../components/theme/ThemeAssetsModal';
 import { useNavigate } from 'react-router-dom';
 
 export function ThemeDashboard() {
@@ -259,22 +259,14 @@ export function ThemeDashboard() {
                 }}
             />
 
-            {/* Mock Data Manager Modal */}
-            {isAssetsModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center">
-                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onClick={() => setIsAssetsModalOpen(false)} />
-                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-                        <ThemeDataManager
-                            themeId={selectedThemeId}
-                            onClose={() => {
-                                setIsAssetsModalOpen(false);
-                                setSelectedThemeId(null);
-                            }}
-                            refreshData={() => { }} // No specific refresh needed for dashboard, or maybe refetch themes?
-                        />
-                    </div>
-                </div>
-            )}
+            <ThemeAssetsModal
+                isOpen={isAssetsModalOpen}
+                onClose={() => {
+                    setIsAssetsModalOpen(false);
+                    setSelectedThemeId(null);
+                }}
+                themeId={selectedThemeId}
+            />
         </div>
     );
 }

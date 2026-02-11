@@ -97,7 +97,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'product_grid':
                         return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} categories={categories} categoryPath={categoryPath} />;
                     case 'product_reviews':
-                        return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} store={store} />;
+                        return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
                     case 'related_products':
                         return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} isEditor={isEditor} storeDiscounts={storeDiscounts} />;
                     case 'heading':
