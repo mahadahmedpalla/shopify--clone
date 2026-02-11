@@ -29,20 +29,50 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpd
         setLoading(false);
     };
 
+    const handleImageUpload = async (file, subfolder) => {
+        if (!file) return null;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${themeId}/${subfolder}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('themes')
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('themes')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    };
+
     const handleAddProduct = async (e) => {
         e.preventDefault();
         if (!skuForm.name) return;
+
+        let imageUrl = skuForm.image_url;
+        if (skuForm.imageFile) {
+            try {
+                imageUrl = await handleImageUpload(skuForm.imageFile, 'products');
+            } catch (error) {
+                console.error("Upload error:", error);
+                alert("Failed to upload image.");
+                return;
+            }
+        }
 
         const { data, error } = await supabase.from('theme_products').insert({
             theme_id: themeId,
             name: skuForm.name,
             price: parseFloat(skuForm.price) || 0,
-            images: skuForm.image_url ? [skuForm.image_url] : []
+            images: imageUrl ? [imageUrl] : []
         }).select().single();
 
         if (data) {
             setProducts([data, ...products]);
-            setSkuForm({ name: '', price: '', image_url: '' });
+            setSkuForm({ name: '', price: '', image_url: '', imageFile: null });
         }
     };
 
@@ -55,14 +85,26 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpd
         e.preventDefault();
         if (!catForm.name) return;
 
+        let imageUrl = null;
+        if (catForm.imageFile) {
+            try {
+                imageUrl = await handleImageUpload(catForm.imageFile, 'categories');
+            } catch (error) {
+                console.error("Upload error:", error);
+                alert("Failed to upload image.");
+                return;
+            }
+        }
+
         const { data, error } = await supabase.from('theme_categories').insert({
             theme_id: themeId,
-            name: catForm.name
+            name: catForm.name,
+            image_url: imageUrl
         }).select().single();
 
         if (data) {
             setCategories([data, ...categories]);
-            setCatForm({ name: '' });
+            setCatForm({ name: '', imageFile: null });
         }
     };
 
@@ -140,12 +182,30 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpd
                                                 onChange={e => setSkuForm({ ...skuForm, price: e.target.value })}
                                                 placeholder="0.00"
                                             />
-                                            <Input
-                                                label="Image URL"
-                                                value={skuForm.image_url}
-                                                onChange={e => setSkuForm({ ...skuForm, image_url: e.target.value })}
-                                                placeholder="https://..."
-                                            />
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                                                <div className="flex items-center space-x-2">
+                                                    <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                        <span>{skuForm.imageFile ? 'Change File' : 'Upload'}</span>
+                                                        <input
+                                                            type="file"
+                                                            className="sr-only"
+                                                            accept="image/*"
+                                                            onChange={e => setSkuForm({ ...skuForm, imageFile: e.target.files[0], image_url: '' })}
+                                                        />
+                                                    </label>
+                                                    <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                                                        {skuForm.imageFile ? skuForm.imageFile.name : 'No file chosen'}
+                                                    </span>
+                                                </div>
+                                                <div className="mt-2 text-xs text-gray-500 text-center">- OR -</div>
+                                                <Input
+                                                    className="mt-2"
+                                                    value={skuForm.image_url}
+                                                    onChange={e => setSkuForm({ ...skuForm, image_url: e.target.value, imageFile: null })}
+                                                    placeholder="Enter Image URL"
+                                                />
+                                            </div>
                                             <Button type="submit" className="w-full" size="sm">
                                                 <Plus className="h-4 w-4 mr-2" />
                                                 Add Product
@@ -191,6 +251,25 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpd
                                                 onChange={e => setCatForm({ ...catForm, name: e.target.value })}
                                                 placeholder="e.g. Summer Collection"
                                             />
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Category Image</label>
+                                                <div className="flex items-center space-x-2">
+                                                    <label className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                        <span>{catForm.imageFile ? 'Change File' : 'Upload'}</span>
+                                                        <input
+                                                            type="file"
+                                                            className="sr-only"
+                                                            accept="image/*"
+                                                            onChange={e => setCatForm({ ...catForm, imageFile: e.target.files[0] })}
+                                                        />
+                                                    </label>
+                                                    <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                                                        {catForm.imageFile ? catForm.imageFile.name : 'No file chosen'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
                                             <Button type="submit" className="w-full" size="sm">
                                                 <Plus className="h-4 w-4 mr-2" />
                                                 Add Category
@@ -205,7 +284,17 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpd
                                                 <li className="p-4 text-gray-500 italic">No mock categories added yet.</li>
                                             ) : categories.map(cat => (
                                                 <li key={cat.id} className="p-3 flex justify-between items-center hover:bg-gray-50">
-                                                    <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+                                                    <div className="flex items-center">
+                                                        {/* Thumbnail */}
+                                                        <div className="h-10 w-10 bg-gray-100 rounded flex-shrink-0 overflow-hidden flex items-center justify-center mr-3 text-gray-400">
+                                                            {cat.image_url ? (
+                                                                <img src={cat.image_url} alt={cat.name} className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                <Layers className="h-5 w-5" />
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-medium text-gray-900">{cat.name}</span>
+                                                    </div>
                                                     <button onClick={() => handleDeleteCategory(cat.id)} className="text-gray-400 hover:text-red-500">
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
