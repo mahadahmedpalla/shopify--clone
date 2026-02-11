@@ -684,7 +684,10 @@ export function ThemeBuilder() {
                     onClose={() => setIsAssetsModalOpen(false)}
                     themeId={themeId}
                     mockSettings={mockSettings}
-                    onUpdateMockSettings={setMockSettings}
+                    onUpdateMockSettings={(newSettings) => {
+                        console.log('ThemeBuilder: receiving update', newSettings);
+                        setMockSettings(newSettings);
+                    }}
                 />
             </div>
         </ErrorBoundary>
