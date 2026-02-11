@@ -272,7 +272,7 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                                         ${parseFloat(comparePrice).toFixed(2)}
                                     </span>
                                 )}
-                                {hasDiscount && showDiscount && (
+                                {hasDiscount && (showDiscount || mockSettings?.enableDiscounts) && (
                                     <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wide">
                                         Save {discountPct}%
                                     </span>

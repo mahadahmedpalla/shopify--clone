@@ -596,7 +596,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                                 return (
                                                     <div className="flex flex-wrap items-baseline gap-2">
                                                         <span style={priceStyle}>${parseFloat(displayFinalPrice).toFixed(2)}</span>
-                                                        {showComparePrice && (displayHasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(displayFinalPrice))) && (
+                                                        {(showComparePrice || mockSettings?.enableDiscounts) && (displayHasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(displayFinalPrice))) && (
                                                             <span style={comparePriceStyle} className="line-through">
                                                                 ${parseFloat(displayHasDiscount ? displayComparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
                                                             </span>
