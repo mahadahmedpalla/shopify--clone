@@ -96,7 +96,7 @@ export function MarketplaceLibrary({ storeId }) {
                                 <Button
                                     size="sm"
                                     variant={item.is_active ? "secondary" : "primary"}
-                                    onClick={() => handleActivate(item.id)}
+                                    onClick={() => handleApplyClick(item)}
                                     className="flex-1"
                                     disabled={item.is_active}
                                 >
