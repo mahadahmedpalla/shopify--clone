@@ -23,6 +23,7 @@ import { OrderSuccessPage } from './pages/OrderSuccessPage';
 import { StoreSettingsPage } from './components/store/settings/StoreSettingsPage';
 import { ThemeDashboard } from './pages/ThemeDashboard';
 import { ThemeBuilder } from './components/theme/ThemeBuilder';
+import { ThemeMarketplace } from './components/store/theme/ThemeMarketplace';
 // ... existing imports ...
 
 
@@ -111,6 +112,7 @@ function App() {
             <Route path="tax" element={<TaxesPage />} />
             <Route path="shipping" element={<ShippingPage />} />
             <Route path="customize" element={<CustomizeDashboard />} />
+            <Route path="theme-marketplace" element={<ThemeMarketplace />} />
             <Route path="settings" element={<StoreSettingsPage />} />
           </Route>
 

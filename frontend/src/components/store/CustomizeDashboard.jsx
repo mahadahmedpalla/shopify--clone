@@ -444,10 +444,14 @@ export function CustomizeDashboard() {
                     <Card className="p-6 bg-indigo-600 text-white relative overflow-hidden">
                         <div className="relative z-10">
                             <h3 className="font-bold text-lg mb-2">Global Styles</h3>
-                            <p className="text-indigo-100 text-xs mb-6">Manage colors, fonts and your brand identity across all pages.</p>
-                            <Button variant="secondary" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                <Settings className="h-4 w-4 mr-2" />
-                                Theme Settings
+                            <p className="text-indigo-100 text-xs mb-6">Browse and install themes from the marketplace.</p>
+                            <Button
+                                variant="secondary"
+                                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                onClick={() => navigate(`/store/${storeId}/theme-marketplace`)}
+                            >
+                                <Layout className="h-4 w-4 mr-2" />
+                                Theme Marketplace
                             </Button>
                         </div>
                         <Palette className="absolute -bottom-4 -right-4 h-32 w-32 text-white/10 rotate-12" />
