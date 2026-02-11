@@ -19,11 +19,17 @@ export function ThemeApplyModal({ isOpen, onClose, theme, storeId, onSuccess }) 
     const fetchPages = async () => {
         setLoading(true);
 
-        // 1. Fetch Theme Pages
         const { data: tPages } = await supabase
             .from('theme_pages')
             .select('*')
             .eq('theme_id', theme.theme.id);
+
+        // 1.5 Fetch Theme Settings
+        const { data: tTheme } = await supabase
+            .from('themes')
+            .select('settings')
+            .eq('id', theme.theme.id)
+            .single();
 
         // 2. Fetch Store Pages
         const { data: sPages } = await supabase
@@ -51,7 +57,7 @@ export function ThemeApplyModal({ isOpen, onClose, theme, storeId, onSuccess }) 
     };
 
     const handleApply = async () => {
-        if (!confirm(`Are you sure you want to update ${selectedPages.length} pages? This will overwrite existing layouts for these pages.`)) return;
+        if (!confirm(`Are you sure you want to update ${selectedPages.length} pages? This will overwrite existing layouts and update your store's global theme settings.`)) return;
 
         setApplying(true);
         const errors = [];
@@ -118,10 +124,20 @@ export function ThemeApplyModal({ isOpen, onClose, theme, storeId, onSuccess }) 
                 .eq('store_id', storeId)
                 .eq('theme_id', theme.theme.id);
 
+            // 3. Update Store Settings (Global Styles)
+            if (theme.theme.settings) {
+                const { error: settingsError } = await supabase
+                    .from('stores')
+                    .update({ settings: theme.theme.settings })
+                    .eq('id', storeId);
+
+                if (settingsError) console.error("Failed to update store settings:", settingsError);
+            }
+
             if (errors.length > 0) {
                 alert(`Theme applied, but failed to update pages: ${errors.join(', ')}`);
             } else {
-                alert('Theme applied successfully! Your store pages have been updated.');
+                alert('Theme applied successfully! Your store pages and global settings have been updated.');
                 onSuccess();
                 onClose();
             }
@@ -163,7 +179,7 @@ export function ThemeApplyModal({ isOpen, onClose, theme, storeId, onSuccess }) 
                                     </p>
                                     <p className="text-xs text-amber-600 mt-1">
                                         Applying this theme will <strong>overwrite the layout and content</strong> of the selected pages.
-                                        Images from the theme will be used. You can replace them later.
+                                        It will also update your store's <strong>global colors and fonts</strong>.
                                     </p>
                                 </div>
                             </div>
@@ -222,7 +238,7 @@ export function ThemeApplyModal({ isOpen, onClose, theme, storeId, onSuccess }) 
                                                     </div>
                                                 </div>
 
-                                                <div className="pl-4">
+                                                <div className="pl-4 flex items-center space-x-2">
                                                     {isExisting ? (
                                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
                                                             Overwrite
@@ -232,6 +248,13 @@ export function ThemeApplyModal({ isOpen, onClose, theme, storeId, onSuccess }) 
                                                             Create New
                                                         </span>
                                                     )}
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => handleTogglePage(page.slug)}
+                                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
                                                 </div>
                                             </div>
                                         );

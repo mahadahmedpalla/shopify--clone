@@ -110,8 +110,17 @@ export function PublicStorefront() {
     if (error) return <PublicError message={error} />;
     if (!page) return <PublicError message="Page not found" />;
 
+    // Generate CSS variables from store settings
+    // Default values match index.css
+    const themeStyles = {
+        '--color-primary-500': store?.settings?.colors?.primary || '#0ea5e9',
+        '--color-secondary-500': store?.settings?.colors?.secondary || '#64748b',
+        '--font-family': store?.settings?.typography?.font || 'inherit',
+        // Add more mappings as needed
+    };
+
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white" style={themeStyles}>
             <CartProvider storeKey={store?.id}>
                 <CartDrawer settings={cartSettings} />
                 {(page.content || []).map((block) => (
