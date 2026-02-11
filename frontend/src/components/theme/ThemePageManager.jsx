@@ -3,10 +3,12 @@ import { Plus, Trash2, Check, X, FileText, ShoppingBag, ShoppingCart, Home, Laye
 
 const SYSTEM_PAGES = [
     { name: 'Home Page', slug: 'home', icon: Home },
-    { name: 'Product Page', slug: 'product', icon: ShoppingBag },
-    { name: 'Category Page', slug: 'category', icon: Layers },
+    { name: 'Product Page', slug: 'pdp', icon: ShoppingBag },
+    { name: 'Category Page', slug: 'shop', icon: Layers },
     { name: 'Cart Page', slug: 'cart', icon: ShoppingCart },
     { name: 'Checkout Page', slug: 'checkout', icon: FileText },
+    { name: 'Refund Policy', slug: 'refund-policy', icon: FileText },
+    { name: 'Shipping Policy', slug: 'shipping-policy', icon: FileText },
 ];
 
 export function ThemePageManager({

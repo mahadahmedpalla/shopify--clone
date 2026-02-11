@@ -397,13 +397,18 @@ export function ThemeBuilder() {
             error = updateError;
         } else {
             // Upsert with default content if new system page
+            let pageType = 'system';
+            if (['refund-policy', 'shipping-policy'].includes(slug)) {
+                pageType = 'legal';
+            }
+
             const { error: upsertError } = await supabase
                 .from('theme_pages')
                 .upsert({
                     theme_id: themeId,
                     slug: slug,
-                    name: slug.charAt(0).toUpperCase() + slug.slice(1) + ' Page', // Simple name
-                    type: 'system',
+                    name: slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+                    type: pageType,
                     is_included: isIncluded,
                     content: [] // Empty default
                 }, { onConflict: 'theme_id, slug' });
