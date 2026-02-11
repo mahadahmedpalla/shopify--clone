@@ -119,7 +119,7 @@ function App() {
 
           {/* Theme Builder Routes */}
           <Route path="/theme-builder/:themeId" element={<ThemeBuilder />} />
-          <Route path="/theme-builder/:themeId/:pageId" element={<ThemeBuilder />} />
+          <Route path="/theme-builder/:themeId/page/:pageId" element={<ThemeBuilder />} />
         </Route>
       </Routes>
     </BrowserRouter>
