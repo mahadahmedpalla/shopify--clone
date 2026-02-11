@@ -4,7 +4,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { X, Package, Layers, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
 
-export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpdateMockSettings }) {
+export function ThemeAssetsModal({ isOpen, onClose, themeId, developerId, mockSettings, onUpdateMockSettings }) {
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState([]);
@@ -33,7 +33,10 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpd
         if (!file) return null;
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `${themeId}/${subfolder}/${fileName}`;
+
+        // Use developerId as root folder to comply with RLS policies
+        const rootFolder = developerId || 'temp';
+        const filePath = `${rootFolder}/${themeId}/${subfolder}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
             .from('themes')

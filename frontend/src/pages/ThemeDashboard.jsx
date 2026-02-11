@@ -339,6 +339,7 @@ export function ThemeDashboard() {
                     setSelectedThemeId(null);
                 }}
                 themeId={selectedThemeId}
+                developerId={developer?.id}
                 mockSettings={mockSettings}
                 onUpdateMockSettings={setMockSettings}
             />
