@@ -6,7 +6,7 @@ import { X, Package, Layers, Trash2, Plus, Image as ImageIcon } from 'lucide-rea
 
 export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings = {}, onUpdateMockSettings = () => { } }) {
     // Debug logging
-    console.log('ThemeAssetsModal Render:', { mockSettings, isOpen });
+    console.log('ThemeAssetsModal Render:', { mockSettings: JSON.stringify(mockSettings), isOpen });
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState([]);
