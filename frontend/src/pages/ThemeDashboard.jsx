@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Plus, Paintbrush, Globe, Layout, Edit } from 'lucide-react';
-import { CreateThemeModal } from '../components/theme/CreateThemeModal';
+import { ThemeMetadataModal } from '../components/theme/ThemeMetadataModal';
 import { ThemeAssetsModal } from '../components/theme/ThemeAssetsModal';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,9 +15,10 @@ export function ThemeDashboard() {
     const [developer, setDeveloper] = useState(null);
     const [themes, setThemes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
     const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
     const [selectedThemeId, setSelectedThemeId] = useState(null);
+    const [editingTheme, setEditingTheme] = useState(null); // Theme being edited
     const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false });
 
     // Load mock settings when a theme is selected
@@ -42,6 +43,16 @@ export function ThemeDashboard() {
             localStorage.setItem(`mock_settings_${selectedThemeId}`, JSON.stringify(mockSettings));
         }
     }, [mockSettings, selectedThemeId]);
+
+    const openCreateModal = () => {
+        setEditingTheme(null);
+        setIsMetadataModalOpen(true);
+    };
+
+    const openEditMetadataModal = (theme) => {
+        setEditingTheme(theme);
+        setIsMetadataModalOpen(true);
+    };
 
     // Registration Form State
     const [regForm, setRegForm] = useState({ developer_name: '', website: '' });
@@ -194,7 +205,7 @@ export function ThemeDashboard() {
                         </p>
                     </div>
                     <div className="mt-4 flex md:mt-0 md:ml-4">
-                        <Button onClick={() => setIsCreateModalOpen(true)}>
+                        <Button onClick={openCreateModal}>
                             <Plus className="h-5 w-5 mr-2" />
                             Create Theme
                         </Button>
@@ -208,7 +219,7 @@ export function ThemeDashboard() {
                         <h3 className="mt-2 text-sm font-medium text-gray-900">No themes yet</h3>
                         <p className="mt-1 text-sm text-gray-500">Create your first theme to get started.</p>
                         <div className="mt-6">
-                            <Button onClick={() => setIsCreateModalOpen(true)}>
+                            <Button onClick={openCreateModal}>
                                 <Plus className="h-5 w-5 mr-2" />
                                 Create Theme
                             </Button>
@@ -219,53 +230,87 @@ export function ThemeDashboard() {
                         {themes.map((theme) => (
                             <Card
                                 key={theme.id}
-                                className="hover:shadow-md transition-all group flex flex-col h-full"
+                                className="hover:shadow-md transition-all group flex flex-col h-full overflow-hidden"
                             >
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <h3 className="text-lg font-bold text-gray-900">{theme.name}</h3>
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${theme.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                {/* Thumbnail */}
+                                <div className="h-40 bg-gray-100 relative group-hover:opacity-90 transition-opacity">
+                                    {theme.thumbnail_url ? (
+                                        <img
+                                            src={theme.thumbnail_url}
+                                            alt={theme.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Layout className="h-12 w-12 text-gray-300" />
+                                        </div>
+                                    )}
+                                    <div className="absolute top-2 right-2 flex gap-1">
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide ${theme.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                                             }`}>
                                             {theme.status === 'published' ? 'Published' : 'Draft'}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-gray-500 line-clamp-3 mb-4">
-                                        {theme.description || "No description provided."}
-                                    </p>
-                                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                                        <span className="font-medium text-gray-900 mr-2">Price:</span>
-                                        {theme.price_credits === 0 ? 'Free' : `${theme.price_credits} Credits`}
-                                    </div>
                                 </div>
 
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                    <div className="text-xs text-gray-400">
-                                        Updated: {new Date(theme.updated_at).toLocaleDateString()}
+                                <div className="flex-1 p-5">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{theme.name}</h3>
+                                        <div className="flex items-center text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                                            {theme.price_credits === 0 ? 'Free' : `${theme.price_credits} Cr`}
+                                        </div>
                                     </div>
 
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSelectedThemeId(theme.id);
-                                            setIsAssetsModalOpen(true);
-                                        }}
-                                        className="mr-2"
-                                    >
-                                        <div className="flex items-center">
-                                            {/* We can use an icon here if desired, e.g. Database or Layers */}
-                                            Manage Mock Data
-                                        </div>
-                                    </Button>
+                                    <p className="text-sm text-gray-500 line-clamp-2 mb-3 min-h-[40px]">
+                                        {theme.description || "No description provided."}
+                                    </p>
 
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => navigate(`/theme-builder/${theme.id}`)}
-                                    >
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Edit Theme
-                                    </Button>
+                                    {/* Tags */}
+                                    {theme.tags && theme.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mb-4">
+                                            {theme.tags.slice(0, 3).map(tag => (
+                                                <span key={tag} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                            {theme.tags.length > 3 && (
+                                                <span className="text-[10px] text-gray-400 px-1">+{theme.tags.length - 3}</span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-100">
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => navigate(`/theme-builder/${theme.id}`)}
+                                            className="flex-1"
+                                        >
+                                            <Edit className="h-3 w-3 mr-1" />
+                                            Builder
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => openEditMetadataModal(theme)}
+                                            className="px-2"
+                                            title="Edit Details"
+                                        >
+                                            <Paintbrush className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => {
+                                                setSelectedThemeId(theme.id);
+                                                setIsAssetsModalOpen(true);
+                                            }}
+                                            className="px-2"
+                                            title="Mock Properties"
+                                        >
+                                            <span className="font-bold font-mono text-xs">If</span>
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card>
                         ))}
@@ -273,12 +318,13 @@ export function ThemeDashboard() {
                 )}
             </main>
 
-            <CreateThemeModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
+            <ThemeMetadataModal
+                isOpen={isMetadataModalOpen}
+                onClose={() => setIsMetadataModalOpen(false)}
                 developerId={developer?.id}
+                theme={editingTheme}
                 onSuccess={() => {
-                    setIsCreateModalOpen(false);
+                    setIsMetadataModalOpen(false);
                     fetchData(); // Refresh list
                 }}
             />
