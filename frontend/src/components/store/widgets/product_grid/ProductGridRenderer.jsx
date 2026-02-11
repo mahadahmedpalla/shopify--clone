@@ -139,12 +139,23 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
         displayProducts = displayProducts.filter(p => p.category_id === viewerCategory);
     }
 
-    // Fetch Ratings
+    // Fetch Ratings (or use Mock)
     useEffect(() => {
         const fetchRatings = async () => {
             if (!displayProducts || displayProducts.length === 0) return;
             const productIds = displayProducts.map(p => p.id);
             if (productIds.length === 0) return;
+
+            // MOCK RATINGS CHECK
+            if (store?.settings?.mock?.reviews?.active) {
+                const mockRating = store.settings.mock.reviews.rating || 5;
+                const ratingsMap = {};
+                productIds.forEach(id => {
+                    ratingsMap[id] = { count: 120, sum: 120 * mockRating, average: mockRating };
+                });
+                setProductRatings(ratingsMap);
+                return;
+            }
 
             try {
                 const { data, error } = await supabase
@@ -176,7 +187,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
             }
         };
         fetchRatings(); // Fetch on mount/change
-    }, [displayProducts]); // Re-run when products change
+    }, [displayProducts, store?.settings?.mock?.reviews?.active]); // Re-run when products or settings change
 
     // 3. Apply Viewer Sort (Overrides Merchant Sort if set)
     if (viewerSort) {
