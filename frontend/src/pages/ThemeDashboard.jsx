@@ -18,6 +18,7 @@ export function ThemeDashboard() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
     const [selectedThemeId, setSelectedThemeId] = useState(null);
+    const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false }); // Mock settings for dashboard too (visual only for now)
 
     // Registration Form State
     const [regForm, setRegForm] = useState({ developer_name: '', website: '' });
@@ -266,6 +267,8 @@ export function ThemeDashboard() {
                     setSelectedThemeId(null);
                 }}
                 themeId={selectedThemeId}
+                mockSettings={mockSettings}
+                onUpdateMockSettings={setMockSettings}
             />
         </div>
     );
