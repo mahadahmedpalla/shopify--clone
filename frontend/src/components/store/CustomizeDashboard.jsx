@@ -228,8 +228,14 @@ export function CustomizeDashboard() {
         return pages.find(p => p.slug === slug)?.id;
     };
 
+    const themeStyles = {
+        '--color-primary-500': store?.settings?.colors?.primary || '#0ea5e9',
+        '--color-secondary-500': store?.settings?.colors?.secondary || '#64748b',
+        '--font-family': store?.settings?.typography?.font || 'inherit',
+    };
+
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500" style={themeStyles}>
             <header className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">Store Customization</h1>
