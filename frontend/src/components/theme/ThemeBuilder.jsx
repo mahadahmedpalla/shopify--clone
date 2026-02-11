@@ -18,7 +18,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
-    Save, Eye, Smartphone, Monitor, Tablet, Minimize, Maximize, ChevronLeft, Layout
+    Save, Eye, Smartphone, Monitor, Tablet, Minimize, Maximize, ChevronLeft, Layout, Globe, Lock
 } from 'lucide-react';
 
 // Context & Helper Imports
@@ -442,6 +442,29 @@ export function ThemeBuilder() {
         }
     };
 
+    const handleToggleStatus = async () => {
+        if (!theme) return;
+
+        const newStatus = theme.status === 'published' ? 'draft' : 'published';
+        const confirmMsg = newStatus === 'published'
+            ? "Are you sure you want to PUBLISH this theme? It will be visible to everyone."
+            : "Are you sure you want to UNPUBLISH this theme? It will be hidden from the public.";
+
+        if (!window.confirm(confirmMsg)) return;
+
+        const { error } = await supabase
+            .from('themes')
+            .update({ status: newStatus })
+            .eq('id', themeId);
+
+        if (error) {
+            alert('Failed to update status: ' + error.message);
+        } else {
+            setTheme({ ...theme, status: newStatus });
+            alert(`Theme is now ${newStatus.toUpperCase()}`);
+        }
+    };
+
     const [isPageManagerOpen, setIsPageManagerOpen] = useState(false);
 
     if (loading) return <Loader />;
@@ -520,6 +543,29 @@ export function ThemeBuilder() {
                     </div>
 
                     <div className="flex items-center space-x-3">
+                        {theme && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleToggleStatus}
+                                className={`border-slate-700 hover:bg-slate-800 ${theme.status === 'published'
+                                        ? 'text-green-400 border-green-900/50 bg-green-900/10'
+                                        : 'text-amber-400 border-amber-900/50 bg-amber-900/10'
+                                    }`}
+                            >
+                                {theme.status === 'published' ? (
+                                    <>
+                                        <Globe className="h-4 w-4 mr-2" />
+                                        Public
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="h-4 w-4 mr-2" />
+                                        Draft
+                                    </>
+                                )}
+                            </Button>
+                        )}
                         <Button
                             variant="secondary"
                             size="sm"
