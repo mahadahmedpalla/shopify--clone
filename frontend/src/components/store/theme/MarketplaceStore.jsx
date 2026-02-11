@@ -92,11 +92,18 @@ export function MarketplaceStore({ storeId }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {themes.map(theme => (
                     <Card key={theme.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-slate-200">
-                        <div className="aspect-video bg-slate-100 relative overflow-hidden">
-                            {/* Placeholder for thumbnail */}
-                            <div className="absolute inset-0 flex items-center justify-center text-slate-300">
-                                <Globe className="h-12 w-12 opacity-50" />
-                            </div>
+                        <div className="aspect-video bg-slate-100 relative overflow-hidden flex items-center justify-center text-slate-300">
+                            {theme.thumbnail_url ? (
+                                <img
+                                    src={theme.thumbnail_url}
+                                    alt={theme.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                                    <Globe className="h-12 w-12 opacity-50" />
+                                </div>
+                            )}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <Button size="sm" variant="secondary" className="bg-white text-slate-900 hover:bg-slate-100">
                                     Preview
@@ -113,7 +120,21 @@ export function MarketplaceStore({ storeId }) {
                                     {theme.price_credits > 0 ? `${theme.price_credits} Credits` : 'Free'}
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8">{theme.description || 'No description available.'}</p>
+                            <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8">{theme.description || 'No description available.'}</p>
+
+                            {/* Tags */}
+                            {theme.tags && theme.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-4 h-6 overflow-hidden">
+                                    {theme.tags.slice(0, 3).map(tag => (
+                                        <span key={tag} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                            #{tag}
+                                        </span>
+                                    ))}
+                                    {theme.tags.length > 3 && (
+                                        <span className="text-[10px] text-slate-400 px-1">+{theme.tags.length - 3}</span>
+                                    )}
+                                </div>
+                            )}
 
                             <Button
                                 className="w-full"
