@@ -4,7 +4,7 @@ import { Navbar } from '../components/common/Navbar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { Plus, Paintbrush, Globe, Layout, Edit } from 'lucide-react';
+import { Plus, Paintbrush, Globe, Layout, Edit, Database } from 'lucide-react';
 import { ThemeMetadataModal } from '../components/theme/ThemeMetadataModal';
 import { ThemeAssetsModal } from '../components/theme/ThemeAssetsModal';
 import { useNavigate } from 'react-router-dom';
@@ -279,24 +279,26 @@ export function ThemeDashboard() {
                                         </div>
                                     )}
 
-                                    <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-100">
+                                    <div className="grid grid-cols-3 gap-2 mt-auto pt-4 border-t border-gray-100">
                                         <Button
                                             variant="secondary"
                                             size="sm"
                                             onClick={() => navigate(`/theme-builder/${theme.id}`)}
-                                            className="flex-1"
+                                            className="px-2 w-full text-xs font-medium"
+                                            title="Open Builder"
                                         >
-                                            <Edit className="h-3 w-3 mr-1" />
+                                            <Layout className="h-3 w-3 mr-1.5" />
                                             Builder
                                         </Button>
                                         <Button
                                             variant="secondary"
                                             size="sm"
                                             onClick={() => openEditMetadataModal(theme)}
-                                            className="px-2"
+                                            className="px-2 w-full text-xs font-medium"
                                             title="Edit Details"
                                         >
-                                            <Paintbrush className="h-3 w-3" />
+                                            <Edit className="h-3 w-3 mr-1.5" />
+                                            Edit
                                         </Button>
                                         <Button
                                             variant="secondary"
@@ -305,10 +307,11 @@ export function ThemeDashboard() {
                                                 setSelectedThemeId(theme.id);
                                                 setIsAssetsModalOpen(true);
                                             }}
-                                            className="px-2"
-                                            title="Mock Properties"
+                                            className="px-2 w-full text-xs font-medium"
+                                            title="Manage Mock Data"
                                         >
-                                            <span className="font-bold font-mono text-xs">If</span>
+                                            <Database className="h-3 w-3 mr-1.5" />
+                                            Mock
                                         </Button>
                                     </div>
                                 </div>
