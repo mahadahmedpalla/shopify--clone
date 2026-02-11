@@ -4,11 +4,13 @@ import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Layout, Check, Trash2, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ThemeApplyModal } from './ThemeApplyModal';
 
 export function MarketplaceLibrary({ storeId }) {
     const navigate = useNavigate();
     const [themes, setThemes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedTheme, setSelectedTheme] = useState(null); // For apply modal
 
     useEffect(() => {
         fetchLibrary();
@@ -52,6 +54,10 @@ export function MarketplaceLibrary({ storeId }) {
 
         if (error) alert('Failed to activate theme');
         else fetchLibrary();
+    };
+
+    const handleApplyClick = (themeItem) => {
+        setSelectedTheme(themeItem);
     };
 
     const handleRemove = async (id) => {
@@ -123,6 +129,17 @@ export function MarketplaceLibrary({ storeId }) {
                     <p className="text-slate-400 text-sm mb-4">Visit the Store tab to browse themes.</p>
                 </div>
             )}
+
+            <ThemeApplyModal
+                isOpen={!!selectedTheme}
+                onClose={() => setSelectedTheme(null)}
+                theme={selectedTheme}
+                storeId={storeId}
+                onSuccess={() => {
+                    fetchLibrary();
+                    // Optionally navigate to customize dashboard
+                }}
+            />
         </div>
     );
 }
