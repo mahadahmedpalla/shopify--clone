@@ -239,6 +239,10 @@ export function ThemeBuilder() {
         const { data: pagesData } = await supabase.from('theme_pages').select('*').eq('theme_id', themeId);
         setThemePages(pagesData || []);
 
+        // Fetch Custom Widgets (Theme Scope)
+        const { data: customs } = await supabase.from('theme_widgets').select('*').eq('theme_id', themeId);
+        if (customs) setCustomWidgets(customs);
+
         // Mock discounts for now
         setDiscounts([]);
     };
@@ -287,6 +291,35 @@ export function ThemeBuilder() {
             alert('Theme Layout Saved! 🎨');
         } catch (e) {
             alert('Save failed: ' + e.message);
+        }
+    };
+
+    const handleSaveCustomWidget = async (name, type, settings) => {
+        try {
+            const { data, error } = await supabase.from('theme_widgets').insert({
+                theme_id: themeId,
+                name,
+                type,
+                settings
+            }).select().single();
+
+            if (error) throw error;
+            setCustomWidgets([...customWidgets, data]);
+            alert('Widget Saved as Preset!');
+        } catch (e) {
+            console.error(e);
+            alert('Failed to save preset: ' + e.message);
+        }
+    };
+
+    const handleDeleteCustomWidget = async (widgetId) => {
+        try {
+            const { error } = await supabase.from('theme_widgets').delete().eq('id', widgetId);
+            if (error) throw error;
+            setCustomWidgets(customWidgets.filter(w => w.id !== widgetId));
+        } catch (e) {
+            console.error(e);
+            alert('Failed to delete preset: ' + e.message);
         }
     };
 
@@ -621,7 +654,7 @@ export function ThemeBuilder() {
                             previewMode={previewMode}
                             onAddWidget={addWidget}
                             customWidgets={customWidgets}
-                            onDeleteCustom={() => { }} // Disabled for themes for now
+                            onDeleteCustom={handleDeleteCustomWidget}
                         />
                     )}
 
@@ -688,7 +721,7 @@ export function ThemeBuilder() {
                         categories={categories}
                         viewMode={viewMode}
                         storePages={themePages}
-                        onSaveCustom={() => { }} // Disabled
+                        onSaveCustom={handleSaveCustomWidget}
                         storeId={themeId}
                         isTheme={true}
                         developerId={theme?.developer_id}
