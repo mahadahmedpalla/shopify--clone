@@ -18,8 +18,10 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
-    Save, Eye, Smartphone, Monitor, Tablet, Minimize, Maximize, ChevronLeft, Layout, Globe, Lock
+    Save, Eye, Smartphone, Monitor, Tablet, Minimize, Maximize, ChevronLeft, Layout, Globe, Lock, Database
 } from 'lucide-react';
+
+import { ThemeAssetsModal } from './ThemeAssetsModal';
 
 // Context & Helper Imports
 import { CartProvider } from '../../context/CartContext';
@@ -198,6 +200,8 @@ export function ThemeBuilder() {
     const [customWidgets, setCustomWidgets] = useState([]); // TODO: Add theme_widgets table
     const [cartSettings, setCartSettings] = useState(null);
     const [discounts, setDiscounts] = useState([]); // No theme discounts yet
+    const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false });
+    const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -543,6 +547,17 @@ export function ThemeBuilder() {
                     </div>
 
                     <div className="flex items-center space-x-3">
+                        {/* Mock Data Button */}
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setIsAssetsModalOpen(true)}
+                            className="bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
+                        >
+                            <Database className="h-4 w-4 mr-2" />
+                            Mock Data
+                        </Button>
+
                         {theme && (
                             <Button
                                 variant="outline"
@@ -629,6 +644,7 @@ export function ThemeBuilder() {
                                                         products={products}
                                                         categories={categories}
                                                         storeDiscounts={discounts}
+                                                        mockSettings={mockSettings}
                                                         onDelete={() => deleteWidget(block.id)}
                                                         isSelected={selectedElement?.id === block.id}
                                                         onClick={() => setSelectedElement(block)}
@@ -660,6 +676,14 @@ export function ThemeBuilder() {
                         developerId={theme?.developer_id}
                     />
                 </div>
+                {/* Assets Modal */}
+                <ThemeAssetsModal
+                    isOpen={isAssetsModalOpen}
+                    onClose={() => setIsAssetsModalOpen(false)}
+                    themeId={themeId}
+                    mockSettings={mockSettings}
+                    onUpdateMockSettings={setMockSettings}
+                />
             </div>
         </ErrorBoundary>
     );

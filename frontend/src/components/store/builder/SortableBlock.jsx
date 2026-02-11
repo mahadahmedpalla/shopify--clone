@@ -46,6 +46,7 @@ export function SortableBlock({ block, onDelete, isSelected, onClick, viewMode, 
                 isEditor={isEditor}
                 onSelect={onSelect}
                 onDelete={onDeleteItem}
+                mockSettings={mockSettings}
             />
         </div>
     );

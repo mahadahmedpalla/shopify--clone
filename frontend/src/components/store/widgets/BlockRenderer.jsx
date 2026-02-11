@@ -64,7 +64,7 @@ const WidgetSkeleton = ({ type }) => {
     return <div className={`${baseClass} h-64 md:h-96`} />;
 };
 
-export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, categorySlug, categoryPath, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId }) {
+export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, categorySlug, categoryPath, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId, mockSettings }) {
     return (
         <React.Suspense fallback={<WidgetSkeleton type={type} />}>
             {(() => {
@@ -95,7 +95,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'image':
                         return <ImageRenderer settings={settings} viewMode={viewMode} />;
                     case 'product_grid':
-                        return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} categories={categories} categoryPath={categoryPath} />;
+                        return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} categories={categories} categoryPath={categoryPath} mockSettings={mockSettings} />;
                     case 'product_reviews':
                         return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
                     case 'related_products':
@@ -115,7 +115,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'checkout_form':
                         return <CheckoutRenderer settings={settings} isEditor={isEditor} store={store} />;
                     case 'product_detail':
-                        return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} storeDiscounts={storeDiscounts} />;
+                        return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} storeDiscounts={storeDiscounts} mockSettings={mockSettings} />;
                     case 'category_list':
                         return <CategoryListRenderer settings={settings} categories={categories} viewMode={viewMode} store={store} isEditor={isEditor} />;
 

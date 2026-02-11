@@ -16,7 +16,7 @@ const slugify = (text) => {
         .replace(/^-+|-+$/g, '');
 };
 
-export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts, mockSettings }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [viewerSort, setViewerSort] = useState(null);
     const [viewerCategory, setViewerCategory] = useState('all');
@@ -576,33 +576,47 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                             </h4>
                                         )}
 
-                                        {(showPrice || showRating) && (
-                                            <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
-                                                {showPrice && (() => {
-                                                    // Calculate Best Price (Discount Logic)
-                                                    const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
+                                        <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
+                                            {showPrice && (() => {
+                                                // Mock Discount Logic
+                                                let displayFinalPrice, displayComparePrice, displayHasDiscount;
 
-                                                    return (
-                                                        <div className="flex flex-wrap items-baseline gap-2">
-                                                            <span style={priceStyle}>${parseFloat(finalPrice).toFixed(2)}</span>
-                                                            {showComparePrice && (hasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(finalPrice))) && (
-                                                                <span style={comparePriceStyle} className="line-through">
-                                                                    ${parseFloat(hasDiscount ? comparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })()}
-                                                {showRating && productRatings[product.id]?.average > 0 && (
-                                                    <div className="flex items-center text-yellow-400 text-xs">
-                                                        <Star className="w-3 h-3 fill-current" />
-                                                        <span className="ml-1 text-slate-500 font-medium">
-                                                            {productRatings[product.id]?.average ? productRatings[product.id].average.toFixed(1) : '0.0'}
-                                                        </span>
+                                                if (mockSettings?.enableDiscounts) {
+                                                    const originalPrice = parseFloat(product.price || 0);
+                                                    displayComparePrice = (originalPrice * 1.25).toFixed(2); // Mock 20% off (reverse calc)
+                                                    displayFinalPrice = originalPrice.toFixed(2);
+                                                    displayHasDiscount = true;
+                                                } else {
+                                                    const { finalPrice, comparePrice, hasDiscount } = calculateBestPrice(product, storeDiscounts);
+                                                    displayFinalPrice = finalPrice;
+                                                    displayComparePrice = comparePrice;
+                                                    displayHasDiscount = hasDiscount;
+                                                }
+
+                                                return (
+                                                    <div className="flex flex-wrap items-baseline gap-2">
+                                                        <span style={priceStyle}>${parseFloat(displayFinalPrice).toFixed(2)}</span>
+                                                        {showComparePrice && (displayHasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(displayFinalPrice))) && (
+                                                            <span style={comparePriceStyle} className="line-through">
+                                                                ${parseFloat(displayHasDiscount ? displayComparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        )}
+                                                );
+                                            })()}
+
+                                            {(showRating || mockSettings?.enableRatings) && (
+                                                <div className="flex items-center text-yellow-400 text-xs">
+                                                    <Star className="w-3 h-3 fill-current" />
+                                                    <span className="ml-1 text-slate-500 font-medium">
+                                                        {mockSettings?.enableRatings
+                                                            ? (4.0 + (product.id.charCodeAt(0) % 10) / 10).toFixed(1) // Deterministic mock rating 4.0-5.0
+                                                            : (productRatings[product.id]?.average ? productRatings[product.id].average.toFixed(1) : '0.0')
+                                                        }
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {showAddToCart && (
                                             <div className={`

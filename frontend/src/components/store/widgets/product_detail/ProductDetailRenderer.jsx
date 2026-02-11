@@ -6,7 +6,7 @@ import { calculateBestPrice } from '../../../../utils/discountUtils';
 import { renderFormattedText } from '../../../../utils/formatText';
 
 
-export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store, storeDiscounts }) {
+export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store, storeDiscounts, mockSettings }) {
     const { addToCart } = useCart();
     const [qty, setQty] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
@@ -94,7 +94,24 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
         comparePrice: baseComparePrice
     };
 
-    const { finalPrice: currentPrice, comparePrice, hasDiscount, discountPct, discountLabel } = calculateBestPrice(calcProduct, storeDiscounts);
+    // MOCK LOGIC INTERCEPTION
+    let currentPrice, comparePrice, hasDiscount, discountPct, discountLabel;
+
+    if (mockSettings?.enableDiscounts) {
+        const originalPrice = parseFloat(basePrice || 99.99);
+        comparePrice = (originalPrice * 1.25).toFixed(2);
+        currentPrice = originalPrice.toFixed(2);
+        hasDiscount = true;
+        discountPct = 20;
+        discountLabel = 'Save 20%';
+    } else {
+        const calculated = calculateBestPrice(calcProduct, storeDiscounts);
+        currentPrice = calculated.finalPrice;
+        comparePrice = calculated.comparePrice;
+        hasDiscount = calculated.hasDiscount;
+        discountPct = calculated.discountPct;
+        discountLabel = calculated.discountLabel;
+    }
 
     const currentQty = foundVariant ? foundVariant.quantity : displayProduct.quantity;
 
@@ -119,9 +136,6 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
         }
 
     }, [displayProduct.id]); // Only runs when product ID changes (initial load or nav)
-
-
-
 
     // -- HELPER STYLES --
     const getAspectClass = () => {

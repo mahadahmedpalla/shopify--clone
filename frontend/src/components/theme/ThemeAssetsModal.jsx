@@ -207,6 +207,51 @@ export function ThemeAssetsModal({ isOpen, onClose, themeId }) {
                                 </div>
                             )}
 
+                            {activeTab === 'mock_settings' && (
+                                <div className="space-y-6">
+                                    <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                                        <h4 className="font-bold text-indigo-900 mb-2">Mock Data Simulation</h4>
+                                        <p className="text-sm text-indigo-700">
+                                            Enable these settings to visualize how your theme handles discounts and ratings, even if your mock products don't have this data.
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                                            <div>
+                                                <h5 className="font-bold text-gray-900">Mock Discounts</h5>
+                                                <p className="text-sm text-gray-500">Simulate a store-wide sale (approx. 20% off)</p>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={mockSettings?.enableDiscounts || false}
+                                                    onChange={(e) => onUpdateMockSettings({ ...mockSettings, enableDiscounts: e.target.checked })}
+                                                />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                            </label>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                                            <div>
+                                                <h5 className="font-bold text-gray-900">Mock Ratings</h5>
+                                                <p className="text-sm text-gray-500">Simulate 3.5 - 5 star ratings for all products</p>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={mockSettings?.enableRatings || false}
+                                                    onChange={(e) => onUpdateMockSettings({ ...mockSettings, enableRatings: e.target.checked })}
+                                                />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 </div>
