@@ -69,7 +69,7 @@ export function CreateStoreModal({ isOpen, onClose, onSuccess, userId }) {
 
             const { data: profile } = await supabase
                 .from('store_owners')
-                .select('id')
+                .select('id, credits')
                 .eq('id', user.id)
                 .single();
 
