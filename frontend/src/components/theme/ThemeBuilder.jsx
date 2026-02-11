@@ -203,8 +203,6 @@ export function ThemeBuilder() {
     const [mockSettings, setMockSettings] = useState({ enableDiscounts: false, enableRatings: false });
     const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
 
-    console.log('ThemeBuilder Render: check mockSettings', JSON.stringify(mockSettings));
-
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -684,10 +682,7 @@ export function ThemeBuilder() {
                     onClose={() => setIsAssetsModalOpen(false)}
                     themeId={themeId}
                     mockSettings={mockSettings}
-                    onUpdateMockSettings={(newSettings) => {
-                        console.log('ThemeBuilder: receiving update', newSettings);
-                        setMockSettings(newSettings);
-                    }}
+                    onUpdateMockSettings={setMockSettings}
                 />
             </div>
         </ErrorBoundary>
