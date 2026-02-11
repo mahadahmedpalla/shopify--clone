@@ -5,6 +5,7 @@ import { Input } from '../ui/Input';
 import { X, Package, Layers, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
 
 export function ThemeAssetsModal({ isOpen, onClose, themeId, mockSettings, onUpdateMockSettings }) {
+    console.log('ThemeAssetsModal props:', { mockSettings, onUpdateMockSettings, typeOfUpdate: typeof onUpdateMockSettings });
     const [activeTab, setActiveTab] = useState('products'); // 'products' | 'categories'
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState([]);
