@@ -98,9 +98,8 @@ export function MarketplaceLibrary({ storeId }) {
                                     variant={item.is_active ? "secondary" : "primary"}
                                     onClick={() => handleApplyClick(item)}
                                     className="flex-1"
-                                    disabled={item.is_active}
                                 >
-                                    {item.is_active ? 'Active' : 'Apply Theme'}
+                                    {item.is_active ? 'Reapply Theme' : 'Apply Theme'}
                                 </Button>
                                 {/* Future: Add Customize Button 
                                 <Button size="sm" variant="secondary" className="px-3" title="Customize">
