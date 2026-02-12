@@ -247,7 +247,7 @@ export function MarketplaceStore({ storeId }) {
                                 onClick={() => handleInstall(theme)}
                                 isLoading={installing === theme.id}
                                 disabled={installing === theme.id}
-                                variant={theme.price_credits > 0 ? 'primary' : 'outline'}
+                                variant="primary"
                             >
                                 {installing === theme.id ? 'Adding to Library...' : (
                                     <>
