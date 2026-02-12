@@ -14,6 +14,7 @@ export function MarketplaceStore({ storeId }) {
     const [credits, setCredits] = useState(0);
     const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
     const [selectedTheme, setSelectedTheme] = useState(null);
+    const [selectedDescriptionTheme, setSelectedDescriptionTheme] = useState(null);
     const [purchasing, setPurchasing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -200,7 +201,17 @@ export function MarketplaceStore({ storeId }) {
                                     {theme.price_credits > 0 ? `${theme.price_credits} Credits` : 'Free'}
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8 whitespace-pre-wrap">{renderFormattedText(theme.description || 'No description available.')}</p>
+                            <div className="mb-3">
+                                <p className="text-xs text-slate-500 line-clamp-2 h-8 whitespace-pre-wrap">{renderFormattedText(theme.description || 'No description available.')}</p>
+                                {(theme.description && theme.description.length > 100) && (
+                                    <button
+                                        onClick={() => setSelectedDescriptionTheme(theme)}
+                                        className="text-[10px] text-indigo-600 font-medium hover:underline mt-1"
+                                    >
+                                        View full description
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Tags */}
                             {theme.tags && theme.tags.length > 0 && (
@@ -311,6 +322,26 @@ export function MarketplaceStore({ storeId }) {
                             </div>
                         </>
                     )}
+                </div>
+            </Modal>
+
+            {/* Description Modal */}
+            <Modal
+                isOpen={!!selectedDescriptionTheme}
+                onClose={() => setSelectedDescriptionTheme(null)}
+                title={selectedDescriptionTheme?.name || 'Theme Details'}
+            >
+                <div className="space-y-4">
+                    <div className="max-h-[60vh] overflow-y-auto pr-2">
+                        <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                            {renderFormattedText(selectedDescriptionTheme?.description || '')}
+                        </p>
+                    </div>
+                    <div className="flex justify-end pt-4 border-t border-slate-100">
+                        <Button variant="secondary" onClick={() => setSelectedDescriptionTheme(null)}>
+                            Close
+                        </Button>
+                    </div>
                 </div>
             </Modal>
         </div >
