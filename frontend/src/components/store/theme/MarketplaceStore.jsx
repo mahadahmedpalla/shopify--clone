@@ -197,11 +197,19 @@ export function MarketplaceStore({ storeId }) {
                                     <Globe className="h-12 w-12 opacity-50" />
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
-                                <Button size="sm" variant="secondary" className="bg-white text-slate-900 hover:bg-slate-50 shadow-lg translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                    Preview Theme
-                                </Button>
-                            </div>
+                            {theme.built_on_link && (
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
+                                    <a
+                                        href={theme.built_on_link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-white text-slate-900 hover:bg-slate-50 shadow-lg h-9 px-3 translate-y-4 group-hover:translate-y-0 duration-300"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        Preview Theme
+                                    </a>
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-5 flex flex-col flex-1">
