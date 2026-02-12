@@ -151,7 +151,6 @@ export function MarketplaceStore({ storeId }) {
                         <option>Price: Low to High</option>
                     </select>
                 </div>
-                </div>
                 {/* Credit Balance Display */}
                 <div className="flex items-center bg-indigo-50 px-3 py-2 rounded-full border border-indigo-100">
                     <Wallet className="h-4 w-4 text-indigo-600 mr-2" />
@@ -225,84 +224,84 @@ export function MarketplaceStore({ storeId }) {
             </div>
 
             {
-        themes.length === 0 && (
-            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <ShoppingBag className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-slate-500 font-medium">No themes found</h3>
-                <p className="text-slate-400 text-sm">Be the first to publish a theme!</p>
-            </div>
-        )
-    }
-
-    {/* Purchase Modal */ }
-    <Modal
-        isOpen={isPurchaseModalOpen}
-        onClose={() => setIsPurchaseModalOpen(false)}
-        title={selectedTheme && credits >= selectedTheme.price_credits ? "Confirm Purchase" : "Insufficient Credits"}
-    >
-        <div className="space-y-4">
-            {selectedTheme && (
-                <>
-                    {credits < selectedTheme.price_credits ? (
-                        <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <AlertTriangle className="h-5 w-5 text-red-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-red-700">
-                                        You have <span className="font-bold">{credits} credits</span>, but this theme costs <span className="font-bold">{selectedTheme.price_credits} credits</span>.
-                                    </p>
-                                    <p className="text-sm text-red-700 mt-1">
-                                        Please top up your account in Store Settings to continue.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <ShoppingBag className="h-5 w-5 text-indigo-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-indigo-700">
-                                        You are about to purchase <strong>{selectedTheme.name}</strong>.
-                                    </p>
-                                    <p className="text-sm text-indigo-700 mt-1">
-                                        Cost: <strong>{selectedTheme.price_credits} Credits</strong>
-                                    </p>
-                                    <p className="text-sm text-indigo-700">
-                                        Remaining Balance: <strong>{credits - selectedTheme.price_credits} Credits</strong>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
-                        <Button variant="secondary" onClick={() => setIsPurchaseModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        {credits >= selectedTheme.price_credits ? (
-                            <Button
-                                onClick={confirmPurchase}
-                                isLoading={purchasing}
-                            >
-                                Confirm Purchase
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={() => setIsPurchaseModalOpen(false)}
-                            >
-                                Close
-                            </Button>
-                        )}
+                themes.length === 0 && (
+                    <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                        <ShoppingBag className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                        <h3 className="text-slate-500 font-medium">No themes found</h3>
+                        <p className="text-slate-400 text-sm">Be the first to publish a theme!</p>
                     </div>
-                </>
-            )}
-        </div>
-    </Modal>
+                )
+            }
+
+            {/* Purchase Modal */}
+            <Modal
+                isOpen={isPurchaseModalOpen}
+                onClose={() => setIsPurchaseModalOpen(false)}
+                title={selectedTheme && credits >= selectedTheme.price_credits ? "Confirm Purchase" : "Insufficient Credits"}
+            >
+                <div className="space-y-4">
+                    {selectedTheme && (
+                        <>
+                            {credits < selectedTheme.price_credits ? (
+                                <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <AlertTriangle className="h-5 w-5 text-red-400" />
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm text-red-700">
+                                                You have <span className="font-bold">{credits} credits</span>, but this theme costs <span className="font-bold">{selectedTheme.price_credits} credits</span>.
+                                            </p>
+                                            <p className="text-sm text-red-700 mt-1">
+                                                Please top up your account in Store Settings to continue.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <ShoppingBag className="h-5 w-5 text-indigo-400" />
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm text-indigo-700">
+                                                You are about to purchase <strong>{selectedTheme.name}</strong>.
+                                            </p>
+                                            <p className="text-sm text-indigo-700 mt-1">
+                                                Cost: <strong>{selectedTheme.price_credits} Credits</strong>
+                                            </p>
+                                            <p className="text-sm text-indigo-700">
+                                                Remaining Balance: <strong>{credits - selectedTheme.price_credits} Credits</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
+                                <Button variant="secondary" onClick={() => setIsPurchaseModalOpen(false)}>
+                                    Cancel
+                                </Button>
+                                {credits >= selectedTheme.price_credits ? (
+                                    <Button
+                                        onClick={confirmPurchase}
+                                        isLoading={purchasing}
+                                    >
+                                        Confirm Purchase
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={() => setIsPurchaseModalOpen(false)}
+                                    >
+                                        Close
+                                    </Button>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
+            </Modal>
         </div >
     );
 }
