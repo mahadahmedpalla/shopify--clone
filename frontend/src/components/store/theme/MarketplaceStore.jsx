@@ -4,6 +4,7 @@ import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Modal } from '../../ui/Modal';
 import { Search, ShoppingBag, Download, Globe, Check, AlertTriangle, Wallet } from 'lucide-react';
+import { renderFormattedText } from '../../../utils/formatText';
 
 export function MarketplaceStore({ storeId }) {
     const [themes, setThemes] = useState([]);
@@ -199,7 +200,7 @@ export function MarketplaceStore({ storeId }) {
                                     {theme.price_credits > 0 ? `${theme.price_credits} Credits` : 'Free'}
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8">{theme.description || 'No description available.'}</p>
+                            <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8 whitespace-pre-wrap">{renderFormattedText(theme.description || 'No description available.')}</p>
 
                             {/* Tags */}
                             {theme.tags && theme.tags.length > 0 && (

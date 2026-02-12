@@ -5,6 +5,7 @@ import { Card } from '../../ui/Card';
 import { Layout, Check, Trash2, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeApplyModal } from './ThemeApplyModal';
+import { renderFormattedText } from '../../../utils/formatText';
 
 export function MarketplaceLibrary({ storeId }) {
     const navigate = useNavigate();
@@ -113,6 +114,7 @@ export function MarketplaceLibrary({ storeId }) {
                             <div className="p-4">
                                 <h3 className="font-bold text-slate-800">{item.theme.name}</h3>
                                 <p className="text-xs text-slate-500 mb-2">by {item.theme.developer?.developer_name || 'Unknown'}</p>
+                                <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8 whitespace-pre-wrap">{renderFormattedText(item.theme.description || 'No description available.')}</p>
 
                                 {/* Tags */}
                                 {item.theme.tags && item.theme.tags.length > 0 && (
