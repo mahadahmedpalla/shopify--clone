@@ -172,14 +172,14 @@ export function MarketplaceStore({ storeId }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredThemes.map(theme => (
-                    <Card key={theme.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-slate-200">
-                        <div className="aspect-video bg-slate-100 relative overflow-hidden flex items-center justify-center text-slate-300">
+                    <Card key={theme.id} className="h-full flex flex-col overflow-hidden group hover:shadow-xl transition-all duration-300 border-slate-200 bg-white">
+                        <div className="aspect-[16/9] bg-slate-100 relative overflow-hidden flex items-center justify-center text-slate-300 border-b border-slate-100">
                             {theme.built_on_link && (
                                 <a
                                     href={theme.built_on_link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-sm backdrop-blur-sm transition-all hover:scale-105"
+                                    className="absolute top-3 right-3 z-10 p-2 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-sm backdrop-blur-sm transition-all hover:scale-105 hover:shadow-md"
                                     title="View Built On Link"
                                     onClick={(e) => e.stopPropagation()}
                                 >
@@ -190,35 +190,37 @@ export function MarketplaceStore({ storeId }) {
                                 <img
                                     src={theme.thumbnail_url}
                                     alt={theme.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                             ) : (
-                                <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                                <div className="absolute inset-0 flex items-center justify-center text-slate-300 bg-slate-50">
                                     <Globe className="h-12 w-12 opacity-50" />
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <Button size="sm" variant="secondary" className="bg-white text-slate-900 hover:bg-slate-100">
-                                    Preview
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
+                                <Button size="sm" variant="secondary" className="bg-white text-slate-900 hover:bg-slate-50 shadow-lg translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                    Preview Theme
                                 </Button>
                             </div>
                         </div>
-                        <div className="p-4">
-                            <div className="flex justify-between items-start mb-2">
+
+                        <div className="p-5 flex flex-col flex-1">
+                            <div className="flex justify-between items-start mb-3">
                                 <div>
-                                    <h3 className="font-bold text-slate-800">{theme.name}</h3>
-                                    <p className="text-xs text-slate-500">by {theme.theme_developers?.developer_name || 'Unknown'}</p>
+                                    <h3 className="font-bold text-slate-800 text-lg leading-tight mb-1">{theme.name}</h3>
+                                    <p className="text-xs font-medium text-slate-500">by <span className="text-slate-700">{theme.theme_developers?.developer_name || 'Unknown'}</span></p>
                                 </div>
-                                <div className="text-sm font-bold text-indigo-600">
+                                <div className={`text-xs font-bold px-2 py-1 rounded-full ${theme.price_credits > 0 ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
                                     {theme.price_credits > 0 ? `${theme.price_credits} Credits` : 'Free'}
                                 </div>
                             </div>
-                            <div className="mb-3">
-                                <p className="text-xs text-slate-500 line-clamp-2 h-8 whitespace-pre-wrap">{renderFormattedText(theme.description || 'No description available.')}</p>
+
+                            <div className="mb-4 flex-1">
+                                <p className="text-sm text-slate-600 line-clamp-2 h-10 leading-relaxed whitespace-pre-wrap">{renderFormattedText(theme.description || 'No description available.')}</p>
                                 {(theme.description && theme.description.length > 100) && (
                                     <button
                                         onClick={() => setSelectedDescriptionTheme(theme)}
-                                        className="inline-flex items-center text-[10px] font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors mt-1"
+                                        className="inline-flex items-center text-[10px] font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors mt-2"
                                     >
                                         <Eye className="h-3 w-3 mr-1" />
                                         Read full description
@@ -228,28 +230,38 @@ export function MarketplaceStore({ storeId }) {
 
                             {/* Tags */}
                             {theme.tags && theme.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-4 h-6 overflow-hidden">
+                                <div className="flex flex-wrap gap-1.5 mb-5">
                                     {theme.tags.slice(0, 3).map(tag => (
-                                        <span key={tag} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                        <span key={tag} className="text-[10px] font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md border border-slate-100">
                                             #{tag}
                                         </span>
                                     ))}
                                     {theme.tags.length > 3 && (
-                                        <span className="text-[10px] text-slate-400 px-1">+{theme.tags.length - 3}</span>
+                                        <span className="text-[10px] text-slate-400 px-1 self-center">+{theme.tags.length - 3}</span>
                                     )}
                                 </div>
                             )}
 
                             <Button
-                                className="w-full"
+                                className="w-full mt-auto"
                                 onClick={() => handleInstall(theme)}
                                 isLoading={installing === theme.id}
                                 disabled={installing === theme.id}
+                                variant={theme.price_credits > 0 ? 'primary' : 'outline'}
                             >
-                                {installing === theme.id ? 'Adding...' : (
+                                {installing === theme.id ? 'Adding to Library...' : (
                                     <>
-                                        <Download className="h-4 w-4 mr-2" />
-                                        add to library
+                                        {theme.price_credits > 0 ? (
+                                            <>
+                                                <ShoppingBag className="h-4 w-4 mr-2" />
+                                                Purchase Theme
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="h-4 w-4 mr-2" />
+                                                Add to Library
+                                            </>
+                                        )}
                                     </>
                                 )}
                             </Button>
