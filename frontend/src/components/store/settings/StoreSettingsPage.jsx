@@ -22,21 +22,28 @@ export function StoreSettingsPage() {
     // Cooldown is now simple local state, no need for persistence as calculation is valid operation
     const [cooldown, setCooldown] = useState(0);
 
+    // Domain State
+    const [customDomain, setCustomDomain] = useState('');
+    const [domainStatus, setDomainStatus] = useState(null); // 'pending', 'approved', 'rejected', 'in_progress'
+    const [savingDomain, setSavingDomain] = useState(false);
+
     useEffect(() => {
-        // Fetch current storage usage, limit, and owner credits
+        // Fetch current storage usage, limit, owner credits, and domain info
         const fetchData = async () => {
             if (!store?.id) return;
             try {
-                // 1. Fetch Store Data (Usage & Limit)
+                // 1. Fetch Store Data (Usage, Limit, Domain)
                 const { data: storeData, error: storeError } = await supabase
                     .from('stores')
-                    .select('storage_used, storage_limit, owner_id')
+                    .select('storage_used, storage_limit, owner_id, custom_domain, domain_status')
                     .eq('id', store.id)
                     .single();
 
                 if (storeData) {
                     setStorageUsage(Number(storeData.storage_used || 0));
                     setStorageLimit(Number(storeData.storage_limit || 30));
+                    setCustomDomain(storeData.custom_domain || '');
+                    setDomainStatus(storeData.domain_status);
 
                     // 2. Fetch Owner Credits
                     if (storeData.owner_id) {
@@ -55,6 +62,30 @@ export function StoreSettingsPage() {
 
         fetchData();
     }, [store?.id]);
+
+    const handleSaveDomain = async () => {
+        if (!store?.id) return;
+        setSavingDomain(true);
+        try {
+            const { error } = await supabase
+                .from('stores')
+                .update({
+                    custom_domain: customDomain,
+                    domain_status: 'pending' // Reset to pending on update
+                })
+                .eq('id', store.id);
+
+            if (error) throw error;
+
+            setDomainStatus('pending');
+            alert('Domain saved successfully! Status is now pending review.');
+        } catch (error) {
+            console.error('Error saving domain:', error);
+            alert('Failed to save domain: ' + error.message);
+        } finally {
+            setSavingDomain(false);
+        }
+    };
 
     useEffect(() => {
         let timer;
@@ -185,6 +216,18 @@ export function StoreSettingsPage() {
                     >
                         <Database className="h-4 w-4 mr-2" />
                         Storage
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('domain')}
+                        className={`
+                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center
+                            ${activeTab === 'domain'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
+                        `}
+                    >
+                        <Globe className="h-4 w-4 mr-2" />
+                        Domain Setup
                     </button>
                 </nav>
             </div>
@@ -403,6 +446,98 @@ export function StoreSettingsPage() {
                     </Card>
                 </div>
             )}
+            {/* Connect Domain Tab */}
+            {activeTab === 'domain' && (
+                <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300 space-y-6">
+                    <Card className="p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Globe className="h-5 w-5 text-indigo-600" />
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Custom Domain</h3>
+                                <p className="text-xs text-slate-500">Connect a custom domain to your store.</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                                <h4 className="font-semibold text-indigo-900 text-sm mb-1">How it works</h4>
+                                <ul className="list-disc list-inside text-xs text-indigo-800 space-y-1">
+                                    <li>Enter your domain name below (e.g., mystore.com).</li>
+                                    <li>We will review your request and configure the SSL certificate.</li>
+                                    <li>Point your domain's A record to our server IP: <span className="font-mono bg-white px-1 rounded">123.45.67.89</span></li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Domain Name</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="yourdomain.com"
+                                        value={customDomain}
+                                        onChange={(e) => setCustomDomain(e.target.value)}
+                                        disabled={domainStatus === 'approved' || domainStatus === 'in_progress'}
+                                        className="flex-1 rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                                    />
+                                    <Button
+                                        onClick={handleSaveDomain}
+                                        isLoading={savingDomain}
+                                        disabled={domainStatus === 'approved' || domainStatus === 'in_progress' || !customDomain}
+                                    >
+                                        {domainStatus === 'approved' ? 'Connected' : 'Save Domain'}
+                                    </Button>
+                                </div>
+                                <p className="mt-1 text-xs text-slate-500">Enter the domain without https:// or www.</p>
+                            </div>
+
+                            {/* Status Display */}
+                            <div className="border-t border-slate-100 pt-6">
+                                <h4 className="text-sm font-medium text-slate-700 mb-3">Connection Status</h4>
+                                {domainStatus === 'pending' && (
+                                    <div className="flex items-center p-3 bg-amber-50 border border-amber-200 rounded-md">
+                                        <Clock className="h-5 w-5 text-amber-500 mr-3" />
+                                        <div>
+                                            <p className="text-sm font-bold text-amber-700">Pending Review</p>
+                                            <p className="text-xs text-amber-600">Your domain request is waiting for approval.</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {domainStatus === 'in_progress' && (
+                                    <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                        <RefreshCw className="h-5 w-5 text-blue-500 mr-3 animate-spin" />
+                                        <div>
+                                            <p className="text-sm font-bold text-blue-700">Configuration in Progress</p>
+                                            <p className="text-xs text-blue-600">We are setting up your domain and SSL.</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {domainStatus === 'approved' && (
+                                    <div className="flex items-center p-3 bg-green-50 border border-green-200 rounded-md">
+                                        <Check className="h-5 w-5 text-green-500 mr-3" />
+                                        <div>
+                                            <p className="text-sm font-bold text-green-700">Domain Active</p>
+                                            <p className="text-xs text-green-600">Your store is successfully connected to {customDomain}.</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {domainStatus === 'rejected' && (
+                                    <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded-md">
+                                        <AlertTriangle className="h-5 w-5 text-red-500 mr-3" />
+                                        <div>
+                                            <p className="text-sm font-bold text-red-700">Request Rejected</p>
+                                            <p className="text-xs text-red-600">Please check your domain settings and try again.</p>
+                                        </div>
+                                    </div>
+                                )}
+                                {!domainStatus && (
+                                    <p className="text-sm text-slate-500 italic">No custom domain configured.</p>
+                                )}
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             {/* Purchase Modal */}
             <Modal
                 isOpen={isPurchaseModalOpen}
