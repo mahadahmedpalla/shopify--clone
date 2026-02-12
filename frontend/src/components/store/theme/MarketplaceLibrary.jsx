@@ -30,6 +30,7 @@ export function MarketplaceLibrary({ storeId }) {
                     description,
                     thumbnail_url,
                     tags,
+                    status,
                     developer:theme_developers (developer_name)
                 )
             `)
@@ -79,70 +80,84 @@ export function MarketplaceLibrary({ storeId }) {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {themes.map(item => (
-                    <Card key={item.id} className={`overflow-hidden border-2 transition-all ${item.is_active ? 'border-indigo-500 shadow-md bg-indigo-50/10' : 'border-slate-200 hover:border-slate-300'}`}>
-                        <div className="aspect-video bg-slate-100 flex items-center justify-center text-slate-300 relative">
-                            {item.theme.thumbnail_url ? (
-                                <img
-                                    src={item.theme.thumbnail_url}
-                                    alt={item.theme.name}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <Layout className="h-12 w-12 opacity-50" />
-                            )}
-                            {item.is_active && (
-                                <div className="absolute top-2 right-2 bg-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
-                                    <Check className="h-3 w-3 mr-1" />
-                                    ACTIVE
-                                </div>
-                            )}
-                        </div>
-                        <div className="p-4">
-                            <h3 className="font-bold text-slate-800">{item.theme.name}</h3>
-                            <p className="text-xs text-slate-500 mb-2">by {item.theme.developer?.developer_name || 'Unknown'}</p>
+                {themes.map(item => {
+                    // Safety check if theme is null (e.g., deleted or RLS restricted)
+                    if (!item.theme) return null;
 
-                            {/* Tags */}
-                            {item.theme.tags && item.theme.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-4">
-                                    {item.theme.tags.slice(0, 3).map(tag => (
-                                        <span key={tag} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                                            #{tag}
-                                        </span>
-                                    ))}
-                                    {item.theme.tags.length > 3 && (
-                                        <span className="text-[10px] text-slate-400 px-1">+{item.theme.tags.length - 3}</span>
-                                    )}
-                                </div>
-                            )}
+                    const isDraft = item.theme.status === 'draft';
 
-                            <div className="flex space-x-2">
-                                <Button
-                                    size="sm"
-                                    variant={item.is_active ? "secondary" : "primary"}
-                                    onClick={() => handleApplyClick(item)}
-                                    className="flex-1"
-                                >
-                                    {item.is_active ? 'Reapply Theme' : 'Apply Theme'}
-                                </Button>
-                                {/* Future: Add Customize Button 
-                                <Button size="sm" variant="secondary" className="px-3" title="Customize">
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                */}
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="px-3 text-red-500 hover:bg-red-50 border-slate-200"
-                                    onClick={() => handleRemove(item.id)}
-                                    title="Remove"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+                    return (
+                        <Card key={item.id} className={`overflow-hidden border-2 transition-all ${item.is_active ? 'border-indigo-500 shadow-md bg-indigo-50/10' : 'border-slate-200 hover:border-slate-300'} ${isDraft ? 'opacity-75' : ''}`}>
+                            <div className="aspect-video bg-slate-100 flex items-center justify-center text-slate-300 relative">
+                                {item.theme.thumbnail_url ? (
+                                    <img
+                                        src={item.theme.thumbnail_url}
+                                        alt={item.theme.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Layout className="h-12 w-12 opacity-50" />
+                                )}
+                                {item.is_active && (
+                                    <div className="absolute top-2 right-2 bg-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
+                                        <Check className="h-3 w-3 mr-1" />
+                                        ACTIVE
+                                    </div>
+                                )}
+                                {isDraft && (
+                                    <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
+                                        DRAFT
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    </Card>
-                ))}
+                            <div className="p-4">
+                                <h3 className="font-bold text-slate-800">{item.theme.name}</h3>
+                                <p className="text-xs text-slate-500 mb-2">by {item.theme.developer?.developer_name || 'Unknown'}</p>
+
+                                {/* Tags */}
+                                {item.theme.tags && item.theme.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mb-4">
+                                        {item.theme.tags.slice(0, 3).map(tag => (
+                                            <span key={tag} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                        {item.theme.tags.length > 3 && (
+                                            <span className="text-[10px] text-slate-400 px-1">+{item.theme.tags.length - 3}</span>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="flex space-x-2">
+                                    <Button
+                                        size="sm"
+                                        variant={item.is_active ? "secondary" : "primary"}
+                                        onClick={() => handleApplyClick(item)}
+                                        className="flex-1"
+                                        disabled={isDraft}
+                                        title={isDraft ? "This theme is currently in draft and cannot be applied." : ""}
+                                    >
+                                        {item.is_active ? 'Reapply Theme' : 'Apply Theme'}
+                                    </Button>
+                                    {/* Future: Add Customize Button 
+                                    <Button size="sm" variant="secondary" className="px-3" title="Customize">
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    */}
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="px-3 text-red-500 hover:bg-red-50 border-slate-200"
+                                        onClick={() => handleRemove(item.id)}
+                                        title="Remove"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+                    );
+                })}
             </div>
 
             {themes.length === 0 && (
