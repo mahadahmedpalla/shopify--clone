@@ -9,14 +9,14 @@ import { BlockRenderer } from '../components/store/widgets/BlockRenderer';
 import { CartProvider } from '../context/CartContext';
 import { CartDrawer } from '../components/store/widgets/cart/CartDrawer';
 
-export function PublicStorefront() {
+export function PublicStorefront({ customDomainStore }) {
     const params = useParams();
     const categoryPath = params['*'];
     const { storeSubUrl, pageSlug } = params;
 
     // If categoryPath exists (via wildcard), we are on the shop page
     const activeSlug = pageSlug || (categoryPath ? 'shop' : 'home');
-    const [store, setStore] = useState(null);
+    const [store, setStore] = useState(customDomainStore || null);
     const [page, setPage] = useState(null);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -43,40 +43,49 @@ export function PublicStorefront() {
     }, []);
 
     useEffect(() => {
+        // Only run fetch if we don't already have store data (via prop) OR if activeSlug changes
+        // But wait, if we have prop, we still need to fetch dependent data (page, products, etc)
+        // So we should always call fetchStoreData but handle the store part conditionally.
         fetchStoreData();
-    }, [storeSubUrl, activeSlug]);
+    }, [storeSubUrl, activeSlug, customDomainStore]);
 
     const fetchStoreData = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            // 1. Fetch Store by Sub-URL
-            const { data: storeData, error: storeError } = await supabase
-                .from('stores')
-                .select('*')
-                .eq('sub_url', storeSubUrl)
-                .single();
+            let currentStore = customDomainStore || store;
 
-            if (storeError || !storeData) throw new Error(`Store "${storeSubUrl}" not found.`);
-            setStore(storeData);
+            // 1. Fetch Store by Sub-URL (if not provided by custom domain router)
+            if (!currentStore) {
+                if (!storeSubUrl) throw new Error("No store identifier");
+                const { data: storeData, error: storeError } = await supabase
+                    .from('stores')
+                    .select('*')
+                    .eq('sub_url', storeSubUrl)
+                    .single();
+
+                if (storeError || !storeData) throw new Error(`Store "${storeSubUrl}" not found.`);
+                currentStore = storeData;
+                setStore(storeData);
+            }
 
             // 2. Parallel Fetch: Dependent Data
             const [cartPageResult, pageResult, productsResult, categoriesResult, discountsResult] = await Promise.all([
                 // Cart Settings
-                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'cart').single(),
+                supabase.from('store_pages').select('content').eq('store_id', currentStore.id).eq('slug', 'cart').single(),
 
                 // Current Page Content
-                supabase.from('store_pages').select('*').eq('store_id', storeData.id).eq('slug', activeSlug).eq('is_published', true).single(),
+                supabase.from('store_pages').select('*').eq('store_id', currentStore.id).eq('slug', activeSlug).eq('is_published', true).single(),
 
                 // Products (for shared renderer)
-                supabase.from('products').select('*').eq('store_id', storeData.id).eq('is_active', true),
+                supabase.from('products').select('*').eq('store_id', currentStore.id).eq('is_active', true),
 
                 // Categories (for shared renderer)
-                supabase.from('product_categories').select('*').eq('store_id', storeData.id),
+                supabase.from('product_categories').select('*').eq('store_id', currentStore.id),
 
                 // Active Discounts
-                supabase.from('discounts').select('*').eq('store_id', storeData.id).eq('is_active', true).lte('starts_at', new Date().toISOString())
+                supabase.from('discounts').select('*').eq('store_id', currentStore.id).eq('is_active', true).lte('starts_at', new Date().toISOString())
             ]);
 
             // Process Cart

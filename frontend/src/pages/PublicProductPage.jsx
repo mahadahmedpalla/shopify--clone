@@ -6,9 +6,9 @@ import { CartProvider, useCart } from '../context/CartContext';
 import { CartDrawer } from '../components/store/widgets/cart/CartDrawer';
 import { Skeleton } from '../components/ui/Skeleton';
 
-export function PublicProductPage() {
+export function PublicProductPage({ customDomainStore }) {
     const { storeSubUrl, productId } = useParams();
-    const [store, setStore] = useState(null);
+    const [store, setStore] = useState(customDomainStore || null);
     const [product, setProduct] = useState(null);
     const [pageContent, setPageContent] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -33,24 +33,37 @@ export function PublicProductPage() {
     useEffect(() => {
         window.scrollTo(0, 0);
         fetchData();
-    }, [storeSubUrl, productId]);
+    }, [storeSubUrl, productId, customDomainStore]);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            // 1. Parallel Fetch: Store & Product
-            const [storeResult, productResult] = await Promise.all([
-                supabase.from('stores').select('*').eq('sub_url', storeSubUrl).single(),
+
+            let currentStore = customDomainStore || store;
+
+            const promises = [
                 supabase.from('products').select(`*, product_variants (*)`).eq('id', productId).single()
-            ]);
+            ];
 
-            if (storeResult.error || !storeResult.data) throw new Error('Store not found');
+            if (!currentStore) {
+                if (!storeSubUrl) throw new Error('Store identifier missing');
+                promises.push(supabase.from('stores').select('*').eq('sub_url', storeSubUrl).single());
+            }
+
+            // 1. Parallel Fetch: Store (if needed) & Product
+            const results = await Promise.all(promises);
+            const productResult = results[0];
+            const storeResult = results[1]; // Undefined if we had currentStore
+
+            if (storeResult) {
+                if (storeResult.error || !storeResult.data) throw new Error('Store not found');
+                currentStore = storeResult.data;
+                setStore(currentStore);
+            }
+
             if (productResult.error || !productResult.data) throw new Error('Product not found');
-
-            const storeData = storeResult.data;
             const prodData = productResult.data;
 
-            setStore(storeData);
             setProduct(prodData);
 
             // 2. Parallel Fetch: Dependencies (Cart, Discounts, Page Content)

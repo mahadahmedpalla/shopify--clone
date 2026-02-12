@@ -3,24 +3,29 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Package, MapPin, CreditCard, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 
-export function OrderSuccessPage() {
+export function OrderSuccessPage({ customDomainStore }) {
     const { storeSubUrl, orderId } = useParams();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [store, setStore] = useState(null);
+    const [store, setStore] = useState(customDomainStore || null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // 1. Fetch Store (for branding/navigation if needed)
-                const { data: storeData } = await supabase
-                    .from('stores')
-                    .select('*')
-                    .eq('sub_url', storeSubUrl)
-                    .single();
+                if (!store && storeSubUrl) {
+                    const { data: storeData } = await supabase
+                        .from('stores')
+                        .select('*')
+                        .eq('sub_url', storeSubUrl)
+                        .single();
 
-                if (storeData) setStore(storeData);
+                    if (storeData) setStore(storeData);
+                } else if (!store && !customDomainStore) {
+                    // Start of handling missing store
+                    console.warn("No store context found for Order Success");
+                }
 
                 // 2. Fetch Order
                 const token = new URLSearchParams(window.location.search).get('token');
@@ -87,7 +92,7 @@ export function OrderSuccessPage() {
                     </div>
 
                     <Link
-                        to={`/s/${storeSubUrl}`}
+                        to={customDomainStore ? '/' : `/s/${storeSubUrl}`}
                         className="inline-flex items-center text-indigo-600 font-bold hover:underline"
                     >
                         Return to Store
@@ -272,8 +277,9 @@ export function OrderSuccessPage() {
                         </div>
 
                         {/* Continue Shopping */}
+                        {/* Continue Shopping */}
                         <Link
-                            to={`/s/${storeSubUrl}`}
+                            to={customDomainStore ? '/' : `/s/${storeSubUrl}`}
                             className="block w-full py-4 bg-indigo-600 text-white font-bold rounded-xl text-center hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
                         >
                             Continue Shopping

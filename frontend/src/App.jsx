@@ -61,7 +61,35 @@ function DashboardLayout({ children }) {
   );
 }
 
+// ... (imports remain)
+import { CustomDomainRouter } from './components/common/CustomDomainRouter';
+
 function App() {
+  const [isCustomDomain, setIsCustomDomain] = React.useState(false);
+  const [domain, setDomain] = React.useState('');
+
+  React.useEffect(() => {
+    const hostname = window.location.hostname;
+    // Check if hostname is NOT the main domain (localhost or your vercel app)
+    // Adjust these values based on your actual main domains
+    const mainDomains = ['localhost', 'shopify-clone-7a4j.vercel.app', '127.0.0.1'];
+
+    // Simple check: if hostname is not in mainDomains, treat as custom domain
+    // You might want a more robust check (e.g. regex or environment variable)
+    if (!mainDomains.includes(hostname)) {
+      setIsCustomDomain(true);
+      setDomain(hostname);
+    }
+  }, []);
+
+  if (isCustomDomain) {
+    return (
+      <BrowserRouter>
+        <CustomDomainRouter domain={domain} />
+      </BrowserRouter>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Routes>

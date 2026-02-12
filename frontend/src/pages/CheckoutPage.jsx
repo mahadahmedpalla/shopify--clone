@@ -10,12 +10,18 @@ import { ShoppingBag } from 'lucide-react';
 import { getCountryName } from '../lib/countries';
 import { Skeleton } from '../components/ui/Skeleton';
 
-export function CheckoutPage() {
+export function CheckoutPage({ customDomainStore }) {
     const { storeSubUrl } = useParams();
-    const [store, setStore] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [store, setStore] = useState(customDomainStore || null);
+    const [loading, setLoading] = useState(!customDomainStore);
 
     useEffect(() => {
+        if (customDomainStore) {
+            setStore(customDomainStore);
+            setLoading(false);
+            return;
+        }
+
         const fetchStore = async () => {
             try {
                 const { data, error } = await supabase
@@ -31,8 +37,9 @@ export function CheckoutPage() {
                 setLoading(false);
             }
         };
-        fetchStore();
-    }, [storeSubUrl]);
+
+        if (storeSubUrl) fetchStore();
+    }, [storeSubUrl, customDomainStore]);
 
     if (loading) return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -407,7 +414,11 @@ function CheckoutContent({ store, storeSubUrl }) {
             clearCart();
 
             // Redirect to success page
-            window.location.href = `/s/${storeSubUrl}/order/${newOrder.id}?token=${newOrder.successToken}`;
+            const redirectUrl = storeSubUrl
+                ? `/s/${storeSubUrl}/order/${newOrder.id}?token=${newOrder.successToken}`
+                : `/order/${newOrder.id}?token=${newOrder.successToken}`;
+
+            window.location.href = redirectUrl;
         } catch (error) {
             console.error("Order Failed:", error);
             alert("Failed to place order. Please try again.");
@@ -433,7 +444,7 @@ function CheckoutContent({ store, storeSubUrl }) {
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Cart is empty</h2>
                 <p className="text-slate-500 mb-8">Add items to your cart to proceed to checkout.</p>
                 <Link
-                    to={`/s/${storeSubUrl}`}
+                    to={customDomainStore ? '/' : `/s/${storeSubUrl}`}
                     className="inline-block w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition"
                 >
                     Return to Store

@@ -148,7 +148,7 @@ export function CheckoutForm({
                                 {storeName}
                             </span>
                         ) : (
-                            <Link to={`/s/${storeSubUrl}`} className="text-xl font-black tracking-tight mb-4 block" style={{ color: primaryColor }}>
+                            <Link to={storeSubUrl ? `/s/${storeSubUrl}` : '/'} className="text-xl font-black tracking-tight mb-4 block" style={{ color: primaryColor }}>
                                 {storeName}
                             </Link>
                         )}

@@ -11,7 +11,11 @@ export function CartDrawer({ settings }) {
 
     const handleCheckout = () => {
         setIsOpen(false);
-        navigate(`/s/${storeSubUrl}/checkout`);
+        if (storeSubUrl) {
+            navigate(`/s/${storeSubUrl}/checkout`);
+        } else {
+            navigate('/checkout');
+        }
     };
 
 
@@ -304,7 +308,11 @@ export function CartDrawer({ settings }) {
                         <button
                             onClick={() => {
                                 setIsOpen(false);
-                                navigate(`/s/${storeSubUrl}/checkout`);
+                                if (storeSubUrl) {
+                                    navigate(`/s/${storeSubUrl}/checkout`);
+                                } else {
+                                    navigate('/checkout');
+                                }
                             }}
                             disabled={cart.some(item => item.maxStock !== undefined && item.quantity > item.maxStock)}
                             className="w-full py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
