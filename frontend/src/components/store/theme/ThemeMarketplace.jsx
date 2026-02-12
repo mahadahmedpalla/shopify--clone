@@ -12,7 +12,7 @@ export function ThemeMarketplace() {
 
     return (
         <div className="min-h-screen bg-white">
-            <header className="border-b border-slate-200 px-8 py-4 bg-white sticky top-0 z-30 flex items-center justify-between">
+            <header className="border-b border-slate-200 px-8 py-4 bg-white flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                     <Button variant="ghost" size="sm" onClick={() => navigate(`/store/${storeId}/customize`)}>
                         <ChevronLeft className="h-4 w-4 mr-1" />
