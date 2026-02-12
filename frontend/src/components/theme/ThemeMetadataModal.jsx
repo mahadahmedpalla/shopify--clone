@@ -14,7 +14,9 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
         description: '',
         price_credits: 0,
         thumbnail_url: '',
+        thumbnail_url: '',
         tags: '',
+        built_on_link: '',
     });
 
     useEffect(() => {
@@ -24,7 +26,9 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                 description: theme.description || '',
                 price_credits: theme.price_credits || 0,
                 thumbnail_url: theme.thumbnail_url || '',
+                thumbnail_url: theme.thumbnail_url || '',
                 tags: theme.tags ? theme.tags.join(', ') : '',
+                built_on_link: theme.built_on_link || '',
             });
         } else if (isOpen) {
             // Reset for create mode
@@ -34,6 +38,7 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                 price_credits: 0,
                 thumbnail_url: '',
                 tags: '',
+                built_on_link: '',
             });
         }
     }, [isOpen, theme]);
@@ -96,6 +101,8 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                 price_credits: parseInt(formData.price_credits) || 0,
                 thumbnail_url: formData.thumbnail_url,
                 tags: tagsArray,
+                tags: tagsArray,
+                built_on_link: formData.built_on_link,
                 updated_at: new Date().toISOString(),
             };
 
@@ -238,6 +245,15 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                                             placeholder="Describe your theme features..."
                                         />
                                     </div>
+
+                                    <Input
+                                        label="Theme Built On Link (Optional)"
+                                        id="built_on_link"
+                                        name="built_on_link"
+                                        value={formData.built_on_link}
+                                        onChange={handleChange}
+                                        placeholder="e.g. https://www.figma.com/..."
+                                    />
 
                                     <Input
                                         label="Tags (comma separated)"
