@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Modal } from '../../ui/Modal';
-import { Search, ShoppingBag, Download, Globe, Check, AlertTriangle, Wallet, Eye } from 'lucide-react';
+import { Search, ShoppingBag, Download, Globe, Check, AlertTriangle, Wallet, Eye, ArrowUpRight } from 'lucide-react';
 import { renderFormattedText } from '../../../utils/formatText';
 
 export function MarketplaceStore({ storeId }) {
@@ -174,6 +174,18 @@ export function MarketplaceStore({ storeId }) {
                 {filteredThemes.map(theme => (
                     <Card key={theme.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-slate-200">
                         <div className="aspect-video bg-slate-100 relative overflow-hidden flex items-center justify-center text-slate-300">
+                            {theme.built_on_link && (
+                                <a
+                                    href={theme.built_on_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-sm backdrop-blur-sm transition-all hover:scale-105"
+                                    title="View Built On Link"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <ArrowUpRight className="h-4 w-4" />
+                                </a>
+                            )}
                             {theme.thumbnail_url ? (
                                 <img
                                     src={theme.thumbnail_url}

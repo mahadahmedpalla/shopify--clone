@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Modal } from '../../ui/Modal';
-import { Layout, Check, Trash2, Edit, Eye } from 'lucide-react';
+import { Layout, Check, Trash2, Edit, Eye, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeApplyModal } from './ThemeApplyModal';
 import { renderFormattedText } from '../../../utils/formatText';
@@ -35,6 +35,7 @@ export function MarketplaceLibrary({ storeId }) {
                         thumbnail_url,
                         tags,
                         status,
+                        built_on_link,
                         developer:theme_developers(developer_name)
                     )
                 `)
@@ -94,6 +95,18 @@ export function MarketplaceLibrary({ storeId }) {
                     return (
                         <Card key={item.id} className={`overflow-hidden group hover:shadow-lg transition-all duration-300 border-slate-200 ${isDraft ? 'opacity-75' : ''}`}>
                             <div className="aspect-video bg-slate-100 relative overflow-hidden flex items-center justify-center text-slate-300">
+                                {item.theme?.built_on_link && (
+                                    <a
+                                        href={item.theme.built_on_link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-full shadow-sm backdrop-blur-sm transition-all hover:scale-105"
+                                        title="View Built On Link"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <ArrowUpRight className="h-4 w-4" />
+                                    </a>
+                                )}
                                 {item.theme?.thumbnail_url ? (
                                     <img
                                         src={item.theme.thumbnail_url}
