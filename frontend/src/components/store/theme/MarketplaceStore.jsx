@@ -3,7 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { Modal } from '../../ui/Modal';
-import { Search, ShoppingBag, Download, Globe, Check, AlertTriangle, Wallet } from 'lucide-react';
+import { Search, ShoppingBag, Download, Globe, Check, AlertTriangle, Wallet, Eye } from 'lucide-react';
 import { renderFormattedText } from '../../../utils/formatText';
 
 export function MarketplaceStore({ storeId }) {
@@ -206,9 +206,10 @@ export function MarketplaceStore({ storeId }) {
                                 {(theme.description && theme.description.length > 100) && (
                                     <button
                                         onClick={() => setSelectedDescriptionTheme(theme)}
-                                        className="text-[10px] text-indigo-600 font-medium hover:underline mt-1"
+                                        className="inline-flex items-center text-[10px] font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors mt-1"
                                     >
-                                        View full description
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Read full description
                                     </button>
                                 )}
                             </div>
