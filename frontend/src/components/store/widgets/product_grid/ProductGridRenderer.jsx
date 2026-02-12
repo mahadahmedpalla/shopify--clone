@@ -16,7 +16,7 @@ const slugify = (text) => {
         .replace(/^-+|-+$/g, '');
 };
 
-export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts, mockSettings }) {
+export function ProductGridRenderer({ settings, products, viewMode, store, isEditor, categories, categorySlug, categoryPath, storeDiscounts, mockSettings, isCustomDomain }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [viewerSort, setViewerSort] = useState(null);
     const [viewerCategory, setViewerCategory] = useState('all');
@@ -503,7 +503,9 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                         }}
                     >
                         {finalProducts.map(product => {
-                            const linkPath = `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
+                            const linkPath = isCustomDomain
+                                ? `/p/${product.id}`
+                                : `/s/${store?.sub_url || 'preview'}/p/${product.id}`;
                             const Wrapper = isEditor ? 'div' : Link;
                             const wrapperProps = isEditor ? {} : { to: linkPath };
 

@@ -64,7 +64,7 @@ const WidgetSkeleton = ({ type }) => {
     return <div className={`${baseClass} h-64 md:h-96`} />;
 };
 
-export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, categorySlug, categoryPath, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId, mockSettings }) {
+export function BlockRenderer({ id, type, settings, viewMode, store, products, product, categories, categorySlug, categoryPath, isEditor, storeDiscounts, children, onSelect, onDelete, selectedId, mockSettings, isCustomDomain }) {
     return (
         <React.Suspense fallback={<WidgetSkeleton type={type} />}>
             {(() => {
@@ -82,42 +82,43 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                                 onSelect={onSelect}
                                 onDelete={onDelete}
                                 selectedId={selectedId}
+                                isCustomDomain={isCustomDomain}
                             >
                                 {/* If the block has 'children' property (nested blocks), ContainerRenderer handles it via settings.children */}
                             </ContainerRenderer>
                         );
                     case 'navbar':
-                        return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} products={products} categories={categories} />;
+                        return <NavbarRenderer settings={settings} viewMode={viewMode} store={store} products={products} categories={categories} isCustomDomain={isCustomDomain} />;
                     case 'hero':
-                        return <HeroRenderer settings={settings} viewMode={viewMode} />;
+                        return <HeroRenderer settings={settings} viewMode={viewMode} isCustomDomain={isCustomDomain} />;
                     case 'hero_slideshow':
-                        return <HeroSlideshowRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
+                        return <HeroSlideshowRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} isCustomDomain={isCustomDomain} />;
                     case 'image':
                         return <ImageRenderer settings={settings} viewMode={viewMode} />;
                     case 'product_grid':
-                        return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} categories={categories} categoryPath={categoryPath} mockSettings={mockSettings} />;
+                        return <ProductGridRenderer settings={settings} products={products} viewMode={viewMode} store={store} isEditor={isEditor} storeDiscounts={storeDiscounts} categories={categories} categoryPath={categoryPath} mockSettings={mockSettings} isCustomDomain={isCustomDomain} />;
                     case 'product_reviews':
                         return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
                     case 'related_products':
-                        return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} isEditor={isEditor} storeDiscounts={storeDiscounts} />;
+                        return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} isEditor={isEditor} storeDiscounts={storeDiscounts} isCustomDomain={isCustomDomain} />;
                     case 'heading':
                         return <HeadingRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'text':
                         return <TextRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'button':
-                        return <ButtonRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
+                        return <ButtonRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} isCustomDomain={isCustomDomain} />;
                     case 'footer':
-                        return <FooterRenderer settings={settings} viewMode={viewMode} store={store} />;
+                        return <FooterRenderer settings={settings} viewMode={viewMode} store={store} isCustomDomain={isCustomDomain} />;
                     case 'order_tracking':
                         return <OrderTrackingRenderer settings={settings} />;
                     case 'cart_list':
-                        return <CartListRenderer settings={settings} isEditor={isEditor} viewMode={viewMode} />;
+                        return <CartListRenderer settings={settings} isEditor={isEditor} viewMode={viewMode} isCustomDomain={isCustomDomain} store={store} />;
                     case 'checkout_form':
-                        return <CheckoutRenderer settings={settings} isEditor={isEditor} store={store} />;
+                        return <CheckoutRenderer settings={settings} isEditor={isEditor} store={store} isCustomDomain={isCustomDomain} />;
                     case 'product_detail':
-                        return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} storeDiscounts={storeDiscounts} mockSettings={mockSettings} />;
+                        return <ProductDetailRenderer settings={settings} product={product} viewMode={viewMode} isEditor={isEditor} store={store} storeDiscounts={storeDiscounts} mockSettings={mockSettings} isCustomDomain={isCustomDomain} />;
                     case 'category_list':
-                        return <CategoryListRenderer settings={settings} categories={categories} viewMode={viewMode} store={store} isEditor={isEditor} />;
+                        return <CategoryListRenderer settings={settings} categories={categories} viewMode={viewMode} store={store} isEditor={isEditor} isCustomDomain={isCustomDomain} />;
 
                     default:
                         return (

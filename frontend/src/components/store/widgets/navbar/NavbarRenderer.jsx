@@ -118,7 +118,7 @@ const MobileAccordionItem = ({ item, rVal, settings, handleNavigate, depth = 0 }
     );
 };
 
-export function NavbarRenderer({ settings, viewMode, store, products, categories = [] }) {
+export function NavbarRenderer({ settings, viewMode, store, products, categories = [], isCustomDomain }) {
     const [scrolled, setScrolled] = useState(false);
     const [visible, setVisible] = useState(true);
     const [lastScroll, setLastScroll] = useState(0);
@@ -144,7 +144,11 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
             if (searchQuery.trim()) {
                 const subUrl = store?.sub_url || 'demo';
                 const query = encodeURIComponent(searchQuery.trim());
-                navigate(`/s/${subUrl}/search?q=${query}`);
+                if (isCustomDomain) {
+                    navigate(`/search?q=${query}`);
+                } else {
+                    navigate(`/s/${subUrl}/search?q=${query}`);
+                }
                 setMobileMenuOpen(false);
                 setSearchQuery('');
             }
@@ -158,7 +162,11 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
 
     const handleProductSelect = (product) => {
         const subUrl = store?.sub_url || 'demo';
-        navigate(`/s/${subUrl}/p/${product.id}`);
+        if (isCustomDomain) {
+            navigate(`/p/${product.id}`);
+        } else {
+            navigate(`/s/${subUrl}/p/${product.id}`);
+        }
         setMobileMenuOpen(false);
         setSearchQuery('');
     };
@@ -207,28 +215,34 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
         if (item.type === 'category') {
             // Updated Routing: All categories go to /shop (Collection Page)
             if (item.value === 'all') {
-                navigate(`/s/${subUrl}/shop`);
+                if (isCustomDomain) navigate(`/shop`);
+                else navigate(`/s/${subUrl}/shop`);
             } else {
                 // Find category name for SEO URL
                 const cat = categories.find(c => c.id === item.value);
                 if (cat) {
                     // Build full path dynamically
                     const fullPath = getCategoryPath(cat.id);
-                    navigate(`/s/${subUrl}/shop/${fullPath}`);
+                    if (isCustomDomain) navigate(`/shop/${fullPath}`);
+                    else navigate(`/s/${subUrl}/shop/${fullPath}`);
                 } else {
                     // Fallback if not found locally
-                    navigate(`/s/${subUrl}/shop?category=${item.value}`);
+                    if (isCustomDomain) navigate(`/shop?category=${item.value}`);
+                    else navigate(`/s/${subUrl}/shop?category=${item.value}`);
                 }
             }
         } else if (item.type === 'product') {
-            navigate(`/s/${subUrl}/p/${item.value}`);
+            if (isCustomDomain) navigate(`/p/${item.value}`);
+            else navigate(`/s/${subUrl}/p/${item.value}`);
         } else if (item.type === 'page') {
-            navigate(`/s/${subUrl}/${item.value}`);
+            if (isCustomDomain) navigate(`/${item.value}`);
+            else navigate(`/s/${subUrl}/${item.value}`);
         } else if (item.url) {
             if (item.url.startsWith('/s/')) {
                 navigate(item.url);
             } else {
-                navigate(`/s/${subUrl}${item.url.startsWith('/') ? item.url : '/' + item.url}`);
+                if (isCustomDomain) navigate(item.url.startsWith('/') ? item.url : '/' + item.url);
+                else navigate(`/s/${subUrl}${item.url.startsWith('/') ? item.url : '/' + item.url}`);
             }
         } else {
             console.warn('Unknown menu item navigation', item);
@@ -357,7 +371,7 @@ export function NavbarRenderer({ settings, viewMode, store, products, categories
                     }}
                 >
                     {/* Logo & Store Name */}
-                    <div className="flex items-center cursor-pointer" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }} onClick={() => navigate(`/s/${store?.sub_url || 'demo'}`)}>
+                    <div className="flex items-center cursor-pointer" style={{ gap: rVal('logoGap', settings.logoGap || '12px') }} onClick={() => navigate(isCustomDomain ? '/' : `/s/${store?.sub_url || 'demo'}`)}>
                         <div className="flex items-center">
                             {rVal('logoUrl', settings.logoUrl) ? (
                                 <img src={rVal('logoUrl', settings.logoUrl)} style={{ width: rVal('logoWidth', settings.logoWidth) }} alt="Logo" />

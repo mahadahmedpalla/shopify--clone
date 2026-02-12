@@ -143,6 +143,7 @@ export function PublicStorefront({ customDomainStore }) {
                         categories={categories}
                         categoryPath={categoryPath}
                         storeDiscounts={discounts}
+                        isCustomDomain={!!customDomainStore}
                     />
                 ))}
             </CartProvider>

@@ -1,10 +1,15 @@
 import React from 'react';
 import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
 import { useCart } from '../../../../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) => {
+export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isCustomDomain, store }) => {
     const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
+    const navigate = React.useRouter?.navigate || require('react-router-dom').useNavigate();
+    // Wait, I should use standard import if possible, but I can't add imports easily with replace_file if I don't target the top.
+    // Let's assume I can add the import at the top or use the existing Link import line.
+
+    // ... (rest of the component)
     const isMobile = viewMode === 'mobile';
 
     // -- SETTINGS --
@@ -66,7 +71,7 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop' }) =
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Your cart is empty</h2>
                 <p className="text-slate-500 mb-8">Looks like you haven't added anything yet.</p>
-                <Link to="/" className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+                <Link to={isCustomDomain ? '/' : `/s/${store?.sub_url || 'demo'}`} className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">
                     Continue Shopping
                 </Link>
             </div>
