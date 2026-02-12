@@ -238,12 +238,14 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                                         <textarea
                                             id="description"
                                             name="description"
-                                            rows={3}
                                             value={formData.description}
                                             onChange={handleChange}
-                                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border h-24"
                                             placeholder="Describe your theme features..."
                                         />
+                                        <div className="mt-1 text-[10px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-200">
+                                            <p>Formatting: <strong>*bold*</strong>, <em>_italic_</em>, <u>~underline~</u>. Escape with <code>\</code>.</p>
+                                        </div>
                                     </div>
 
                                     <Input
