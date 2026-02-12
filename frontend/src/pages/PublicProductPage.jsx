@@ -184,6 +184,7 @@ export function PublicProductPage({ customDomainStore }) {
                         store={store}
                         product={product}
                         storeDiscounts={discounts}
+                        isCustomDomain={!!customDomainStore}
                     />
                 ))}
             </div>

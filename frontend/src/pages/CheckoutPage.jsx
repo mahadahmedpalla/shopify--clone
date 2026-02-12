@@ -414,9 +414,10 @@ function CheckoutContent({ store, storeSubUrl }) {
             clearCart();
 
             // Redirect to success page
-            const redirectUrl = storeSubUrl
-                ? `/s/${storeSubUrl}/order/${newOrder.id}?token=${newOrder.successToken}`
-                : `/order/${newOrder.id}?token=${newOrder.successToken}`;
+            // Redirect to success page
+            const redirectUrl = customDomainStore
+                ? `/order/${newOrder.id}?token=${newOrder.successToken}`
+                : `/s/${storeSubUrl}/order/${newOrder.id}?token=${newOrder.successToken}`;
 
             window.location.href = redirectUrl;
         } catch (error) {
@@ -475,6 +476,7 @@ function CheckoutContent({ store, storeSubUrl }) {
             allowedCountries={allowedCountries}
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
+            isCustomDomain={!!customDomainStore}
 
             // Coupon Props
             couponCode={couponCode}
