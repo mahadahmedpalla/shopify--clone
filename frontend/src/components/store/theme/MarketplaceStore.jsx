@@ -14,6 +14,14 @@ export function MarketplaceStore({ storeId }) {
     const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
     const [selectedTheme, setSelectedTheme] = useState(null);
     const [purchasing, setPurchasing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredThemes = themes.filter(theme => {
+        const query = searchQuery.toLowerCase();
+        const inName = theme.name?.toLowerCase().includes(query);
+        const inTags = theme.tags?.some(tag => tag.toLowerCase().includes(query));
+        return inName || inTags;
+    });
 
     useEffect(() => {
         fetchThemes();
@@ -135,7 +143,9 @@ export function MarketplaceStore({ storeId }) {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="Search themes..."
+                        placeholder="Search themes by name or tag..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
@@ -159,7 +169,7 @@ export function MarketplaceStore({ storeId }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {themes.map(theme => (
+                {filteredThemes.map(theme => (
                     <Card key={theme.id} className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-slate-200">
                         <div className="aspect-video bg-slate-100 relative overflow-hidden flex items-center justify-center text-slate-300">
                             {theme.thumbnail_url ? (
@@ -224,7 +234,7 @@ export function MarketplaceStore({ storeId }) {
             </div>
 
             {
-                themes.length === 0 && (
+                filteredThemes.length === 0 && (
                     <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                         <ShoppingBag className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                         <h3 className="text-slate-500 font-medium">No themes found</h3>
