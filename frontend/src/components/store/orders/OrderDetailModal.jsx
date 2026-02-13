@@ -90,6 +90,14 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
     const total = order.total || 0;
     const currency = order.currency || 'USD';
 
+    // Helper
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: currency,
+        }).format(price);
+    };
+
     // Tax Breakdown Logic
     const taxBreakdown = order.tax_breakdown || {};
 
@@ -261,10 +269,10 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                                             {item.quantity}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-600">
-                                            ${parseFloat(item.price).toFixed(2)}
+                                            {formatPrice(item.price)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-slate-900">
-                                            ${(item.price * item.quantity).toFixed(2)}
+                                            {formatPrice(item.price * item.quantity)}
                                         </td>
                                     </tr>
                                 ))}
@@ -276,20 +284,21 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                     <div className="flex justify-end pt-4">
                         <div className="w-full md:w-1/2 lg:w-1/3 space-y-3 print:w-1/2">
                             <div className="flex justify-between text-sm text-slate-600">
+                                console.log('subtotal', subtotal)
                                 <span>Subtotal</span>
-                                <span className="font-medium">${Number(subtotal).toFixed(2)}</span>
+                                <span className="font-medium">{formatPrice(subtotal)}</span>
                             </div>
 
                             {discountTotal > 0 && (
                                 <div className="flex justify-between text-sm text-green-600">
                                     <span>Discount</span>
-                                    <span>-${Number(discountTotal).toFixed(2)}</span>
+                                    <span>-{formatPrice(discountTotal)}</span>
                                 </div>
                             )}
 
                             <div className="flex justify-between text-sm text-slate-600">
                                 <span>Shipping</span>
-                                <span className="font-medium">${Number(shippingCost).toFixed(2)}</span>
+                                <span className="font-medium">{formatPrice(shippingCost)}</span>
                             </div>
 
                             {/* Tax Breakdown */}
@@ -307,12 +316,12 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                                             label = `${code} (${rate}%)`;
                                         } else {
                                             if (applyPerItem === false) {
-                                                label = `${code} ($${Number(rate).toFixed(2)} fixed)`;
+                                                label = `${code} (${formatPrice(Number(rate))} fixed)`;
                                             } else {
                                                 if (count > 1) {
-                                                    label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                                                    label = `${code} (${count} x ${formatPrice(Number(rate))})`;
                                                 } else {
-                                                    label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                                                    label = `${code} (${formatPrice(Number(rate))} ea)`;
                                                 }
                                             }
                                         }
@@ -321,7 +330,7 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                                     return (
                                         <div key={code} className="flex justify-between text-sm text-slate-600">
                                             <span>{label}</span>
-                                            <span className="font-medium">${Number(amount).toFixed(2)}</span>
+                                            <span className="font-medium">{formatPrice(amount)}</span>
                                         </div>
                                     );
                                 })
@@ -329,14 +338,14 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                                 taxTotal > 0 && (
                                     <div className="flex justify-between text-sm text-slate-600">
                                         <span>Tax</span>
-                                        <span className="font-medium">${Number(taxTotal).toFixed(2)}</span>
+                                        <span className="font-medium">{formatPrice(taxTotal)}</span>
                                     </div>
                                 )
                             )}
 
                             <div className="flex justify-between text-lg font-bold text-slate-900 pt-3 border-t border-slate-200 mt-2 print:border-slate-800">
                                 <span>Total</span>
-                                <span>${Number(total).toFixed(2)}</span>
+                                <span>{formatPrice(total)}</span>
                             </div>
                         </div>
                     </div>
