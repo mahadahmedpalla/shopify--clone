@@ -137,7 +137,6 @@ export const CartProvider = ({ children, storeKey = 'default' }) => {
                         compareAtPrice: comparePrice,
                         compare_at_price: comparePrice,
                         name: newName,
-                        name: newName,
                         image: newImage,
                         maxStock: baseStock // Ensure maxStock is updated
                     };
