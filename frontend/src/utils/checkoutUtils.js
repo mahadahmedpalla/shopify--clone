@@ -38,7 +38,7 @@ export const validateAddress = (address) => {
  * @param {Array} taxes - List of available taxes (optional)
  * @param {String} country - Customer country (optional)
  */
-export const calculateOrderTotals = (items, shippingRate = null, discountAmount = 0, taxes = [], country = null) => {
+export const calculateOrderTotals = (items, shippingRate = null, discountAmount = 0, taxes = [], country = null, currency = 'USD') => {
     const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
     const shippingCost = shippingRate ? parseFloat(shippingRate.rate) : 0;
 
@@ -137,7 +137,7 @@ export const calculateOrderTotals = (items, shippingRate = null, discountAmount 
         taxBreakdown: taxesBreakdown, // Return the breakdown object
         discountTotal: parseFloat(discountAmount.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
-        currency: 'USD'
+        currency: currency
     };
 };
 

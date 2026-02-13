@@ -339,7 +339,7 @@ function CheckoutContent({ store, storeSubUrl, customDomainStore }) {
             }
 
             const countryName = getCountryName(customerInfo.country); // Convert Code (US) to Name (United States) for Tax matching
-            const newTotals = calculateOrderTotals(cart, selectedRate, totalDiscountAmount, storeTaxes, countryName);
+            const newTotals = calculateOrderTotals(cart, selectedRate, totalDiscountAmount, storeTaxes, countryName, store.currency);
             setTotals(newTotals);
         }
     }, [cart, selectedRate, storeDiscounts, appliedCoupon, storeTaxes, customerInfo.country]);
