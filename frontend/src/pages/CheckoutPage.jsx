@@ -89,12 +89,12 @@ export function CheckoutPage({ customDomainStore }) {
 
     return (
         <CartProvider storeKey={store.id}>
-            <CheckoutContent store={store} storeSubUrl={storeSubUrl} />
+            <CheckoutContent store={store} storeSubUrl={storeSubUrl} customDomainStore={customDomainStore} />
         </CartProvider>
     );
 }
 
-function CheckoutContent({ store, storeSubUrl }) {
+function CheckoutContent({ store, storeSubUrl, customDomainStore }) {
     const { cart, clearCart } = useCart();
     const [step, setStep] = useState(1);
     const [placingOrder, setPlacingOrder] = useState(false);
