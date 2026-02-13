@@ -71,8 +71,6 @@ function App() {
 
   React.useEffect(() => {
     const hostname = window.location.hostname;
-    // content_modification
-    console.log("Detected Hostname:", hostname);
     const mainDomains = ['localhost', 'shopify-clone-7a4j.vercel.app', '127.0.0.1', 'inwentree.com', 'www.inwentree.com'];
 
     if (!mainDomains.includes(hostname)) {
