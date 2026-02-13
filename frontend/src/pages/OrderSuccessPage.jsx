@@ -11,8 +11,8 @@ export function OrderSuccessPage({ customDomainStore }) {
     const [error, setError] = useState(null);
     const [store, setStore] = useState(customDomainStore || null);
 
-    // Favicon logic moved to Router/Wrapper
-    // useStoreFavicon(store);
+    // Favicon
+    useStoreFavicon(store);
 
     useEffect(() => {
         const fetchData = async () => {

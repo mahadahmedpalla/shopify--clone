@@ -63,38 +63,6 @@ function DashboardLayout({ children }) {
 
 // ... (imports remain)
 import { CustomDomainRouter } from './components/common/CustomDomainRouter';
-import { useStoreFavicon } from './hooks/useStoreFavicon';
-import { supabase } from './lib/supabase';
-
-// Wrapper to handle Favicon for Sub-URL routes
-function StorefrontWrapper() {
-  const params = React.useParams(); // useParams from react-router-dom
-  const { storeSubUrl } = params;
-  const [store, setStore] = React.useState(null);
-
-  React.useEffect(() => {
-    if (!storeSubUrl) return;
-    const fetch = async () => {
-      const { data } = await supabase.from('stores').select('*').eq('sub_url', storeSubUrl).single();
-      if (data) setStore(data);
-    };
-    fetch();
-  }, [storeSubUrl]);
-
-  useStoreFavicon(store);
-
-  return (
-    <Routes>
-      <Route index element={<PublicStorefront />} />
-      <Route path="shop/*" element={<PublicStorefront />} />
-      <Route path=":pageSlug" element={<PublicStorefront />} />
-      <Route path="p/:productId" element={<PublicProductPage />} />
-      <Route path="category/:categoryId" element={<PublicStorefront />} />
-      <Route path="checkout" element={<CheckoutPage />} />
-      <Route path="order/:orderId" element={<OrderSuccessPage />} />
-    </Routes>
-  );
-}
 
 function App() {
   const [isCheckingDomain, setIsCheckingDomain] = React.useState(true);
@@ -127,10 +95,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        {/* Public Storefront Route - Wrapper for Favicons on Sub-URL */}
-        <Route path="/s/:storeSubUrl/*" element={<StorefrontWrapper />} />
-
-        {/* Auth Routes */}
+        {/* Public Storefront Route */}
+        <Route path="/s/:storeSubUrl" element={<PublicStorefront />} />
+        {/* Dynamic Hierarchical Category Route (Wildcard) */}
         <Route path="/s/:storeSubUrl/shop/*" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/:pageSlug" element={<PublicStorefront />} />
         <Route path="/s/:storeSubUrl/p/:productId" element={<PublicProductPage />} />
