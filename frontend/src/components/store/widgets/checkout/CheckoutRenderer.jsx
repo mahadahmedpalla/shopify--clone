@@ -36,7 +36,7 @@ export function CheckoutRenderer({ settings, isEditor, store }) {
         taxTotal: 0,
         discountTotal: 0,
         total: subtotal + (selectedRate?.rate || 0),
-        currency: 'USD'
+        currency: store?.currency || 'USD'
     };
 
     return (

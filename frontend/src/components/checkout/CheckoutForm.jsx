@@ -113,13 +113,13 @@ export function CheckoutForm({
                     } else {
                         // Fixed Amount Logic
                         if (applyPerItem === false) {
-                            label = `${code} ($${Number(rate).toFixed(2)} fixed)`;
+                            label = `${code} (${formatPrice(Number(rate))} fixed)`;
                         } else {
                             // Show quantity multiplier for fixed taxes if > 1
                             if (count > 1) {
-                                label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                                label = `${code} (${count} x ${formatPrice(Number(rate))})`;
                             } else {
-                                label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                                label = `${code} (${formatPrice(Number(rate))} ea)`;
                             }
                         }
                     }
@@ -128,7 +128,7 @@ export function CheckoutForm({
                 return (
                     <div key={code} className="flex justify-between text-sm text-slate-600">
                         <span>{label}</span>
-                        <span className="font-medium text-slate-900">${amount.toFixed(2)}</span>
+                        <span className="font-medium text-slate-900">{formatPrice(amount)}</span>
                     </div>
                 );
             });
@@ -137,12 +137,12 @@ export function CheckoutForm({
             return (
                 <div className="flex justify-between text-sm text-slate-600">
                     <span>Taxes</span>
-                    <span className="font-medium text-slate-900">${totals.taxTotal.toFixed(2)}</span>
+                    <span className="font-medium text-slate-900">{formatPrice(totals.taxTotal)}</span>
                 </div>
             );
         }
         return null;
-    }, [totals.taxBreakdown, totals.taxTotal]);
+    }, [totals.taxBreakdown, totals.taxTotal, totals.currency]);
 
     return (
         <div className="min-h-screen lg:flex font-sans" style={{ backgroundColor: bgColor, color: textColor }}>
@@ -174,7 +174,7 @@ export function CheckoutForm({
                                     <span className="mr-1">{showOrderSummary ? 'Hide' : 'Show'} order summary</span>
                                     {showOrderSummary ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                 </span>
-                                <span className="font-bold text-slate-900 text-lg">${totals.total.toFixed(2)}</span>
+                                <span className="font-bold text-slate-900 text-lg">{formatPrice(totals.total)}</span>
                             </button>
 
                             {showOrderSummary && (
@@ -195,7 +195,7 @@ export function CheckoutForm({
                                                     {item.variantTitle && <p className="text-xs text-slate-500 truncate">{item.variantTitle}</p>}
                                                     <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
                                                 </div>
-                                                <p className="font-bold text-slate-700 text-sm whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</p>
+                                                <p className="font-bold text-slate-700 text-sm whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -206,20 +206,20 @@ export function CheckoutForm({
                                     <div className="border-t border-slate-200 pt-4 space-y-3">
                                         <div className="flex justify-between text-sm text-slate-600">
                                             <span>Subtotal</span>
-                                            <span className="font-bold text-slate-900">${totals.subtotal.toFixed(2)}</span>
+                                            <span className="font-bold text-slate-900">{formatPrice(totals.subtotal)}</span>
                                         </div>
 
                                         {totals.discountTotal > 0 && (
                                             <div className="flex justify-between text-sm text-green-600 font-medium">
                                                 <span>Discount</span>
-                                                <span>-${totals.discountTotal.toFixed(2)}</span>
+                                                <span>-{formatPrice(totals.discountTotal)}</span>
                                             </div>
                                         )}
 
                                         <div className="flex justify-between text-sm text-slate-600">
                                             <span>Shipping {selectedRate ? `(${selectedRate.name})` : ''}</span>
                                             {selectedRate ? (
-                                                <span className="font-bold text-slate-900">${selectedRate.rate.toFixed(2)}</span>
+                                                <span className="font-bold text-slate-900">{formatPrice(selectedRate.rate)}</span>
                                             ) : (
                                                 <span className="text-xs text-slate-400">Calculated at next step</span>
                                             )}
@@ -230,7 +230,7 @@ export function CheckoutForm({
 
                                         <div className="flex justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200">
                                             <span>Total</span>
-                                            <span className="text-xl" style={{ color: primaryColor }}>${totals.total.toFixed(2)}</span>
+                                            <span className="text-xl" style={{ color: primaryColor }}>{formatPrice(totals.total)}</span>
                                         </div>
                                     </div>
                                 </div>
