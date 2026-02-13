@@ -581,7 +581,13 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                         <div className={`mt-2 flex items-center justify-between gap-2 ${equalHeight ? 'mt-auto' : ''}`}>
                                             {showPrice && (() => {
                                                 // Mock Discount Logic
-                                                let displayFinalPrice, displayComparePrice, displayHasDiscount;
+                                                const currency = store?.currency || 'USD';
+                                                const formatPrice = (price) => {
+                                                    return new Intl.NumberFormat('en-US', {
+                                                        style: 'currency',
+                                                        currency: currency,
+                                                    }).format(price);
+                                                };
 
                                                 if (mockSettings?.enableDiscounts) {
                                                     const originalPrice = parseFloat(product.price || 0);
@@ -597,10 +603,10 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
 
                                                 return (
                                                     <div className="flex flex-wrap items-baseline gap-2">
-                                                        <span style={priceStyle}>${parseFloat(displayFinalPrice).toFixed(2)}</span>
+                                                        <span style={priceStyle}>{formatPrice(displayFinalPrice)}</span>
                                                         {(showComparePrice || mockSettings?.enableDiscounts) && (displayHasDiscount || (product.compare_price && parseFloat(product.compare_price) > parseFloat(displayFinalPrice))) && (
                                                             <span style={comparePriceStyle} className="line-through">
-                                                                ${parseFloat(displayHasDiscount ? displayComparePrice : (product.compare_price || product.comparePrice)).toFixed(2)}
+                                                                {formatPrice(displayHasDiscount ? displayComparePrice : (product.compare_price || product.comparePrice))}
                                                             </span>
                                                         )}
                                                     </div>

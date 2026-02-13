@@ -229,6 +229,18 @@ export function StoreSettingsPage() {
                         <Globe className="h-4 w-4 mr-2" />
                         Domain Setup
                     </button>
+                    <button
+                        onClick={() => setActiveTab('currency')}
+                        className={`
+                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center
+                            ${activeTab === 'currency'
+                                ? 'border-indigo-500 text-indigo-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}
+                        `}
+                    >
+                        <Wallet className="h-4 w-4 mr-2" />
+                        Currency
+                    </button>
                 </nav>
             </div>
 

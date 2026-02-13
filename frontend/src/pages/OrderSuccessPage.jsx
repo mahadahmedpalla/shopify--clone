@@ -166,9 +166,13 @@ export function OrderSuccessPage({ customDomainStore }) {
                                             <p className="text-sm text-slate-400 mt-1">Qty: {item.quantity}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-slate-900">${(item.price * item.quantity).toFixed(2)}</p>
+                                            <p className="font-bold text-slate-900">
+                                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price * item.quantity)}
+                                            </p>
                                             {item.originalPrice && item.originalPrice > item.price && (
-                                                <p className="text-xs text-slate-400 line-through">${(item.originalPrice * item.quantity).toFixed(2)}</p>
+                                                <p className="text-xs text-slate-400 line-through">
+                                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice * item.quantity)}
+                                                </p>
                                             )}
                                         </div>
                                     </div>
@@ -178,19 +182,25 @@ export function OrderSuccessPage({ customDomainStore }) {
                             <div className="bg-slate-50 p-6 space-y-3">
                                 <div className="flex justify-between text-sm text-slate-600">
                                     <span>Subtotal</span>
-                                    <span className="font-medium">${totals?.subtotal?.toFixed(2) || '0.00'}</span>
+                                    <span className="font-medium">
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.subtotal || 0)}
+                                    </span>
                                 </div>
 
                                 {(totals?.discountTotal > 0) && (
                                     <div className="flex justify-between text-sm text-green-600">
                                         <span>Discount</span>
-                                        <span className="font-medium">-${totals.discountTotal.toFixed(2)}</span>
+                                        <span className="font-medium">
+                                            -{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals.discountTotal)}
+                                        </span>
                                     </div>
                                 )}
 
                                 <div className="flex justify-between text-sm text-slate-600">
                                     <span>Shipping</span>
-                                    <span className="font-medium">${totals?.shippingCost?.toFixed(2) || '0.00'}</span>
+                                    <span className="font-medium">
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.shippingCost || 0)}
+                                    </span>
                                 </div>
 
                                 {/* Tax Breakdown */}
@@ -202,18 +212,27 @@ export function OrderSuccessPage({ customDomainStore }) {
                                         const count = typeof data === 'object' ? data.count : 0;
                                         const applyPerItem = typeof data === 'object' && data.apply_per_item !== undefined ? data.apply_per_item : true;
 
+                                        // Currency formatting helper (defined inside map to access store)
+                                        const currency = store?.currency || 'USD';
+                                        const formatPrice = (price) => {
+                                            return new Intl.NumberFormat('en-US', {
+                                                style: 'currency',
+                                                currency: currency,
+                                            }).format(price);
+                                        };
+
                                         let label = code;
                                         if (rate !== null && type) {
                                             if (type === 'percentage') {
                                                 label = `${code} (${rate}%)`;
                                             } else {
                                                 if (applyPerItem === false) {
-                                                    label = `${code} ($${Number(rate).toFixed(2)} fixed)`;
+                                                    label = `${code} (${formatPrice(Number(rate))} fixed)`;
                                                 } else {
                                                     if (count > 1) {
-                                                        label = `${code} (${count} x $${Number(rate).toFixed(2)})`;
+                                                        label = `${code} (${count} x ${formatPrice(Number(rate))})`;
                                                     } else {
-                                                        label = `${code} ($${Number(rate).toFixed(2)} ea)`;
+                                                        label = `${code} (${formatPrice(Number(rate))} ea)`;
                                                     }
                                                 }
                                             }
@@ -222,7 +241,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                         return (
                                             <div key={code} className="flex justify-between text-sm text-slate-600">
                                                 <span>{label}</span>
-                                                <span className="font-medium">${amount.toFixed(2)}</span>
+                                                <span className="font-medium">{formatPrice(amount)}</span>
                                             </div>
                                         );
                                     })
@@ -230,14 +249,14 @@ export function OrderSuccessPage({ customDomainStore }) {
                                     totals.taxTotal > 0 && (
                                         <div className="flex justify-between text-sm text-slate-600">
                                             <span>Tax</span>
-                                            <span className="font-medium">${totals.taxTotal.toFixed(2)}</span>
+                                            <span className="font-medium">{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals.taxTotal)}</span>
                                         </div>
                                     )
                                 )}
 
                                 <div className="flex justify-between text-lg font-bold text-slate-900 pt-3 border-t border-slate-200 mt-2">
                                     <span>Total</span>
-                                    <span>${totals?.total?.toFixed(2) || '0.00'}</span>
+                                    <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.total || 0)}</span>
                                 </div>
                             </div>
                         </div>

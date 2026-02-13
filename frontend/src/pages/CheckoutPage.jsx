@@ -131,7 +131,7 @@ function CheckoutContent({ store, storeSubUrl, customDomainStore }) {
         taxTotal: 0,
         discountTotal: 0,
         total: 0,
-        currency: 'USD'
+        currency: store.currency || 'USD'
     });
 
     const [checkoutSettings, setCheckoutSettings] = useState({});

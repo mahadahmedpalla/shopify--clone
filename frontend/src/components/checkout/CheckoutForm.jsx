@@ -379,7 +379,7 @@ export function CheckoutForm({
                                                     </div>
                                                 </div>
                                                 <span className="font-bold text-sm text-slate-900">
-                                                    {rate.rate === 0 ? 'Free' : `$${rate.rate.toFixed(2)}`}
+                                                    {rate.rate === 0 ? 'Free' : formatPrice(rate.rate)}
                                                 </span>
                                             </label>
 
@@ -392,7 +392,7 @@ export function CheckoutForm({
                                                                 <span className="font-medium text-slate-800">{item.name}</span>
                                                                 {item.items && <span className="block text-slate-400 truncate max-w-[200px]">{item.items}</span>}
                                                             </span>
-                                                            <span className="font-medium">${item.cost.toFixed(2)}</span>
+                                                            <span className="font-medium">{formatPrice(item.cost)}</span>
                                                         </div>
                                                     ))}
                                                     {rate.warning && (
@@ -440,7 +440,7 @@ export function CheckoutForm({
                                     <div className="flex justify-between pt-3">
                                         <div className="flex gap-4">
                                             <span className="text-slate-500">Method</span>
-                                            <span className="font-medium">{selectedRate?.name} - ${selectedRate?.rate?.toFixed(2)}</span>
+                                            <span className="font-medium">{selectedRate?.name} - {selectedRate?.rate === 0 ? 'Free' : formatPrice(selectedRate?.rate || 0)}</span>
                                         </div>
                                         <button onClick={() => setStep(2)} className="text-xs font-bold hover:underline" style={{ color: primaryColor }}>Change</button>
                                     </div>
@@ -528,7 +528,7 @@ export function CheckoutForm({
                                         className="px-8 py-4 rounded-xl font-bold transition shadow-lg w-full max-w-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center opacity-90 hover:opacity-100"
                                         style={buttonStyle}
                                     >
-                                        {placingOrder ? 'Processing...' : `Pay $${totals.total.toFixed(2)}`}
+                                        {placingOrder ? 'Processing...' : `Pay ${formatPrice(totals.total)}`}
                                     </button>
                                 </div>
                             </div>
@@ -554,9 +554,8 @@ export function CheckoutForm({
                                 <div className="flex-1">
                                     <h4 className="font-bold text-slate-800 text-sm">{item.name}</h4>
                                     {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
-                                    <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
                                 </div>
-                                <p className="font-bold text-slate-700 text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                                <p className="font-bold text-slate-700 text-sm">{formatPrice(item.price * item.quantity)}</p>
                             </div>
                         ))}
                     </div>
@@ -567,29 +566,29 @@ export function CheckoutForm({
                     <div className="border-t border-slate-200 my-8 pt-6 space-y-4">
                         <div className="flex justify-between text-sm text-slate-600">
                             <span>Subtotal</span>
-                            <span className="font-bold text-slate-900">${totals.subtotal.toFixed(2)}</span>
+                            <span className="font-bold text-slate-900">{formatPrice(totals.subtotal)}</span>
                         </div>
 
                         {totals.discountTotal > 0 && (
                             <div className="flex justify-between text-sm text-green-600 font-medium">
                                 <span>Discount</span>
-                                <span>-${totals.discountTotal.toFixed(2)}</span>
+                                <span>-{formatPrice(totals.discountTotal)}</span>
                             </div>
                         )}
 
                         <div className="flex justify-between text-sm text-slate-600">
                             <span>Shipping {selectedRate ? `(${selectedRate.name})` : ''}</span>
                             {selectedRate ? (
-                                <span className="font-bold text-slate-900">${selectedRate.rate.toFixed(2)}</span>
+                                <span className="font-bold text-slate-900">{formatPrice(selectedRate.rate)}</span>
                             ) : (
                                 <span className="text-xs text-slate-400">Calculated at next step</span>
                             )}
                         </div>
 
                         {TaxDisplay}
-                        <div className="flex justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200 mt-4">
+                        <div className="flex items-center justify-between text-lg font-bold text-slate-900 pt-4 border-t border-slate-200 mt-4">
                             <span>Total</span>
-                            <span className="text-2xl" style={{ color: primaryColor }}>${totals.total.toFixed(2)}</span>
+                            <span className="text-2xl" style={{ color: primaryColor }}>{formatPrice(totals.total)}</span>
                         </div>
                     </div>
                 </div>
