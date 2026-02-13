@@ -46,6 +46,13 @@ export function CheckoutForm({
         color: primaryText,
     };
 
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: totals?.currency || 'USD',
+        }).format(price);
+    };
+
     const [showOrderSummary, setShowOrderSummary] = useState(false);
 
     // Reusable Coupon Section

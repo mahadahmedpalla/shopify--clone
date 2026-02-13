@@ -100,7 +100,7 @@ export function BlockRenderer({ id, type, settings, viewMode, store, products, p
                     case 'product_reviews':
                         return <ProductReviewsRenderer style={settings} productId={product?.id} storeId={store?.id} />;
                     case 'related_products':
-                        return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} isEditor={isEditor} storeDiscounts={storeDiscounts} isCustomDomain={isCustomDomain} />;
+                        return <RelatedProductsRenderer style={settings} productId={product?.id} product={product} storeId={store?.id} currency={store?.currency || 'USD'} isEditor={isEditor} storeDiscounts={storeDiscounts} isCustomDomain={isCustomDomain} />;
                     case 'heading':
                         return <HeadingRenderer settings={settings} viewMode={viewMode} isEditor={isEditor} />;
                     case 'text':

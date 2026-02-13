@@ -31,6 +31,13 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
     const summarySpacing = settings?.summarySpacing || 'normal';
     const summaryDividers = settings?.summaryDividers !== false;
 
+    // Helper to format price
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: store?.currency || 'USD',
+        }).format(price);
+    };
 
     // -- HELPER CLASSES --
     const getImgW = () => {
@@ -128,10 +135,10 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
                                                         className="text-sm font-medium"
                                                         style={{ color: settings?.priceColor || '#64748b' }}
                                                     >
-                                                        ${parseFloat(item.price).toFixed(2)}
+                                                        {formatPrice(item.price)}
                                                     </span>
                                                     <span className="text-xs text-slate-400 line-through">
-                                                        ${parseFloat(item.compareAtPrice).toFixed(2)}
+                                                        {formatPrice(item.compareAtPrice)}
                                                     </span>
                                                 </div>
                                             ) : (
@@ -139,7 +146,7 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
                                                     className="text-sm font-medium"
                                                     style={{ color: settings?.priceColor || '#64748b' }}
                                                 >
-                                                    ${parseFloat(item.price).toFixed(2)}
+                                                    {formatPrice(item.price)}
                                                 </p>
                                             )}
                                         </div>
@@ -169,7 +176,7 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
                                     <div className="flex items-center gap-6">
                                         {showItemSubtotal && (
                                             <p className="font-bold text-slate-900 text-lg">
-                                                ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                                                {formatPrice(parseFloat(item.price) * item.quantity)}
                                             </p>
                                         )}
                                         <button
@@ -194,20 +201,20 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
                         <div className={getSpacingClass()}>
                             <div className="flex justify-between text-slate-600">
                                 <span>Subtotal</span>
-                                <span className="font-bold text-slate-900">${subtotal.toFixed(2)}</span>
+                                <span className="font-bold text-slate-900">{formatPrice(subtotal)}</span>
                             </div>
 
                             {showDiscountSummary && (
                                 <div className="flex justify-between text-red-600">
                                     <span>Discount</span>
-                                    <span>-$0.00</span>
+                                    <span>-{formatPrice(0)}</span>
                                 </div>
                             )}
 
                             {showTaxSummary && (
                                 <div className="flex justify-between text-slate-600">
                                     <span>Estimated Tax</span>
-                                    <span>${estimatedTax.toFixed(2)}</span>
+                                    <span>{formatPrice(estimatedTax)}</span>
                                 </div>
                             )}
 
@@ -215,12 +222,14 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
 
                             <div className="flex justify-between text-lg font-bold text-slate-900">
                                 <span>Total</span>
-                                <span>${(subtotal + (showTaxSummary ? estimatedTax : 0)).toFixed(2)}</span>
+                                <span>{formatPrice(subtotal + (showTaxSummary ? estimatedTax : 0))}</span>
                             </div>
                         </div>
                         <p className="text-xs text-slate-400 text-center mt-4">Shipping calculated at checkout</p>
                         <button
                             className="w-full mt-4 py-4 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                            onClick={() => navigate(isCustomDomain ? '/checkout' : isEditor ? '#' : `/s/${store.sub_url}/checkout`)}
+                            disabled={isEditor}
                             style={{
                                 backgroundColor: settings?.checkoutBtnBg || '#4f46e5',
                                 color: settings?.checkoutBtnColor || '#ffffff',

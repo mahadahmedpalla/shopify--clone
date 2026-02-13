@@ -265,11 +265,17 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                         {showPrice && (
                             <div className={`flex items-center space-x-3 mb-6 flex-wrap ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : ''}`}>
                                 <span className="text-3xl font-bold" style={{ color: priceColor }}>
-                                    ${parseFloat(currentPrice).toFixed(2)}
+                                    {new Intl.NumberFormat('en-US', {
+                                        style: 'currency',
+                                        currency: store?.currency || 'USD',
+                                    }).format(currentPrice)}
                                 </span>
                                 {hasDiscount && (
                                     <span className="text-xl line-through opacity-60" style={{ color: compareColor }}>
-                                        ${parseFloat(comparePrice).toFixed(2)}
+                                        {new Intl.NumberFormat('en-US', {
+                                            style: 'currency',
+                                            currency: store?.currency || 'USD',
+                                        }).format(comparePrice)}
                                     </span>
                                 )}
                                 {hasDiscount && (showDiscount || mockSettings?.enableDiscounts) && (

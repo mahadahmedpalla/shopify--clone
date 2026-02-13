@@ -137,7 +137,7 @@ export function PublicStorefront({ customDomainStore }) {
     return (
         <div className="min-h-screen bg-white" style={themeStyles}>
             <CartProvider storeKey={store?.id}>
-                <CartDrawer settings={cartSettings} />
+                <CartDrawer settings={cartSettings} currency={store?.currency || 'USD'} />
                 {(page.content || []).map((block) => (
                     <BlockRenderer
                         key={block.id}
