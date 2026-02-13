@@ -14,7 +14,7 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
         description: '',
         price_credits: 0,
         thumbnail_url: '',
-        thumbnail_url: '',
+
         tags: '',
         built_on_link: '',
     });
@@ -26,7 +26,7 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                 description: theme.description || '',
                 price_credits: theme.price_credits || 0,
                 thumbnail_url: theme.thumbnail_url || '',
-                thumbnail_url: theme.thumbnail_url || '',
+
                 tags: theme.tags ? theme.tags.join(', ') : '',
                 built_on_link: theme.built_on_link || '',
             });
@@ -36,7 +36,7 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                 name: '',
                 description: '',
                 price_credits: 0,
-                thumbnail_url: '',
+
                 tags: '',
                 built_on_link: '',
             });
@@ -101,7 +101,7 @@ export function ThemeMetadataModal({ isOpen, onClose, onSuccess, developerId, th
                 price_credits: parseInt(formData.price_credits) || 0,
                 thumbnail_url: formData.thumbnail_url,
                 tags: tagsArray,
-                tags: tagsArray,
+
                 built_on_link: formData.built_on_link,
                 updated_at: new Date().toISOString(),
             };
