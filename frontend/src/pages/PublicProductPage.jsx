@@ -15,8 +15,8 @@ export function PublicProductPage({ customDomainStore }) {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('desktop');
 
-    // Favicon
-    useStoreFavicon(store);
+    // Favicon logic moved to Router/Wrapper
+    // useStoreFavicon(store);
 
     const [cartSettings, setCartSettings] = useState(null);
     const [discounts, setDiscounts] = useState([]);

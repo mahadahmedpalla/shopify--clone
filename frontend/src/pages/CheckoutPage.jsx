@@ -17,8 +17,8 @@ export function CheckoutPage({ customDomainStore }) {
     const [store, setStore] = useState(customDomainStore || null);
     const [loading, setLoading] = useState(!customDomainStore);
 
-    // Favicon
-    useStoreFavicon(store);
+    // Favicon logic moved to Router/Wrapper
+    // useStoreFavicon(store);
 
     useEffect(() => {
         if (customDomainStore) {

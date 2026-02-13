@@ -20,8 +20,8 @@ export function PublicStorefront({ customDomainStore }) {
     const activeSlug = pageSlug || (categoryPath ? 'shop' : 'home');
     const [store, setStore] = useState(customDomainStore || null);
 
-    // Favicon
-    useStoreFavicon(store);
+    // Favicon logic moved to Router/Wrapper
+    // useStoreFavicon(store);
 
     const [page, setPage] = useState(null);
     const [products, setProducts] = useState([]);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { PublicStorefront } from '../../pages/PublicStorefront';
+import { publicStorefront } from '../../pages/PublicStorefront';
+import { useStoreFavicon } from '../../hooks/useStoreFavicon';
 import { PublicProductPage } from '../../pages/PublicProductPage';
 import { CheckoutPage } from '../../pages/CheckoutPage';
 import { OrderSuccessPage } from '../../pages/OrderSuccessPage';
@@ -11,6 +12,9 @@ export function CustomDomainRouter({ domain }) {
     const [store, setStore] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Favicon - Applied here for immediate load on custom domains
+    useStoreFavicon(store);
 
     useEffect(() => {
         const fetchStore = async () => {
