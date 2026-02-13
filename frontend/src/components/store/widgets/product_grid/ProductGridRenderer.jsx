@@ -589,6 +589,8 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                                     }).format(price);
                                                 };
 
+                                                let displayFinalPrice, displayComparePrice, displayHasDiscount;
+
                                                 if (mockSettings?.enableDiscounts) {
                                                     const originalPrice = parseFloat(product.price || 0);
                                                     displayComparePrice = (originalPrice * 1.25).toFixed(2); // Mock 20% off (reverse calc)

@@ -27,6 +27,10 @@ export function StoreSettingsPage() {
     const [domainStatus, setDomainStatus] = useState(null); // 'pending', 'approved', 'rejected', 'in_progress'
     const [savingDomain, setSavingDomain] = useState(false);
 
+    // Currency State
+    const [currency, setCurrency] = useState('USD');
+    const [savingCurrency, setSavingCurrency] = useState(false);
+
     useEffect(() => {
         // Fetch current storage usage, limit, owner credits, and domain info
         const fetchData = async () => {
@@ -35,7 +39,7 @@ export function StoreSettingsPage() {
                 // 1. Fetch Store Data (Usage, Limit, Domain)
                 const { data: storeData, error: storeError } = await supabase
                     .from('stores')
-                    .select('storage_used, storage_limit, owner_id, custom_domain, domain_status')
+                    .select('storage_used, storage_limit, owner_id, custom_domain, domain_status, currency')
                     .eq('id', store.id)
                     .single();
 
@@ -44,6 +48,7 @@ export function StoreSettingsPage() {
                     setStorageLimit(Number(storeData.storage_limit || 30));
                     setCustomDomain(storeData.custom_domain || '');
                     setDomainStatus(storeData.domain_status);
+                    setCurrency(storeData.currency || 'USD');
 
                     // 2. Fetch Owner Credits
                     if (storeData.owner_id) {
@@ -84,6 +89,27 @@ export function StoreSettingsPage() {
             alert('Failed to save domain: ' + error.message);
         } finally {
             setSavingDomain(false);
+        }
+    };
+
+    const handleSaveCurrency = async () => {
+        if (!store?.id) return;
+        setSavingCurrency(true);
+        try {
+            const { error } = await supabase
+                .from('stores')
+                .update({ currency: currency })
+                .eq('id', store.id);
+
+            if (error) throw error;
+            alert('Currency updated successfully!');
+            // Reload to update global context if necessary, or we can trust the user navigates
+            window.location.reload();
+        } catch (error) {
+            console.error('Error saving currency:', error);
+            alert('Failed to update currency.');
+        } finally {
+            setSavingCurrency(false);
         }
     };
 
@@ -620,6 +646,58 @@ export function StoreSettingsPage() {
                                 {!domainStatus && (
                                     <p className="text-sm text-slate-500 italic">No custom domain configured.</p>
                                 )}
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
+            {/* Currency Tab */}
+            {activeTab === 'currency' && (
+                <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300 space-y-6">
+                    <Card className="p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Wallet className="h-5 w-5 text-indigo-600" />
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Store Currency</h3>
+                                <p className="text-xs text-slate-500">Select the primary currency for your store.</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                                <h4 className="font-semibold text-indigo-900 text-sm mb-1">Important Note</h4>
+                                <p className="text-xs text-indigo-800">
+                                    Changing your store's currency will update the symbol displayed next to prices (e.g., $ to €).
+                                    It does <strong>not</strong> automatically convert existing product prices. You may need to update your product prices manually if the numeric values change significantly.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Currency</label>
+                                <div className="flex gap-2">
+                                    <select
+                                        value={currency}
+                                        onChange={(e) => setCurrency(e.target.value)}
+                                        className="flex-1 rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    >
+                                        <option value="USD">USD - US Dollar ($)</option>
+                                        <option value="EUR">EUR - Euro (€)</option>
+                                        <option value="GBP">GBP - British Pound (£)</option>
+                                        <option value="CAD">CAD - Canadian Dollar ($)</option>
+                                        <option value="AUD">AUD - Australian Dollar ($)</option>
+                                        <option value="JPY">JPY - Japanese Yen (¥)</option>
+                                        <option value="INR">INR - Indian Rupee (₹)</option>
+                                        <option value="BRL">BRL - Brazilian Real (R$)</option>
+                                    </select>
+                                    <Button
+                                        onClick={handleSaveCurrency}
+                                        isLoading={savingCurrency}
+                                        disabled={!currency}
+                                    >
+                                        Save Currency
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </Card>
