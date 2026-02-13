@@ -71,16 +71,16 @@ export function PublicProductPage({ customDomainStore }) {
 
             const [cartPageResult, discountResult, pdpPageResult, homePageResult] = await Promise.all([
                 // Cart Settings
-                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'cart').single(),
+                supabase.from('store_pages').select('content').eq('store_id', currentStore.id).eq('slug', 'cart').single(),
 
                 // Active Discounts
-                supabase.from('discounts').select('*').eq('store_id', storeData.id).eq('is_active', true).lte('starts_at', now),
+                supabase.from('discounts').select('*').eq('store_id', currentStore.id).eq('is_active', true).lte('starts_at', now),
 
                 // PDP Content
-                supabase.from('store_pages').select('content, is_published').eq('store_id', storeData.id).eq('slug', 'pdp').single(),
+                supabase.from('store_pages').select('content, is_published').eq('store_id', currentStore.id).eq('slug', 'pdp').single(),
 
                 // Home Page (Fallback for Navbar)
-                supabase.from('store_pages').select('content').eq('store_id', storeData.id).eq('slug', 'home').single()
+                supabase.from('store_pages').select('content').eq('store_id', currentStore.id).eq('slug', 'home').single()
             ]);
 
             // Process Cart Settings
