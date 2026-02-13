@@ -9,6 +9,8 @@ import { BlockRenderer } from '../components/store/widgets/BlockRenderer';
 import { CartProvider } from '../context/CartContext';
 import { CartDrawer } from '../components/store/widgets/cart/CartDrawer';
 
+import { useStoreFavicon } from '../hooks/useStoreFavicon';
+
 export function PublicStorefront({ customDomainStore }) {
     const params = useParams();
     const categoryPath = params['*'];
@@ -17,6 +19,10 @@ export function PublicStorefront({ customDomainStore }) {
     // If categoryPath exists (via wildcard), we are on the shop page
     const activeSlug = pageSlug || (categoryPath ? 'shop' : 'home');
     const [store, setStore] = useState(customDomainStore || null);
+
+    // Favicon
+    useStoreFavicon(store);
+
     const [page, setPage] = useState(null);
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);

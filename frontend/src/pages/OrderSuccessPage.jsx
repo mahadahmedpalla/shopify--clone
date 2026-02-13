@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, Package, MapPin, CreditCard, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
+import { useStoreFavicon } from '../hooks/useStoreFavicon';
 
 export function OrderSuccessPage({ customDomainStore }) {
     const { storeSubUrl, orderId } = useParams();
@@ -9,6 +10,9 @@ export function OrderSuccessPage({ customDomainStore }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [store, setStore] = useState(customDomainStore || null);
+
+    // Favicon
+    useStoreFavicon(store);
 
     useEffect(() => {
         const fetchData = async () => {

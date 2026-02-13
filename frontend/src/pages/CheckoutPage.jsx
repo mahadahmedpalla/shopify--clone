@@ -10,10 +10,15 @@ import { ShoppingBag } from 'lucide-react';
 import { getCountryName } from '../lib/countries';
 import { Skeleton } from '../components/ui/Skeleton';
 
+import { useStoreFavicon } from '../hooks/useStoreFavicon';
+
 export function CheckoutPage({ customDomainStore }) {
     const { storeSubUrl } = useParams();
     const [store, setStore] = useState(customDomainStore || null);
     const [loading, setLoading] = useState(!customDomainStore);
+
+    // Favicon
+    useStoreFavicon(store);
 
     useEffect(() => {
         if (customDomainStore) {

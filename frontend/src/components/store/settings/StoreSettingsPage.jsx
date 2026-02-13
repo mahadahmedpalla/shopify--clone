@@ -327,6 +327,82 @@ export function StoreSettingsPage() {
                 </div>
             )}
 
+            {/* Brand Assets Tab */}
+            {activeTab === 'store' && (
+                <div className="max-w-3xl space-y-6 animate-in slide-in-from-left-4 duration-300 mt-6">
+                    <Card className="p-6 space-y-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Globe className="h-5 w-5 text-indigo-600" />
+                            <h3 className="text-lg font-bold text-slate-900">Brand Assets</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* Favicon Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Store Favicon</label>
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+                                        {store.favicon_url ? (
+                                            <img src={store.favicon_url} alt="Favicon" className="h-8 w-8 object-contain" />
+                                        ) : (
+                                            <Globe className="h-6 w-6 text-slate-300" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <input
+                                            type="file"
+                                            accept="image/png, image/jpeg, image/gif, image/svg+xml, image/x-icon"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+
+                                                try {
+                                                    const fileExt = file.name.split('.').pop();
+                                                    const fileName = `favicon-${Date.now()}.${fileExt}`;
+                                                    const filePath = `${store.id}/${fileName}`;
+
+                                                    const { error: uploadError } = await supabase.storage
+                                                        .from('store-assets')
+                                                        .upload(filePath, file);
+
+                                                    if (uploadError) throw uploadError;
+
+                                                    const { data: { publicUrl } } = supabase.storage
+                                                        .from('store-assets')
+                                                        .getPublicUrl(filePath);
+
+                                                    const { error: updateError } = await supabase
+                                                        .from('stores')
+                                                        .update({ favicon_url: publicUrl })
+                                                        .eq('id', store.id);
+
+                                                    if (updateError) throw updateError;
+
+                                                    // Reload page to reflect changes (simplest way to update context)
+                                                    window.location.reload();
+
+                                                } catch (err) {
+                                                    console.error('Error uploading favicon:', err);
+                                                    alert('Failed to upload favicon.');
+                                                }
+                                            }}
+                                            className="block w-full text-sm text-slate-500
+                                                file:mr-4 file:py-2 file:px-4
+                                                file:rounded-full file:border-0
+                                                file:text-sm file:font-semibold
+                                                file:bg-indigo-50 file:text-indigo-700
+                                                hover:file:bg-indigo-100
+                                            "
+                                        />
+                                        <p className="mt-1 text-xs text-slate-500">Recommended: 32x32px or 64x64px. PNG, ICO, or SVG.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             {/* Store Renewal Tab */}
             {activeTab === 'renewal' && (
                 <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300">

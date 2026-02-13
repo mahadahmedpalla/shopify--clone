@@ -5,6 +5,7 @@ import { BlockRenderer } from '../components/store/widgets/BlockRenderer';
 import { CartProvider, useCart } from '../context/CartContext';
 import { CartDrawer } from '../components/store/widgets/cart/CartDrawer';
 import { Skeleton } from '../components/ui/Skeleton';
+import { useStoreFavicon } from '../hooks/useStoreFavicon';
 
 export function PublicProductPage({ customDomainStore }) {
     const { storeSubUrl, productId } = useParams();
@@ -13,6 +14,9 @@ export function PublicProductPage({ customDomainStore }) {
     const [pageContent, setPageContent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('desktop');
+
+    // Favicon
+    useStoreFavicon(store);
 
     const [cartSettings, setCartSettings] = useState(null);
     const [discounts, setDiscounts] = useState([]);
