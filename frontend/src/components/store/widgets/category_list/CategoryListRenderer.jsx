@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Box } from 'lucide-react';
 import { getResponsiveValue } from '../Shared';
 
-export function CategoryListRenderer({ settings, categories, viewMode, store, isEditor }) {
+export function CategoryListRenderer({ settings, categories, viewMode, store, isEditor, isCustomDomain }) {
     if (!categories) return null;
 
     // --- 1. Filter & Sort Logic ---
@@ -188,9 +188,17 @@ export function CategoryListRenderer({ settings, categories, viewMode, store, is
             >
                 {displayCategories.map(cat => {
                     const fullPath = getCategoryPath(cat.id);
-                    const linkPath = fullPath
-                        ? `/s/${store?.sub_url || 'preview'}/shop/${fullPath}`
-                        : `/s/${store?.sub_url || 'preview'}/shop?category=${cat.id}`;
+                    let linkPath;
+
+                    if (isCustomDomain) {
+                        linkPath = fullPath
+                            ? `/shop/${fullPath}`
+                            : `/shop?category=${cat.id}`;
+                    } else {
+                        linkPath = fullPath
+                            ? `/s/${store?.sub_url || 'preview'}/shop/${fullPath}`
+                            : `/s/${store?.sub_url || 'preview'}/shop?category=${cat.id}`;
+                    }
 
                     // Fixed Aspect Ratio Classes
                     let aspectClass = '';
