@@ -25,7 +25,9 @@ import { ThemeDashboard } from './pages/ThemeDashboard';
 import { ThemeBuilder } from './components/theme/ThemeBuilder';
 import { ThemeMarketplace } from './components/store/theme/ThemeMarketplace';
 
+import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminLoginPage } from './components/admin/AdminLoginPage';
+import { AdminNotificationsPage } from './components/admin/AdminNotificationsPage';
 
 // --- Admin Components (Placeholder for now) ---
 const AdminDashboard = () => (
@@ -171,7 +173,10 @@ function App() {
         <Route path="/sec/admin/*" element={
           <ProtectedAdminRoute>
             <Routes>
-              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route element={<AdminLayout />}>
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="notifications" element={<AdminNotificationsPage />} />
+              </Route>
             </Routes>
           </ProtectedAdminRoute>
         } />
