@@ -169,7 +169,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                                     <span>
                                                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price)}
                                                     </span>
-                                                    {item.originalPrice && item.originalPrice > item.price && (
+                                                    {item.originalPrice > item.price && (
                                                         <span className="line-through decoration-slate-400">
                                                             {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice)}
                                                         </span>
@@ -181,7 +181,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                             <p className="font-bold text-slate-900">
                                                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price * item.quantity)}
                                             </p>
-                                            {item.originalPrice && item.originalPrice > item.price && (
+                                            {item.originalPrice > item.price && (
                                                 <p className="text-xs text-slate-400 line-through">
                                                     {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice * item.quantity)}
                                                 </p>

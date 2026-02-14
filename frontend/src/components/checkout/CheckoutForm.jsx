@@ -196,7 +196,7 @@ export function CheckoutForm({
                                                     <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
                                                     <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
                                                         <span>{formatPrice(item.price)}</span>
-                                                        {(item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price) && (
+                                                        {parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price) && (
                                                             <span className="line-through decoration-slate-400">{formatPrice(item.compareAtPrice || item.compare_at_price)}</span>
                                                         )}
                                                     </div>
@@ -570,7 +570,7 @@ export function CheckoutForm({
                                     <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
                                     <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
                                         <span>{formatPrice(item.price)}</span>
-                                        {(item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price) && (
+                                        {parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price) && (
                                             <span className="line-through decoration-slate-400">{formatPrice(item.compareAtPrice || item.compare_at_price)}</span>
                                         )}
                                     </div>
