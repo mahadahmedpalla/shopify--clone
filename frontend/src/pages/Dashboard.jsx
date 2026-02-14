@@ -1,19 +1,14 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Navbar } from '../components/common/Navbar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Plus, Store, CreditCard, ExternalLink, Trash2, LayoutDashboard } from 'lucide-react';
-import { CreateStoreModal } from '../components/dashboard/CreateStoreModal';
-import { DeleteStoreModal } from '../components/dashboard/DeleteStoreModal';
-import { StoreLoginModal } from '../components/dashboard/StoreLoginModal';
+import { Plus, Store, CreditCard, ExternalLink, Trash2, LayoutDashboard, Bell } from 'lucide-react';
 import { CreateStoreModal } from '../components/dashboard/CreateStoreModal';
 import { DeleteStoreModal } from '../components/dashboard/DeleteStoreModal';
 import { StoreLoginModal } from '../components/dashboard/StoreLoginModal';
 import { NotificationsModal } from '../components/common/NotificationsModal';
 import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
 
 export function Dashboard() {
     const navigate = useNavigate();
@@ -21,8 +16,6 @@ export function Dashboard() {
     const [profile, setProfile] = useState(null);
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [storeToDelete, setStoreToDelete] = useState(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [storeToDelete, setStoreToDelete] = useState(null);
     const [storeToEnter, setStoreToEnter] = useState(null);
@@ -103,7 +96,6 @@ export function Dashboard() {
                             onClick={() => setIsNotificationsOpen(true)}
                         >
                             <Bell className="h-6 w-6" />
-                            {/* Optional: Add red dot logic here if we fetch unread count separately */}
                         </Button>
                         <Button onClick={() => setIsCreateModalOpen(true)}>
                             <Plus className="h-5 w-5 mr-2" />
@@ -256,27 +248,12 @@ export function Dashboard() {
                     }}
                 />
             )}
-        </div>
-    );
-    {
-        storeToDelete && (
-            <DeleteStoreModal
-                isOpen={!!storeToDelete}
-                store={storeToDelete}
-                onClose={() => setStoreToDelete(null)}
-                onSuccess={() => {
-                    setStoreToDelete(null);
-                    fetchData(); // Refresh list
-                }}
-            />
-        )
-    }
 
-    <NotificationsModal
-        isOpen={isNotificationsOpen}
-        onClose={() => setIsNotificationsOpen(false)}
-        userId={user?.id}
-    />
-        </div >
+            <NotificationsModal
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+                userId={user?.id}
+            />
+        </div>
     );
 }

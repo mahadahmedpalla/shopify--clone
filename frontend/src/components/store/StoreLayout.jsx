@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link, NavLink, Outlet } from 'react-router-dom';
 import {
@@ -14,7 +13,6 @@ import {
     LogOut,
     Truck,
     Coins,
-    Coins,
     Store,
     Bell
 } from 'lucide-react';
@@ -25,7 +23,6 @@ import { Button } from '../ui/Button';
 export function StoreLayout() {
     const { storeId } = useParams();
     const navigate = useNavigate();
-    const [store, setStore] = useState(null);
     const [store, setStore] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -176,17 +173,14 @@ export function StoreLayout() {
                     </div>
                 </div>
             </main>
-        </main>
 
-            {
-        store && (
-            <NotificationsModal
-                isOpen={isNotificationsOpen}
-                onClose={() => setIsNotificationsOpen(false)}
-                userId={store.owner_id}
-            />
-        )
-    }
-        </div >
+            {store && (
+                <NotificationsModal
+                    isOpen={isNotificationsOpen}
+                    onClose={() => setIsNotificationsOpen(false)}
+                    userId={store.owner_id}
+                />
+            )}
+        </div>
     );
 }
