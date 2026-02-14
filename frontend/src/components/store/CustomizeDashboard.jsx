@@ -315,9 +315,17 @@ export function CustomizeDashboard() {
                         </div>
                         <div className="divide-y divide-slate-100">
                             {SYSTEM_PAGES.map((sys) => {
-                                const page = pages.find(p => p.slug === sys.slug); // Get the actual page object
+                                const page = pages.find(p => p.slug === sys.slug);
                                 const pageId = page?.id;
-                                const status = getPageStatus(sys.slug);
+                                const isEffectivePublished = page && page.is_published && !isExpired;
+
+                                let status = 'Not Created';
+                                if (page) {
+                                    if (isExpired && page.is_published) status = 'Suspended';
+                                    else if (page.is_published) status = 'Published';
+                                    else status = 'Draft';
+                                }
+
                                 return (
                                     <div key={sys.slug} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
@@ -334,13 +342,13 @@ export function CustomizeDashboard() {
                                                 {pageId && (
                                                     <button
                                                         onClick={() => handleToggleStatus(page)}
-                                                        className={`p-1 rounded-lg transition-colors ${page.is_published ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
-                                                        title={page.is_published ? 'Published' : 'Draft'}
+                                                        className={`p-1 rounded-lg transition-colors ${isEffectivePublished ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
+                                                        title={isEffectivePublished ? 'Published' : (isExpired && page.is_published ? 'Suspended (Expired)' : 'Draft')}
                                                     >
-                                                        {page.is_published ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
+                                                        {isEffectivePublished ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
                                                     </button>
                                                 )}
-                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${status === 'Published' ? 'text-green-500' : 'text-slate-400'}`}>
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${status === 'Published' ? 'text-green-500' : (status === 'Suspended' ? 'text-red-500' : 'text-slate-400')}`}>
                                                     {status}
                                                 </span>
                                             </div>
@@ -390,54 +398,66 @@ export function CustomizeDashboard() {
                                     No custom pages yet. Click "Create Page" to add one.
                                 </div>
                             )}
-                            {pages.filter(p => p.type === 'custom').map((page) => (
-                                <div key={page.id} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-500 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-colors">
-                                            <FileText className="h-4 w-4" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-bold text-slate-800">{page.name}</h4>
-                                            <p className="text-xs text-slate-400">/{page.slug}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <button
-                                            onClick={() => handleToggleStatus(page)}
-                                            className={`p-1 rounded-lg transition-colors ${page.is_published ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
-                                            title={page.is_published ? 'Published' : 'Draft'}
-                                        >
-                                            {page.is_published ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
-                                        </button>
+                            {pages.filter(p => p.type === 'custom').map((page) => {
+                                const isEffectivePublished = page.is_published && !isExpired;
+                                let status = 'Draft';
+                                if (isExpired && page.is_published) status = 'Suspended';
+                                else if (page.is_published) status = 'Published';
 
-                                        <div className="flex items-center space-x-2 border-l border-slate-100 pl-4">
-                                            <a
-                                                href={`/s/${store?.sub_url}/${page.slug}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                                title="View Page"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </a>
+                                return (
+                                    <div key={page.id} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm text-slate-500 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-colors">
+                                                <FileText className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-slate-800">{page.name}</h4>
+                                                <p className="text-xs text-slate-400">/{page.slug}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center space-x-4">
+                                            <div className="text-right flex items-center space-x-3 mr-4">
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${status === 'Published' ? 'text-green-500' : (status === 'Suspended' ? 'text-red-500' : 'text-slate-400')}`}>
+                                                    {status}
+                                                </span>
+                                            </div>
                                             <button
-                                                onClick={() => navigate(`/store/${storeId}/builder/${page.id}`)}
-                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                                title="Design Page"
+                                                onClick={() => handleToggleStatus(page)}
+                                                className={`p-1 rounded-lg transition-colors ${isEffectivePublished ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
+                                                title={isEffectivePublished ? 'Published' : (isExpired && page.is_published ? 'Suspended (Expired)' : 'Draft')}
                                             >
-                                                <Palette className="h-4 w-4" />
+                                                {isEffectivePublished ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
                                             </button>
-                                            <button
-                                                onClick={() => handleDeletePage(page.id)}
-                                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                                title="Delete Page"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+
+                                            <div className="flex items-center space-x-2 border-l border-slate-100 pl-4">
+                                                <a
+                                                    href={`/s/${store?.sub_url}/${page.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                    title="View Page"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </a>
+                                                <button
+                                                    onClick={() => navigate(`/store/${storeId}/builder/${page.id}`)}
+                                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                    title="Design Page"
+                                                >
+                                                    <Palette className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeletePage(page.id)}
+                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                    title="Delete Page"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </Card>
 
@@ -449,7 +469,15 @@ export function CustomizeDashboard() {
                             {LEGAL_PAGES.map((sys) => {
                                 const page = pages.find(p => p.slug === sys.slug);
                                 const pageId = page?.id;
-                                const status = getPageStatus(sys.slug);
+                                const isEffectivePublished = page && page.is_published && !isExpired;
+
+                                let status = 'Not Created';
+                                if (page) {
+                                    if (isExpired && page.is_published) status = 'Suspended';
+                                    else if (page.is_published) status = 'Published';
+                                    else status = 'Draft';
+                                }
+
                                 return (
                                     <div key={sys.slug} className="group hover:bg-slate-50/50 transition-all p-4 flex items-center justify-between">
                                         <div className="flex items-center space-x-4">
@@ -462,13 +490,13 @@ export function CustomizeDashboard() {
                                             {pageId && (
                                                 <button
                                                     onClick={() => handleToggleStatus(page)}
-                                                    className={`p-1 rounded-lg transition-colors ${page.is_published ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
-                                                    title={page.is_published ? 'Published' : 'Draft'}
+                                                    className={`p-1 rounded-lg transition-colors ${isEffectivePublished ? 'text-green-600 hover:bg-green-50' : 'text-slate-300 hover:bg-slate-100'}`}
+                                                    title={isEffectivePublished ? 'Published' : (isExpired && page.is_published ? 'Suspended (Expired)' : 'Draft')}
                                                 >
-                                                    {page.is_published ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
+                                                    {isEffectivePublished ? <ToggleRight className="h-6 w-6" /> : <ToggleLeft className="h-6 w-6" />}
                                                 </button>
                                             )}
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{status}</span>
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${status === 'Published' ? 'text-green-500' : (status === 'Suspended' ? 'text-red-500' : 'text-slate-400')}`}>{status}</span>
                                             <button
                                                 onClick={() => pageId && navigate(`/store/${storeId}/builder/${pageId}`)}
                                                 disabled={!pageId}
@@ -514,7 +542,7 @@ export function CustomizeDashboard() {
                         </Button>
                     </Card>
                 </div>
-            </div>
+            </div >
 
             <CreatePageModal
                 isOpen={showCreateModal}
@@ -522,6 +550,6 @@ export function CustomizeDashboard() {
                 onSubmit={handleCreatePage}
                 loading={loading}
             />
-        </div>
+        </div >
     );
 }
