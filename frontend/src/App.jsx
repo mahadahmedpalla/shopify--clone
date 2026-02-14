@@ -24,7 +24,21 @@ import { StoreSettingsPage } from './components/store/settings/StoreSettingsPage
 import { ThemeDashboard } from './pages/ThemeDashboard';
 import { ThemeBuilder } from './components/theme/ThemeBuilder';
 import { ThemeMarketplace } from './components/store/theme/ThemeMarketplace';
-// ... existing imports ...
+import { ThemeMarketplace } from './components/store/theme/ThemeMarketplace';
+import { AdminLoginPage } from './components/admin/AdminLoginPage';
+
+// --- Admin Components (Placeholder for now) ---
+const AdminDashboard = () => (
+  <div className="p-8">
+    <h1 className="text-2xl font-bold">Super Admin Dashboard</h1>
+    <p>Welcome, Administrator.</p>
+  </div>
+);
+
+const ProtectedAdminRoute = ({ children }) => {
+  const isAdmin = localStorage.getItem('admin_session') === 'active';
+  return isAdmin ? children : <Navigate to="/sec/admin/login" replace />;
+};
 
 
 // Simple Layout Wrapper
@@ -146,11 +160,21 @@ function App() {
 
           {/* Full Screen Builder Route */}
           <Route path="/store/:storeId/builder/:pageId" element={<StoreBuilder />} />
-
-          {/* Theme Builder Routes */}
-          <Route path="/theme-builder/:themeId" element={<ThemeBuilder />} />
-          <Route path="/theme-builder/:themeId/page/:pageId" element={<ThemeBuilder />} />
         </Route>
+
+        {/* Theme Developer Routes */}
+        <Route path="/theme-dashboard" element={<ProtectedRoute><ThemeDashboard /></ProtectedRoute>} />
+        <Route path="/theme-builder/:themeId" element={<ProtectedRoute><ThemeBuilder /></ProtectedRoute>} />
+
+        {/* Super Admin Routes */}
+        <Route path="/sec/admin/login" element={<AdminLoginPage />} />
+        <Route path="/sec/admin/*" element={
+          <ProtectedAdminRoute>
+            <Routes>
+              <Route path="dashboard" element={<AdminDashboard />} />
+            </Routes>
+          </ProtectedAdminRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );
