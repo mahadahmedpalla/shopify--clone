@@ -311,7 +311,7 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                                     await validateStorageAllowance(storeId, file.size);
                                                 } catch (err) {
                                                     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                                                    alert(`Storage Limit Exceeded. Cannot upload ${fileSizeMB}MB file.`);
+                                                    alert(`Storage Limit Exceeded. Cannot upload ${fileSizeMB}MB file.\nPlease check your storage in store settings`);
                                                     return;
                                                 }
                                             }
