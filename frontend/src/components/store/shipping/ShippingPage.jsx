@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { getCountryName } from '../../../lib/countries';
 import { AllowedCountriesModal } from './AllowedCountriesModal';
+import { formatCurrency } from '../../../utils/currencyUtils';
 
 export function ShippingPage() {
     const { storeId } = useParams();
@@ -28,6 +29,7 @@ export function ShippingPage() {
     const [editingRate, setEditingRate] = useState(null);
     const [showAllowedModal, setShowAllowedModal] = useState(false);
     const [allowedCountries, setAllowedCountries] = useState(null); // null = all allowed
+    const [currency, setCurrency] = useState('USD');
 
     useEffect(() => {
         if (storeId) {
@@ -49,12 +51,13 @@ export function ShippingPage() {
             // Fetch store allowed countries
             const { data: storeData } = await supabase
                 .from('stores')
-                .select('allowed_countries')
+                .select('allowed_countries, currency')
                 .eq('id', storeId)
                 .single();
 
             if (storeData) {
                 setAllowedCountries(storeData.allowed_countries);
+                if (storeData.currency) setCurrency(storeData.currency);
             }
         } catch (err) {
             console.error('Error fetching shipping rates:', err);
@@ -218,14 +221,14 @@ export function ShippingPage() {
                                             </div>
                                             <div className="flex items-center space-x-1 text-slate-900 font-medium">
                                                 <DollarSign className="w-3.5 h-3.5" />
-                                                <span>${rate.amount}</span>
+                                                <span>{formatCurrency(rate.amount, currency)}</span>
                                             </div>
                                         </div>
 
                                         <div className="flex flex-wrap gap-2 mt-3">
                                             {rate.min_order_value > 0 && (
                                                 <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                                    Min Order: ${rate.min_order_value}
+                                                    Min Order: {formatCurrency(rate.min_order_value, currency)}
                                                 </span>
                                             )}
                                             {rate.applies_to !== 'all' && (

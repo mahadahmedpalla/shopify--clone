@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { DiscountForm } from './DiscountForm';
+import { formatCurrency } from '../../../utils/currencyUtils';
 import {
     Plus,
     Search,
@@ -23,6 +24,7 @@ export function DiscountsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [selectedDiscount, setSelectedDiscount] = useState(null);
+    const [currency, setCurrency] = useState('USD');
 
     useEffect(() => {
         fetchDiscounts();
@@ -42,7 +44,22 @@ export function DiscountsPage() {
             setDiscounts(data || []);
         }
         setLoading(false);
+        setLoading(false);
     };
+
+    useEffect(() => {
+        if (storeId) {
+            const fetchStoreSettings = async () => {
+                const { data } = await supabase
+                    .from('stores')
+                    .select('currency')
+                    .eq('id', storeId)
+                    .single();
+                if (data) setCurrency(data.currency || 'USD');
+            };
+            fetchStoreSettings();
+        }
+    }, [storeId]);
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this discount?')) return;
@@ -133,7 +150,7 @@ export function DiscountsPage() {
                                         </div>
                                         <div className="text-xs text-slate-500 mt-0.5 flex items-center space-x-3">
                                             <span className="font-semibold text-indigo-600">
-                                                {discount.discount_type === 'percentage' ? `${discount.value}% Off` : `$${discount.value} Off`}
+                                                {discount.discount_type === 'percentage' ? `${discount.value}% Off` : `${formatCurrency(discount.value, currency)} Off`}
                                             </span>
                                             <span>•</span>
                                             <span>

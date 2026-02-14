@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase';
 // import { Button } from '../../ui/Button'; -- Check path, user uses ../../ui/Button in CouponsPage
 import { Button } from '../../ui/Button';
 import { CreateTaxModal } from './CreateTaxModal';
+import { formatCurrency } from '../../../utils/currencyUtils';
 import {
     Activity, // Replacement for generic icon
     Plus,
@@ -23,6 +24,7 @@ export function TaxesPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTax, setEditingTax] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currency, setCurrency] = useState('USD');
 
     useEffect(() => {
         fetchTaxes();
@@ -37,8 +39,23 @@ export function TaxesPage() {
             .order('created_at', { ascending: false });
 
         if (data) setTaxes(data);
+        if (data) setTaxes(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        if (storeId) {
+            const fetchStoreSettings = async () => {
+                const { data } = await supabase
+                    .from('stores')
+                    .select('currency')
+                    .eq('id', storeId)
+                    .single();
+                if (data) setCurrency(data.currency || 'USD');
+            };
+            fetchStoreSettings();
+        }
+    }, [storeId]);
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this tax?')) return;
@@ -125,7 +142,7 @@ export function TaxesPage() {
                                             </span>
                                         </h3>
                                         <p className="text-sm text-slate-500 mt-0.5">
-                                            {tax.country} • {tax.type === 'percentage' ? `${tax.value}%` : `$${tax.value} Fixed`}
+                                            {tax.country} • {tax.type === 'percentage' ? `${tax.value}%` : `${formatCurrency(tax.value, currency)} Fixed`}
                                             {' • '}
                                             {tax.applies_to === 'all' ? 'All Products' :
                                                 tax.applies_to === 'specific_products' ? `${tax.included_product_ids?.length || 0} Products` :
