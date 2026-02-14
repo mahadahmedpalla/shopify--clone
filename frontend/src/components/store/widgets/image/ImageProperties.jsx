@@ -56,8 +56,9 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
             const filePath = `${folder}/${fileName}`;
 
             if (activeStoreId && !isTheme) {
-                const allowed = await validateStorageAllowance(activeStoreId, file.size);
-                if (!allowed) {
+                try {
+                    await validateStorageAllowance(activeStoreId, file.size);
+                } catch (err) {
                     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
                     alert(`Storage Limit Exceeded. Cannot upload ${fileSizeMB}MB file.`);
                     setUploading(false);
