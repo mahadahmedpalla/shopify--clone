@@ -483,72 +483,69 @@ export function StoreSettingsPage() {
 
             {/* Store Renewal Tab */}
             {activeTab === 'renewal' && (
-                <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300">
-                    <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300 space-y-6">
-                        <Card className="p-6">
-                            <div className="flex items-center gap-2 mb-6">
-                                <Clock className="h-5 w-5 text-indigo-600" />
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900">Store Renewal</h3>
-                                    <p className="text-xs text-slate-500">Manage your store's monthly subscription.</p>
+                <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300 space-y-6">
+                    <Card className="p-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Clock className="h-5 w-5 text-indigo-600" />
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Store Renewal</h3>
+                                <p className="text-xs text-slate-500">Manage your store's monthly subscription.</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Status Card */}
+                            <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Subscription Status</p>
+                                <div className="flex items-center gap-2">
+                                    {(!renewalDate || new Date(renewalDate) > new Date()) ? (
+                                        <>
+                                            <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+                                            <span className="text-lg font-bold text-green-700">Active</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="h-2.5 w-2.5 rounded-full bg-red-500"></div>
+                                            <span className="text-lg font-bold text-red-700">Expired</span>
+                                        </>
+                                    )}
                                 </div>
+                                <p className="text-xs text-slate-500">
+                                    {(!renewalDate || new Date(renewalDate) > new Date())
+                                        ? "Your store is live and accessible."
+                                        : "Your store page editing is restricted."}
+                                </p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Status Card */}
-                                <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Subscription Status</p>
-                                    <div className="flex items-center gap-2">
-                                        {(!renewalDate || new Date(renewalDate) > new Date()) ? (
-                                            <>
-                                                <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
-                                                <span className="text-lg font-bold text-green-700">Active</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="h-2.5 w-2.5 rounded-full bg-red-500"></div>
-                                                <span className="text-lg font-bold text-red-700">Expired</span>
-                                            </>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-slate-500">
-                                        {(!renewalDate || new Date(renewalDate) > new Date())
-                                            ? "Your store is live and accessible."
-                                            : "Your store page editing is restricted."}
-                                    </p>
-                                </div>
-
-                                {/* Date Card */}
-                                <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Next Renewal</p>
-                                    <p className="text-xl font-bold text-slate-900">
-                                        {renewalDate ? new Date(renewalDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '---'}
-                                    </p>
-                                    <p className="text-xs text-slate-500">
-                                        Automatic monthly renewal.
-                                    </p>
-                                </div>
+                            {/* Date Card */}
+                            <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Next Renewal</p>
+                                <p className="text-xl font-bold text-slate-900">
+                                    {renewalDate ? new Date(renewalDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '---'}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    Automatic monthly renewal.
+                                </p>
                             </div>
+                        </div>
 
-                            {/* Renewal Action */}
-                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <div>
-                                    <h4 className="font-bold text-indigo-900">Monthly Renewal</h4>
-                                    <p className="text-sm text-indigo-700 mt-1">Cost: <strong>50 Credits / Month</strong></p>
-                                    <p className="text-xs text-indigo-600 mt-2 opacity-80">
-                                        Extends your store's active status by 30 days from the current expiration date.
-                                    </p>
-                                </div>
-                                <Button
-                                    onClick={() => setIsRenewalModalOpen(true)}
-                                    className="whitespace-nowrap"
-                                >
-                                    Renew Subscription
-                                </Button>
+                        {/* Renewal Action */}
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <h4 className="font-bold text-indigo-900">Monthly Renewal</h4>
+                                <p className="text-sm text-indigo-700 mt-1">Cost: <strong>50 Credits / Month</strong></p>
+                                <p className="text-xs text-indigo-600 mt-2 opacity-80">
+                                    Extends your store's active status by 30 days from the current expiration date.
+                                </p>
                             </div>
-                        </Card>
-                    </div>
-            )}
+                            <Button
+                                onClick={() => setIsRenewalModalOpen(true)}
+                                className="whitespace-nowrap"
+                            >
+                                Renew Subscription
+                            </Button>
+                        </div>
+                    </Card>
                 </div>
             )}
 
@@ -870,55 +867,57 @@ export function StoreSettingsPage() {
                         )}
                     </div>
                 </div>
-                {/* Renewal Modal */}
-                <Modal
-                    isOpen={isRenewalModalOpen}
-                    onClose={() => setIsRenewalModalOpen(false)}
-                    title="Renew Store Subscription"
-                >
-                    <div className="space-y-4">
-                        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <Clock className="h-5 w-5 text-indigo-400" />
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-indigo-700">
-                                        You are about to renew your store subscription for <strong>1 Month</strong>.
-                                    </p>
-                                    <p className="text-sm text-indigo-700 mt-1">
-                                        Cost: <strong>50 Credits</strong>
-                                    </p>
-                                    <p className="text-sm text-indigo-700">
-                                        Current Balance: <strong>{credits} Credits</strong>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+            </Modal>
 
-                        {credits < 50 && (
-                            <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                                <div className="flex">
-                                    <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-                                    <p className="text-sm text-red-700">Insufficient credits. Please top up your account.</p>
-                                </div>
+            {/* Renewal Modal */}
+            <Modal
+                isOpen={isRenewalModalOpen}
+                onClose={() => setIsRenewalModalOpen(false)}
+                title="Renew Store Subscription"
+            >
+                <div className="space-y-4">
+                    <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <Clock className="h-5 w-5 text-indigo-400" />
                             </div>
-                        )}
-
-                        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
-                            <Button variant="secondary" onClick={() => setIsRenewalModalOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button
-                                onClick={handleRenewSubscription}
-                                isLoading={renewing}
-                                disabled={credits < 50}
-                            >
-                                Confirm Renewal
-                            </Button>
+                            <div className="ml-3">
+                                <p className="text-sm text-indigo-700">
+                                    You are about to renew your store subscription for <strong>1 Month</strong>.
+                                </p>
+                                <p className="text-sm text-indigo-700 mt-1">
+                                    Cost: <strong>50 Credits</strong>
+                                </p>
+                                <p className="text-sm text-indigo-700">
+                                    Current Balance: <strong>{credits} Credits</strong>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </Modal>
+
+                    {credits < 50 && (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                            <div className="flex">
+                                <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                                <p className="text-sm text-red-700">Insufficient credits. Please top up your account.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
+                        <Button variant="secondary" onClick={() => setIsRenewalModalOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleRenewSubscription}
+                            isLoading={renewing}
+                            disabled={credits < 50}
+                        >
+                            Confirm Renewal
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
