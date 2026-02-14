@@ -550,7 +550,7 @@ export function CheckoutForm({
                     <div className="space-y-6">
                         {cart.map((item, i) => (
                             <div key={i} className="flex items-center gap-4">
-                                <div className="relative h-16 w-16 bg-white border border-slate-200 rounded-lg items-center justify-center flex shrink-0">
+                                <div className="relative h-16 w-16 bg-white border border-slate-200 rounded-lg items-center justify-center flex overflow-hidden">
                                     <span className="absolute -top-2 -right-2 bg-slate-500 text-white text-xs font-bold h-5 w-5 flex items-center justify-center rounded-full z-10 shadow-sm">{item.quantity}</span>
                                     {item.image ? (
                                         <img src={item.image} alt={item.name} className="h-full w-full object-cover" />

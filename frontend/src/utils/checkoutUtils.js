@@ -389,8 +389,5 @@ export const calculateShippingOptions = (cartItems, availableRates) => {
         return { ...opt, accepts_cod: allRatesAllowCod };
     });
 
-    // Sort options by rate (cheapest first)
-    options.sort((a, b) => a.rate - b.rate);
-
     return options;
 };
