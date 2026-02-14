@@ -8,7 +8,12 @@ import { Plus, Store, CreditCard, ExternalLink, Trash2, LayoutDashboard } from '
 import { CreateStoreModal } from '../components/dashboard/CreateStoreModal';
 import { DeleteStoreModal } from '../components/dashboard/DeleteStoreModal';
 import { StoreLoginModal } from '../components/dashboard/StoreLoginModal';
+import { CreateStoreModal } from '../components/dashboard/CreateStoreModal';
+import { DeleteStoreModal } from '../components/dashboard/DeleteStoreModal';
+import { StoreLoginModal } from '../components/dashboard/StoreLoginModal';
+import { NotificationsModal } from '../components/common/NotificationsModal';
 import { useNavigate } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 
 export function Dashboard() {
     const navigate = useNavigate();
@@ -18,7 +23,10 @@ export function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [storeToDelete, setStoreToDelete] = useState(null);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [storeToDelete, setStoreToDelete] = useState(null);
     const [storeToEnter, setStoreToEnter] = useState(null);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -88,6 +96,15 @@ export function Dashboard() {
                                 <p className="text-lg font-bold text-indigo-900">{profile?.credits || 0}</p>
                             </div>
                         </Card>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="mr-2 text-slate-500 hover:text-indigo-600 relative"
+                            onClick={() => setIsNotificationsOpen(true)}
+                        >
+                            <Bell className="h-6 w-6" />
+                            {/* Optional: Add red dot logic here if we fetch unread count separately */}
+                        </Button>
                         <Button onClick={() => setIsCreateModalOpen(true)}>
                             <Plus className="h-5 w-5 mr-2" />
                             Create Store
@@ -240,5 +257,26 @@ export function Dashboard() {
                 />
             )}
         </div>
+    );
+    {
+        storeToDelete && (
+            <DeleteStoreModal
+                isOpen={!!storeToDelete}
+                store={storeToDelete}
+                onClose={() => setStoreToDelete(null)}
+                onSuccess={() => {
+                    setStoreToDelete(null);
+                    fetchData(); // Refresh list
+                }}
+            />
+        )
+    }
+
+    <NotificationsModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        userId={user?.id}
+    />
+        </div >
     );
 }

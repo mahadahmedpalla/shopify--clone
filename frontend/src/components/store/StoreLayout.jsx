@@ -14,8 +14,11 @@ import {
     LogOut,
     Truck,
     Coins,
-    Store
+    Coins,
+    Store,
+    Bell
 } from 'lucide-react';
+import { NotificationsModal } from '../common/NotificationsModal';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../ui/Button';
 
@@ -23,7 +26,9 @@ export function StoreLayout() {
     const { storeId } = useParams();
     const navigate = useNavigate();
     const [store, setStore] = useState(null);
+    const [store, setStore] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
     useEffect(() => {
         // Verify authentication
@@ -150,6 +155,14 @@ export function StoreLayout() {
                         <span className="font-medium text-slate-900">{store?.name}</span>
                     </div>
                     <div className="flex items-center space-x-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-400 hover:text-indigo-600"
+                            onClick={() => setIsNotificationsOpen(true)}
+                        >
+                            <Bell className="h-5 w-5" />
+                        </Button>
                         <Button variant="secondary" size="sm" onClick={() => window.open(`https://storeplatform.com/${store?.sub_url}`, '_blank')}>
                             View Store
                         </Button>
@@ -163,6 +176,17 @@ export function StoreLayout() {
                     </div>
                 </div>
             </main>
-        </div>
+        </main>
+
+            {
+        store && (
+            <NotificationsModal
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+                userId={store.owner_id}
+            />
+        )
+    }
+        </div >
     );
 }
