@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../../../lib/supabase';
+import { trackStorageUpload, validateStorageAllowance } from '../../../../lib/storageHelper';
 import { deleteStoreFiles } from '../../../../lib/storageHelper';
 import { ColorInput } from '../Shared';
 import {
@@ -114,6 +115,14 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId, isTheme 
                                     const file = e.target.files?.[0];
                                     if (!file) return;
 
+                                    if (activeStoreId && !isTheme) {
+                                        const allowed = await validateStorageAllowance(activeStoreId, file.size);
+                                        if (!allowed) {
+                                            alert("Storage limit exceeded. Please upgrade your plan or delete some files.");
+                                            return;
+                                        }
+                                    }
+
                                     const fileExt = file.name.split('.').pop();
                                     const fileName = `${Math.random()}.${fileExt}`;
 
@@ -137,6 +146,10 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId, isTheme 
                                         .upload(filePath, file);
 
                                     if (error) return alert('Upload failed: ' + error.message);
+
+                                    if (activeStoreId && !isTheme) {
+                                        await trackStorageUpload(activeStoreId, file.size);
+                                    }
 
                                     const { data: { publicUrl } } = supabase.storage
                                         .from(bucketName)

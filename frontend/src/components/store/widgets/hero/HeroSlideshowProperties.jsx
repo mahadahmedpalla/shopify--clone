@@ -6,7 +6,7 @@ import {
     AlignLeft, AlignCenter, AlignRight, ArrowUp, Move, ArrowDown
 } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
-import { deleteStoreFiles, extractPathFromUrl } from '../../../../lib/storageHelper';
+import { deleteStoreFiles, extractPathFromUrl, trackStorageUpload, validateStorageAllowance } from '../../../../lib/storageHelper';
 import { ColorInput } from '../Shared';
 
 export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode = 'desktop', storePages = [], isTheme = false, developerId = null }) {
@@ -103,6 +103,15 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
 
         const filePath = `${folder}/${fileName}`;
 
+
+        if (activeStoreId && !isTheme) {
+            const allowed = await validateStorageAllowance(activeStoreId, file.size);
+            if (!allowed) {
+                alert("Storage limit exceeded. Please upgrade your plan or delete some files.");
+                return;
+            }
+        }
+
         const { error } = await supabase.storage.from(bucketName).upload(filePath, file);
         if (error) {
             console.error('Upload error:', error);
@@ -110,6 +119,11 @@ export function HeroSlideshowProperties({ settings, onUpdate, storeId, viewMode 
         }
 
         const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+
+        if (activeStoreId && !isTheme) {
+            await trackStorageUpload(activeStoreId, file.size);
+        }
+
         // Uses the responsive key logic to upload per-device image if needed
         handleSlideUpdate(slideIndex, 'image', data.publicUrl);
     };

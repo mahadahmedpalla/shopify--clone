@@ -1,5 +1,6 @@
 import React from 'react';
 import { supabase } from '../../../../lib/supabase';
+import { trackStorageUpload, validateStorageAllowance } from '../../../../lib/storageHelper';
 import { ColorInput } from '../Shared';
 import {
     Trash2, Upload, ChevronRight, Monitor, Tablet, Smartphone, GripVertical, Plus
@@ -305,6 +306,14 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                             const file = e.target.files?.[0];
                                             if (!file) return;
 
+                                            if (storeId) {
+                                                const allowed = await validateStorageAllowance(storeId, file.size);
+                                                if (!allowed) {
+                                                    alert("Storage limit exceeded. Please upgrade your plan or delete some files.");
+                                                    return;
+                                                }
+                                            }
+
                                             const fileExt = file.name.split('.').pop();
                                             const fileName = `${Math.random()}.${fileExt}`;
                                             const filePath = storeId ? `${storeId}/${fileName}` : `${fileName}`;
@@ -314,6 +323,10 @@ export function NavbarProperties({ settings, onUpdate, categories, products, sto
                                                 .upload(filePath, file);
 
                                             if (error) return alert('Upload failed: ' + error.message);
+
+                                            if (storeId) {
+                                                await trackStorageUpload(storeId, file.size);
+                                            }
 
                                             const { data: { publicUrl } } = supabase.storage
                                                 .from('store-assets')

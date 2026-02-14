@@ -6,7 +6,7 @@ import {
     MousePointer, PaintBucket, Upload, Link as LinkIcon
 } from 'lucide-react';
 import { supabase } from '../../../../lib/supabase';
-import { deleteStoreFiles } from '../../../../lib/storageHelper';
+import { deleteStoreFiles, trackStorageUpload, validateStorageAllowance } from '../../../../lib/storageHelper';
 
 export function ImageProperties({ settings, onChange, viewMode = 'desktop', storeId, isTheme = false, developerId = null }) {
     const { storeId: paramStoreId } = useParams();
@@ -55,6 +55,15 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
 
             const filePath = `${folder}/${fileName}`;
 
+            if (activeStoreId && !isTheme) {
+                const allowed = await validateStorageAllowance(activeStoreId, file.size);
+                if (!allowed) {
+                    alert("Storage limit exceeded. Please upgrade your plan or delete some files.");
+                    setUploading(false);
+                    return;
+                }
+            }
+
             let { error: uploadError } = await supabase.storage
                 .from(bucketName)
                 .upload(filePath, file);
@@ -67,6 +76,10 @@ export function ImageProperties({ settings, onChange, viewMode = 'desktop', stor
             const { data } = supabase.storage
                 .from(bucketName)
                 .getPublicUrl(filePath);
+
+            if (activeStoreId && !isTheme) {
+                await trackStorageUpload(activeStoreId, file.size);
+            }
 
             updateSetting('src', data.publicUrl);
         } catch (error) {
