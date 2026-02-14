@@ -88,6 +88,21 @@ export function OrdersPage() {
         order.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+
+
+    // Helper to safely format price, handling invalid currency codes (like 'RS')
+    const safeFormatPrice = (price, currencyCode) => {
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: currencyCode || 'USD',
+            }).format(price);
+        } catch (e) {
+            // Fallback for invalid currency codes
+            return `${currencyCode || 'USD'} ${new Intl.NumberFormat('en-US').format(price)}`;
+        }
+    };
+
     // Loading spinner removed in favor of Skeleton UI inside the table
     // if (loading) return (...)
 
@@ -171,7 +186,7 @@ export function OrdersPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency || 'USD' }).format(order.total)}
+                                            {safeFormatPrice(order.total, order.currency)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center justify-end gap-2">

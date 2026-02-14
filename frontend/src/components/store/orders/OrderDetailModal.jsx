@@ -92,10 +92,14 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
 
     // Helper
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-        }).format(price);
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: currency,
+            }).format(price);
+        } catch (e) {
+            return `${currency} ${new Intl.NumberFormat('en-US').format(price)}`;
+        }
     };
 
     // Tax Breakdown Logic
@@ -284,7 +288,6 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
                     <div className="flex justify-end pt-4">
                         <div className="w-full md:w-1/2 lg:w-1/3 space-y-3 print:w-1/2">
                             <div className="flex justify-between text-sm text-slate-600">
-                                console.log('subtotal', subtotal)
                                 <span>Subtotal</span>
                                 <span className="font-medium">{formatPrice(subtotal)}</span>
                             </div>
