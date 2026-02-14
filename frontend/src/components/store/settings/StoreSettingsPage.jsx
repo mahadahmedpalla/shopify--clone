@@ -11,6 +11,11 @@ export function StoreSettingsPage() {
     const [activeTab, setActiveTab] = useState('store');
     const [copiedId, setCopiedId] = useState(false);
 
+    // Renewal State
+    const [renewalDate, setRenewalDate] = useState(null);
+    const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
+    const [renewing, setRenewing] = useState(false);
+
     // Storage State
     const [storageUsage, setStorageUsage] = useState(null); // Value in MBs
     const [storageLimit, setStorageLimit] = useState(30); // Default 30 MB
@@ -39,7 +44,7 @@ export function StoreSettingsPage() {
                 // 1. Fetch Store Data (Usage, Limit, Domain)
                 const { data: storeData, error: storeError } = await supabase
                     .from('stores')
-                    .select('storage_used, storage_limit, owner_id, custom_domain, domain_status, currency')
+                    .select('storage_used, storage_limit, owner_id, custom_domain, domain_status, currency, next_renewal_date')
                     .eq('id', store.id)
                     .single();
 
@@ -48,6 +53,7 @@ export function StoreSettingsPage() {
                     setStorageLimit(Number(storeData.storage_limit || 30));
                     setCustomDomain(storeData.custom_domain || '');
                     setDomainStatus(storeData.domain_status);
+                    setRenewalDate(storeData.next_renewal_date);
                     setCurrency(storeData.currency || 'USD');
 
                     // 2. Fetch Owner Credits
@@ -184,6 +190,40 @@ export function StoreSettingsPage() {
             alert('Purchase failed: ' + err.message);
         } finally {
             setPurchasing(false);
+        }
+    };
+
+    const handleRenewSubscription = async () => {
+        const RENEWAL_COST = 50;
+        setRenewing(true);
+        try {
+            const { data, error } = await supabase.rpc('renew_store_subscription', {
+                p_store_id: store.id,
+                p_cost: RENEWAL_COST
+            });
+
+            if (error) throw error;
+            if (!data) throw new Error('Renewal failed.');
+
+            // Success
+            setCredits(prev => prev - RENEWAL_COST);
+
+            // Re-fetch to get new date
+            const { data: storeData } = await supabase
+                .from('stores')
+                .select('next_renewal_date')
+                .eq('id', store.id)
+                .single();
+
+            if (storeData) setRenewalDate(storeData.next_renewal_date);
+
+            setIsRenewalModalOpen(false);
+            alert('Store subscription renewed successfully!');
+        } catch (err) {
+            console.error(err);
+            alert('Renewal failed: ' + err.message);
+        } finally {
+            setRenewing(false);
         }
     };
 
@@ -444,12 +484,71 @@ export function StoreSettingsPage() {
             {/* Store Renewal Tab */}
             {activeTab === 'renewal' && (
                 <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300">
-                    <Card className="p-12 text-center">
-                        <Clock className="mx-auto h-12 w-12 text-slate-300" />
-                        <h3 className="mt-2 text-sm font-medium text-slate-900">Renewal Settings</h3>
-                        <p className="mt-1 text-sm text-slate-500">Subscription and renewal management.</p>
-                        <p className="mt-4 text-xs font-mono text-slate-400 bg-slate-100 inline-block px-2 py-1 rounded">Feature Coming Soon</p>
-                    </Card>
+                    <div className="max-w-3xl animate-in slide-in-from-left-4 duration-300 space-y-6">
+                        <Card className="p-6">
+                            <div className="flex items-center gap-2 mb-6">
+                                <Clock className="h-5 w-5 text-indigo-600" />
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">Store Renewal</h3>
+                                    <p className="text-xs text-slate-500">Manage your store's monthly subscription.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Status Card */}
+                                <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Subscription Status</p>
+                                    <div className="flex items-center gap-2">
+                                        {(!renewalDate || new Date(renewalDate) > new Date()) ? (
+                                            <>
+                                                <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+                                                <span className="text-lg font-bold text-green-700">Active</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="h-2.5 w-2.5 rounded-full bg-red-500"></div>
+                                                <span className="text-lg font-bold text-red-700">Expired</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-500">
+                                        {(!renewalDate || new Date(renewalDate) > new Date())
+                                            ? "Your store is live and accessible."
+                                            : "Your store page editing is restricted."}
+                                    </p>
+                                </div>
+
+                                {/* Date Card */}
+                                <div className="p-5 bg-slate-50 border border-slate-100 rounded-xl space-y-2">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Next Renewal</p>
+                                    <p className="text-xl font-bold text-slate-900">
+                                        {renewalDate ? new Date(renewalDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : '---'}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        Automatic monthly renewal.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Renewal Action */}
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div>
+                                    <h4 className="font-bold text-indigo-900">Monthly Renewal</h4>
+                                    <p className="text-sm text-indigo-700 mt-1">Cost: <strong>50 Credits / Month</strong></p>
+                                    <p className="text-xs text-indigo-600 mt-2 opacity-80">
+                                        Extends your store's active status by 30 days from the current expiration date.
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={() => setIsRenewalModalOpen(true)}
+                                    className="whitespace-nowrap"
+                                >
+                                    Renew Subscription
+                                </Button>
+                            </div>
+                        </Card>
+                    </div>
+            )}
                 </div>
             )}
 
@@ -771,7 +870,55 @@ export function StoreSettingsPage() {
                         )}
                     </div>
                 </div>
-            </Modal>
+                {/* Renewal Modal */}
+                <Modal
+                    isOpen={isRenewalModalOpen}
+                    onClose={() => setIsRenewalModalOpen(false)}
+                    title="Renew Store Subscription"
+                >
+                    <div className="space-y-4">
+                        <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <Clock className="h-5 w-5 text-indigo-400" />
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-indigo-700">
+                                        You are about to renew your store subscription for <strong>1 Month</strong>.
+                                    </p>
+                                    <p className="text-sm text-indigo-700 mt-1">
+                                        Cost: <strong>50 Credits</strong>
+                                    </p>
+                                    <p className="text-sm text-indigo-700">
+                                        Current Balance: <strong>{credits} Credits</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {credits < 50 && (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                                <div className="flex">
+                                    <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+                                    <p className="text-sm text-red-700">Insufficient credits. Please top up your account.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-100">
+                            <Button variant="secondary" onClick={() => setIsRenewalModalOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleRenewSubscription}
+                                isLoading={renewing}
+                                disabled={credits < 50}
+                            >
+                                Confirm Renewal
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
         </div>
     );
 }
