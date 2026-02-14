@@ -71,7 +71,7 @@ function App() {
 
   React.useEffect(() => {
     const hostname = window.location.hostname;
-    const mainDomains = ['localhost', 'shopify-clone-7a4j.vercel.app', '127.0.0.1', 'inwentree.com', 'www.inwentree.com'];
+    const mainDomains = ['localhost', 'shopify-clone-7a4j.vercel.app', '127.0.0.1', 'inwentree.com', 'www.inwentree.com', 'shopify-clone-7a4j-git-futu-bc4c7c-0476mahad-gmailcoms-projects.vercel.app'];
 
     if (!mainDomains.includes(hostname)) {
       setIsCustomDomain(true);
