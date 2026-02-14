@@ -194,6 +194,12 @@ export function CheckoutForm({
                                                     <h4 className="font-bold text-slate-800 text-sm truncate">{item.name}</h4>
                                                     {item.variantTitle && <p className="text-xs text-slate-500 truncate">{item.variantTitle}</p>}
                                                     <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
+                                                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                                                        <span>{formatPrice(item.price)} ea</span>
+                                                        {(item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price) && (
+                                                            <span className="line-through decoration-slate-400">{formatPrice(item.compareAtPrice || item.compare_at_price)}</span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <p className="font-bold text-slate-700 text-sm whitespace-nowrap">{formatPrice(item.price * item.quantity)}</p>
                                             </div>
@@ -562,6 +568,12 @@ export function CheckoutForm({
                                     <h4 className="font-bold text-slate-800 text-sm">{item.name}</h4>
                                     {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
                                     <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
+                                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                                        <span>{formatPrice(item.price)} ea</span>
+                                        {(item.compareAtPrice || item.compare_at_price) && parseFloat(item.compareAtPrice || item.compare_at_price) > parseFloat(item.price) && (
+                                            <span className="line-through decoration-slate-400">{formatPrice(item.compareAtPrice || item.compare_at_price)}</span>
+                                        )}
+                                    </div>
                                 </div>
                                 <p className="font-bold text-slate-700 text-sm">{formatPrice(item.price * item.quantity)}</p>
                             </div>
