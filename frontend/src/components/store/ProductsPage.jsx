@@ -11,6 +11,7 @@ import { CreateProductModal } from './CreateProductModal';
 import { EditProductModal } from './EditProductModal';
 import { AttributesManagerModal } from './AttributesManagerModal';
 import { QuickEditVariantModal } from './QuickEditVariantModal';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 export function ProductsPage() {
     const { storeId } = useParams();
@@ -22,7 +23,9 @@ export function ProductsPage() {
     const [editingProduct, setEditingProduct] = useState(null);
     const [managingVariantsProduct, setManagingVariantsProduct] = useState(null);
     const [quickEditingVariant, setQuickEditingVariant] = useState(null);
+
     const [expandedProducts, setExpandedProducts] = useState(new Set());
+    const [currency, setCurrency] = useState('USD');
 
     useEffect(() => {
         fetchData();
@@ -35,7 +38,15 @@ export function ProductsPage() {
             .from('product_categories')
             .select('id, name, parent_id')
             .eq('store_id', storeId);
-        setCategories(cats || []);
+
+
+        // Fetch Store Currency
+        const { data: storeData } = await supabase
+            .from('stores')
+            .select('currency')
+            .eq('id', storeId)
+            .single();
+        if (storeData) setCurrency(storeData.currency || 'USD');
 
         // Fetch Products with category names and variant count
         const { data: prods, error } = await supabase
@@ -244,7 +255,7 @@ export function ProductsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-slate-900">${p.price.toFixed(2)}</span>
+                                            <span className="text-sm font-bold text-slate-900">{formatCurrency(p.price, currency)}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center space-x-2">
@@ -316,7 +327,7 @@ export function ProductsPage() {
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Variation</span>
                                             </td>
                                             <td className="px-6 py-3">
-                                                <span className="text-sm font-bold text-slate-600">${parseFloat(variant.price || p.price).toFixed(2)}</span>
+                                                <span className="text-sm font-bold text-slate-600">{formatCurrency(variant.price || p.price, currency)}</span>
                                             </td>
                                             <td className="px-6 py-3">
                                                 <div className="flex items-center space-x-2">
