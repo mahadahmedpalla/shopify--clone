@@ -569,7 +569,7 @@ export function StoreBuilder() {
 
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                         <CartProvider storeKey={storeId}>
-                            <CartDrawer settings={activeCartSettings} />
+                            <CartDrawer settings={activeCartSettings} currency={store?.currency || 'USD'} />
                             <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
                                 <div
                                     className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0

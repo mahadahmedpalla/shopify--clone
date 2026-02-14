@@ -177,7 +177,7 @@ export function PublicProductPage({ customDomainStore }) {
 
     return (
         <CartProvider storeKey={store.id}>
-            <CartDrawer settings={cartSettings} />
+            <CartDrawer settings={cartSettings} currency={store?.currency || 'USD'} />
             <div className="min-h-screen bg-white">
                 {pageContent?.map((block) => (
                     <BlockRenderer

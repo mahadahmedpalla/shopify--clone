@@ -661,7 +661,7 @@ export function ThemeBuilder() {
                     <main className="flex-1 bg-slate-100 p-8 overflow-y-auto overflow-x-auto relative flex justify-center scroll-smooth">
                         <CartProvider storeKey={themeId}>
                             {/* Pass mock cart items or handle cart drawer gracefully in theme mode */}
-                            <CartDrawer settings={activeCartSettings} />
+                            <CartDrawer settings={activeCartSettings} currency={theme?.currency || 'USD'} />
                             <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
                                 <div
                                     className={`bg-white shadow-2xl transition-all duration-500 border border-slate-200 min-h-full shrink-0
