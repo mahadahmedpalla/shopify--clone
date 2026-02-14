@@ -342,3 +342,4 @@ export function HeroProperties({ settings, onUpdate, viewMode, storeId, isTheme 
         </div>
     );
 }
+//just a comment
