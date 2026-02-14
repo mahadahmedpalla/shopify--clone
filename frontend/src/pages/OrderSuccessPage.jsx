@@ -167,7 +167,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                                 <p>Qty: {item.quantity}</p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span>
-                                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price)} ea
+                                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price)}
                                                     </span>
                                                     {item.originalPrice && item.originalPrice > item.price && (
                                                         <span className="line-through decoration-slate-400">
