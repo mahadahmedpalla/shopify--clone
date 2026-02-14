@@ -28,7 +28,6 @@ import {
     AlertTriangle,
     Clock
 } from 'lucide-react';
-} from 'lucide-react';
 import { CreatePageModal } from './CreatePageModal';
 
 const SYSTEM_PAGES = [
