@@ -176,36 +176,37 @@ export function OrderSuccessPage({ customDomainStore }) {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-slate-900">
-                                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price * item.quantity)}
-                                                </p>
-                                                {item.originalPrice && item.originalPrice > item.price && (
-                                                    <p className="text-xs text-slate-400 line-through">
-                                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice * item.quantity)}
-                                                    </p>
-                                                )}
-                                            </div>
                                         </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-slate-900">
+                                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price * item.quantity)}
+                                            </p>
+                                            {item.originalPrice && item.originalPrice > item.price && (
+                                                <p className="text-xs text-slate-400 line-through">
+                                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice * item.quantity)}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 ))}
-                                    </div>
-                            {/* Totals */ }
-                                    < div className = "bg-slate-50 p-6 space-y-3" >
-                                    <div className="flex justify-between text-sm text-slate-600">
-                                        <span>Subtotal</span>
-                                        <span className="font-medium">
-                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.subtotal || 0)}
-                                        </span>
-                                    </div>
+                            </div>
+                            {/* Totals */}
+                            < div className="bg-slate-50 p-6 space-y-3" >
+                                <div className="flex justify-between text-sm text-slate-600">
+                                    <span>Subtotal</span>
+                                    <span className="font-medium">
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.subtotal || 0)}
+                                    </span>
+                                </div>
 
                                 {(totals?.discountTotal > 0) && (
-                                        <div className="flex justify-between text-sm text-green-600">
-                                            <span>Discount</span>
-                                            <span className="font-medium">
-                                                -{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals.discountTotal)}
-                                            </span>
-                                        </div>
-                                    )}
+                                    <div className="flex justify-between text-sm text-green-600">
+                                        <span>Discount</span>
+                                        <span className="font-medium">
+                                            -{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals.discountTotal)}
+                                        </span>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-between text-sm text-slate-600">
                                     <span>Shipping</span>
