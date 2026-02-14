@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShoppingCart, Trash2, Minus, Plus, ArrowRight } from 'lucide-react';
 import { useCart } from '../../../../context/CartContext';
+import { formatCurrency } from '../../../../utils/currencyUtils';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isCustomDomain, store }) => {
@@ -33,10 +34,7 @@ export const CartListRenderer = ({ settings, isEditor, viewMode = 'desktop', isC
 
     // Helper to format price
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: store?.currency || 'USD',
-        }).format(price);
+        return formatCurrency(price, store?.currency || 'USD');
     };
 
     // -- HELPER CLASSES --

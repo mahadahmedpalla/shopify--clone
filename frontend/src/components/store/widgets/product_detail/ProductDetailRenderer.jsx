@@ -4,6 +4,7 @@ import { useCart } from '../../../../context/CartContext';
 import { supabase } from '../../../../lib/supabase';
 import { calculateBestPrice } from '../../../../utils/discountUtils';
 import { renderFormattedText } from '../../../../utils/formatText';
+import { formatCurrency } from '../../../../utils/currencyUtils';
 
 
 export function ProductDetailRenderer({ settings, product, viewMode, isEditor, store, storeDiscounts, mockSettings }) {
@@ -265,17 +266,11 @@ export function ProductDetailRenderer({ settings, product, viewMode, isEditor, s
                         {showPrice && (
                             <div className={`flex items-center space-x-3 mb-6 flex-wrap ${alignment === 'center' ? 'justify-center' : alignment === 'right' ? 'justify-end' : ''}`}>
                                 <span className="text-3xl font-bold" style={{ color: priceColor }}>
-                                    {new Intl.NumberFormat('en-US', {
-                                        style: 'currency',
-                                        currency: store?.currency || 'USD',
-                                    }).format(currentPrice)}
+                                    {formatCurrency(currentPrice, store?.currency || 'USD')}
                                 </span>
                                 {hasDiscount && (
                                     <span className="text-xl line-through opacity-60" style={{ color: compareColor }}>
-                                        {new Intl.NumberFormat('en-US', {
-                                            style: 'currency',
-                                            currency: store?.currency || 'USD',
-                                        }).format(comparePrice)}
+                                        {formatCurrency(comparePrice, store?.currency || 'USD')}
                                     </span>
                                 )}
                                 {hasDiscount && (showDiscount || mockSettings?.enableDiscounts) && (

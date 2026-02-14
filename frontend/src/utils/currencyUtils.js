@@ -1,42 +1,34 @@
 /**
  * Formats a number as a currency string.
- * Handles manual overrides for specific currencies (like PKR -> Rs).
- * 
- * @param {number|string} amount - The amount to format
- * @param {string} currency - The ISO currency code (e.g., 'USD', 'PKR')
- * @returns {string} The formatted currency string
+ * Handles extensive manual overrides for specific currencies where Intl.NumberFormat
+ * might not provide the desired symbol (e.g., PKR -> Rs).
+ *
+ * @param {number|string} amount - The amount to format.
+ * @param {string} currency - The ISO 4217 currency code (e.g., 'USD', 'PKR').
+ * @param {string} locale - The locale to use for formatting (default: 'en-US').
+ * @returns {string} The formatted currency string.
  */
-export const formatCurrency = (amount, currency = 'USD') => {
-    // Ensure amount is a number
+export const formatCurrency = (amount, currency = 'USD', locale = 'en-US') => {
     const numericAmount = Number(amount);
     if (isNaN(numericAmount)) return '';
 
     // Manual Overrides
     if (currency === 'PKR') {
-        // "Rs 1,234.56"
-        return `Rs ${numericAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+        // Enforce 2 decimal places for consistency
+        return `Rs ${numericAmount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
-    if (currency === 'SAR') {
-        // "SR 1,234.56" - Optional override if standard Intl is unsatisfactory
-        // Standard Intl for 'en-US' might be 'SAR 100'
-        return `SR ${numericAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
-    }
+    // Add other overrides here if needed (e.g. if user wants 'SR' for SAR instead of SAR/﷼)
+    // if (currency === 'SAR') return `SR ${numericAmount.toFixed(2)}`;
 
-    if (currency === 'AED') {
-        // "AED 1,234.56"
-        return `AED ${numericAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
-    }
-
-    // Default Intl Formatting
     try {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: currency,
         }).format(numericAmount);
-    } catch (e) {
-        // Fallback if currency code is invalid
-        console.warn(`Invalid currency code: ${currency}`);
-        return `$${numericAmount.toFixed(2)}`;
+    } catch (error) {
+        console.warn(`Error formatting currency ${currency}:`, error);
+        // Fallback
+        return `${currency} ${numericAmount.toFixed(2)}`;
     }
 };

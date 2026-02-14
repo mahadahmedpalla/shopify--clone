@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../../lib/supabase';
 import { X, Printer, Package, MapPin, CreditCard, Calendar, Mail, Phone, User, ShoppingBag, ChevronDown, CheckCircle, Truck, Clock, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '../../../utils/currencyUtils';
 
 export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
     if (!isOpen || !order) return null;
@@ -92,14 +93,7 @@ export function OrderDetailModal({ order, isOpen, onClose, onOrderUpdated }) {
 
     // Helper
     const formatPrice = (price) => {
-        try {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: currency,
-            }).format(price);
-        } catch (e) {
-            return `${currency} ${new Intl.NumberFormat('en-US').format(price)}`;
-        }
+        return formatCurrency(price, currency);
     };
 
     // Tax Breakdown Logic

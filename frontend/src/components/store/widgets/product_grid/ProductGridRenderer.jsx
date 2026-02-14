@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
 import { getResponsiveValue } from '../Shared';
 import { calculateBestPrice } from '../../../../utils/discountUtils';
+import { formatCurrency } from '../../../../utils/currencyUtils';
 
 // Helper: Convert name to slug (hyphens, lowercase)
 const slugify = (text) => {
@@ -583,10 +584,7 @@ export function ProductGridRenderer({ settings, products, viewMode, store, isEdi
                                                 // Mock Discount Logic
                                                 const currency = store?.currency || 'USD';
                                                 const formatPrice = (price) => {
-                                                    return new Intl.NumberFormat('en-US', {
-                                                        style: 'currency',
-                                                        currency: currency,
-                                                    }).format(price);
+                                                    return formatCurrency(price, currency);
                                                 };
 
                                                 let displayFinalPrice, displayComparePrice, displayHasDiscount;

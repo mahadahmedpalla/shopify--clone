@@ -3,6 +3,7 @@ import { Box, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../../../lib/supabase';
 import { calculateBestPrice } from '../../../../utils/discountUtils';
+import { formatCurrency } from '../../../../utils/currencyUtils';
 
 export const RelatedProductsRenderer = ({ style, content, productId, product, storeId, currency = 'USD', isEditor, storeDiscounts, isCustomDomain }) => {
     const [relatedProducts, setRelatedProducts] = useState([]);
@@ -190,10 +191,7 @@ const ProductCard = ({ p, showPrice, showDiscount, showRating, showDescription, 
 
     // Format Price Helper
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-        }).format(price);
+        return formatCurrency(price, currency);
     };
 
     return (

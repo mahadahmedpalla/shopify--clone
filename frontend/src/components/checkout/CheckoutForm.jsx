@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, ShoppingBag, CreditCard, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { countries } from '../../lib/countries';
 
+import { formatCurrency } from '../../utils/currencyUtils';
+
 export function CheckoutForm({
     step,
     setStep,
@@ -47,10 +49,7 @@ export function CheckoutForm({
     };
 
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: totals?.currency || 'USD',
-        }).format(price);
+        return formatCurrency(price, totals?.currency || 'USD');
     };
 
     const [showOrderSummary, setShowOrderSummary] = useState(false);

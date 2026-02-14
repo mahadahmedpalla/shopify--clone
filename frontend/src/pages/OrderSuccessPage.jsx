@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { CheckCircle, Package, MapPin, CreditCard, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import { useStoreFavicon } from '../hooks/useStoreFavicon';
 
+import { formatCurrency } from '../utils/currencyUtils';
+
 export function OrderSuccessPage({ customDomainStore }) {
     const { storeSubUrl, orderId } = useParams();
     const [order, setOrder] = useState(null);
@@ -167,11 +169,11 @@ export function OrderSuccessPage({ customDomainStore }) {
                                                 <p>Qty: {item.quantity}</p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span>
-                                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price)}
+                                                        {formatCurrency(item.price, store?.currency || 'USD')}
                                                     </span>
                                                     {item.originalPrice > item.price && (
                                                         <span className="line-through decoration-slate-400">
-                                                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice)}
+                                                            {formatCurrency(item.originalPrice, store?.currency || 'USD')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -179,11 +181,11 @@ export function OrderSuccessPage({ customDomainStore }) {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-slate-900">
-                                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.price * item.quantity)}
+                                                {formatCurrency(item.price * item.quantity, store?.currency || 'USD')}
                                             </p>
                                             {item.originalPrice > item.price && (
                                                 <p className="text-xs text-slate-400 line-through">
-                                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(item.originalPrice * item.quantity)}
+                                                    {formatCurrency(item.originalPrice * item.quantity, store?.currency || 'USD')}
                                                 </p>
                                             )}
                                         </div>
@@ -195,7 +197,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                 <div className="flex justify-between text-sm text-slate-600">
                                     <span>Subtotal</span>
                                     <span className="font-medium">
-                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.subtotal || 0)}
+                                        {formatCurrency(totals?.subtotal || 0, store?.currency || 'USD')}
                                     </span>
                                 </div>
 
@@ -203,7 +205,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                     <div className="flex justify-between text-sm text-green-600">
                                         <span>Discount</span>
                                         <span className="font-medium">
-                                            -{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals.discountTotal)}
+                                            -{formatCurrency(totals.discountTotal, store?.currency || 'USD')}
                                         </span>
                                     </div>
                                 )}
@@ -211,7 +213,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                 <div className="flex justify-between text-sm text-slate-600">
                                     <span>Shipping</span>
                                     <span className="font-medium">
-                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.shippingCost || 0)}
+                                        {formatCurrency(totals?.shippingCost || 0, store?.currency || 'USD')}
                                     </span>
                                 </div>
 
@@ -227,10 +229,7 @@ export function OrderSuccessPage({ customDomainStore }) {
                                         // Currency formatting helper (defined inside map to access store)
                                         const currency = store?.currency || 'USD';
                                         const formatPrice = (price) => {
-                                            return new Intl.NumberFormat('en-US', {
-                                                style: 'currency',
-                                                currency: currency,
-                                            }).format(price);
+                                            return formatCurrency(price, currency);
                                         };
 
                                         let label = code;
@@ -261,14 +260,14 @@ export function OrderSuccessPage({ customDomainStore }) {
                                     totals.taxTotal > 0 && (
                                         <div className="flex justify-between text-sm text-slate-600">
                                             <span>Tax</span>
-                                            <span className="font-medium">{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals.taxTotal)}</span>
+                                            <span className="font-medium">{formatCurrency(totals.taxTotal, store?.currency || 'USD')}</span>
                                         </div>
                                     )
                                 )}
 
                                 <div className="flex justify-between text-lg font-bold text-slate-900 pt-3 border-t border-slate-200 mt-2">
                                     <span>Total</span>
-                                    <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: store?.currency || 'USD' }).format(totals?.total || 0)}</span>
+                                    <span>{formatCurrency(totals?.total || 0, store?.currency || 'USD')}</span>
                                 </div>
                             </div>
                         </div>

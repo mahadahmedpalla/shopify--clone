@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { OrderDetailModal } from './OrderDetailModal';
 import { OrderCommentsModal } from './OrderCommentsModal';
+import { formatCurrency } from '../../../utils/currencyUtils';
 import {
     Search,
     Filter,
@@ -92,15 +93,7 @@ export function OrdersPage() {
 
     // Helper to safely format price, handling invalid currency codes (like 'RS')
     const safeFormatPrice = (price, currencyCode) => {
-        try {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: currencyCode || 'USD',
-            }).format(price);
-        } catch (e) {
-            // Fallback for invalid currency codes
-            return `${currencyCode || 'USD'} ${new Intl.NumberFormat('en-US').format(price)}`;
-        }
+        return formatCurrency(price, currencyCode || 'USD');
     };
 
     // Loading spinner removed in favor of Skeleton UI inside the table

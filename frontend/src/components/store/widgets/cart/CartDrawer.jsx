@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCart } from '../../../../context/CartContext';
 import { calculateOrderDiscount } from '../../../../utils/discountUtils';
+import { formatCurrency } from '../../../../utils/currencyUtils';
 import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 
 export function CartDrawer({ settings, currency = 'USD' }) {
@@ -19,10 +20,7 @@ export function CartDrawer({ settings, currency = 'USD' }) {
     };
 
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-        }).format(price);
+        return formatCurrency(price, currency);
     };
 
     // -- SETTINGS --
