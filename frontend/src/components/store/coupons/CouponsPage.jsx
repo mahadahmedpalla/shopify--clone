@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { Button } from '../../ui/Button';
 import { CouponForm } from './CouponForm';
+import { formatCurrency } from '../../../utils/currencyUtils';
 import {
     Ticket,
     Plus,
@@ -24,6 +25,7 @@ export function CouponsPage() {
     const [editingCoupon, setEditingCoupon] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [copiedId, setCopiedId] = useState(null);
+    const [currency, setCurrency] = useState('USD');
 
     useEffect(() => {
         fetchCoupons();
@@ -40,6 +42,20 @@ export function CouponsPage() {
         if (data) setCoupons(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        if (storeId) {
+            const fetchStoreSettings = async () => {
+                const { data } = await supabase
+                    .from('stores')
+                    .select('currency')
+                    .eq('id', storeId)
+                    .single();
+                if (data) setCurrency(data.currency || 'USD');
+            };
+            fetchStoreSettings();
+        }
+    }, [storeId]);
 
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this coupon?')) return;
@@ -137,7 +153,7 @@ export function CouponsPage() {
                                             </span>
                                         </h3>
                                         <p className="text-sm text-slate-500 mt-0.5">
-                                            {coupon.discount_type === 'percentage' ? `${coupon.value}% Off` : `$${coupon.value} Off`}
+                                            {coupon.discount_type === 'percentage' ? `${coupon.value}% Off` : `${formatCurrency(coupon.value, currency)} Off`}
                                             {' • '}
                                             {coupon.applies_to === 'all' ? 'All Products' :
                                                 coupon.applies_to === 'specific_products' ? `${coupon.included_product_ids?.length || 0} Products` :
