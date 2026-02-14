@@ -220,7 +220,6 @@ export function ShippingPage() {
                                                 <span>{getCountryName(rate.country)} {rate.region ? `(${rate.region})` : ''}</span>
                                             </div>
                                             <div className="flex items-center space-x-1 text-slate-900 font-medium">
-                                                <DollarSign className="w-3.5 h-3.5" />
                                                 <span>{formatCurrency(rate.amount, currency)}</span>
                                             </div>
                                         </div>
