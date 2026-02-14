@@ -561,6 +561,7 @@ export function CheckoutForm({
                                 <div className="flex-1">
                                     <h4 className="font-bold text-slate-800 text-sm">{item.name}</h4>
                                     {item.variantTitle && <p className="text-xs text-slate-500">{item.variantTitle}</p>}
+                                    <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
                                 </div>
                                 <p className="font-bold text-slate-700 text-sm">{formatPrice(item.price * item.quantity)}</p>
                             </div>
