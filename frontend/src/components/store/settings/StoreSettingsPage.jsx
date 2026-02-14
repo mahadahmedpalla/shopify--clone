@@ -689,6 +689,9 @@ export function StoreSettingsPage() {
                                         <option value="JPY">JPY - Japanese Yen (¥)</option>
                                         <option value="INR">INR - Indian Rupee (₹)</option>
                                         <option value="BRL">BRL - Brazilian Real (R$)</option>
+                                        <option value="SAR">SAR - Saudi Riyal (SR)</option>
+                                        <option value="AED">AED - UAE Dirham (AED)</option>
+                                        <option value="PKR">PKR - Pakistani Rupee (Rs)</option>
                                     </select>
                                     <Button
                                         onClick={handleSaveCurrency}
